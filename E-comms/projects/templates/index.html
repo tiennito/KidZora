@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KidZora Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">KidZora</div>
+    <div class="search-bar">
+      <input type="text" placeholder="Search in KidZora">
+      <button>🔍</button>
+    </div>
+    <div class="header-links">
+      {% if user %}
+        <span class="user-info">Hi, {{ user['email'] }}</span>
+        <a href="{{ url_for('logout') }}">Logout</a>
+      {% else %}
+        <a href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('signup') }}">Sign Up</a>
+      {% endif %}
+      <a href="#" class="cart">🛒</a>
+    </div>
+  </header>
+
+  <!-- Banner / Slider -->
+  <section class="banner">
+    <div class="slide"></div>
+    <div class="slide"></div>
+  </section>
+
+  <!-- Flash Sale -->
+  <section class="flash-sale">
+    <div class="flash-header">
+      <h2>Flash Sale</h2>
+      <div class="flash-controls">
+        <span>On Sale Now</span>
+        <span>Ending in: 00:00:00</span>
+        <button>SHOP ALL PRODUCTS</button>
+      </div>
+    </div>
+    <div class="flash-items">
+      <div class="item"></div>
+      <div class="item"></div>
+      <div class="item"></div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="categories">
+    <h2>Categories</h2>
+    <div class="category-grid">
+      <div class="category">Baby Clothes & Accessories</div>
+      <div class="category">Educational Materials</div>
+      <div class="category">Nursery Furniture</div>
+      <div class="category">Toys & Games</div>
+      <div class="category">Strollers & Gear</div>
+      <div class="category">Safety and Health</div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>Follow Us</p>
+    <div class="social-icons">
+      <a href="#">📘</a>
+      <a href="#">📸</a>
+      <a href="#">🐦</a>
+    </div>
+  </footer>
+
+</body>
+</html>

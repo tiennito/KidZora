@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - KidZora</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+<body>
+  <div class="container">
+    <h1 class="logo">KidZora</h1>
+    <form id="loginForm" action="/login" method="POST">
+      <input type="text" id="username" name="username" placeholder="Enter E-mail address" required />
+      <input type="password" id="login_password" name="password" placeholder="Password" required />
+    <div class="forgot">
+      <a href="#">Forgot Password</a>
+    </div>
+     <div class="btn-wrapper">
+      <button type="submit" class="btn_log">Login</button>
+    </div>
+
+     <p class="signup-text">
+      Don’t have an acc? <a href="{{ url_for('signup') }}" class="signup">Sign up</a>
+      </p>
+
+    </form>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDL41xZVMTTcjjC12c3uOK2Ft4smmSYwgs",
+      authDomain: "https://kidzora-a3808-default-rtdb.firebaseio.com/",
+      projectId: "kidzora-a3808",
+      appId: "581527879563"
+    };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+      document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("username").value;
+        const password = document.getElementById("login_password").value;
+
+        try {
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          const token = await userCredential.user.getIdToken();
+          
+          // Send token to Flask for session handling
+          const res = await fetch("/verify_token", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token })
+          });
+
+          if (res.ok) {
+            window.location.href = "/dashboard";
+          } else {
+            alert("Login failed!");
+          }
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+    </script>
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,151 @@
+/* General Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #f5f5f5;
+  color: #333;
+}
+
+/* Header */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+  color: #3d3dbf;
+}
+
+.search-bar {
+  flex: 1;
+  display: flex;
+  margin: 0 20px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-right: none;
+}
+
+.search-bar button {
+  padding: 8px 12px;
+  background: #3d3dbf;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.header-links a {
+  margin-left: 15px;
+  text-decoration: none;
+  color: #333;
+}
+
+.header-links .cart {
+  font-size: 20px;
+}
+
+/* Banner */
+.banner {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+}
+
+.banner .slide {
+  width: 300px;
+  height: 150px;
+  background: #ddd;
+  border-radius: 5px;
+}
+
+/* Flash Sale */
+.flash-sale {
+  background: #fff;
+  margin: 20px;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.flash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flash-controls span {
+  margin-right: 15px;
+  font-size: 14px;
+}
+
+.flash-controls button {
+  padding: 5px 10px;
+  border: none;
+  background: #3d3dbf;
+  color: #fff;
+  cursor: pointer;
+}
+
+.flash-items {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.flash-items .item {
+  width: 30%;
+  height: 120px;
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Categories */
+.categories {
+  margin: 20px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 5px;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.category {
+  background: #eee;
+  padding: 20px;
+  text-align: center;
+  border-radius: 5px;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 20px;
+  background: #fff;
+  border-top: 1px solid #ddd;
+}
+
+.social-icons a {
+  margin: 0 10px;
+  font-size: 20px;
+  text-decoration: none;
+}
