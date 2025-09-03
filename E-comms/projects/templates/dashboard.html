@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KidZora Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">KidZora</div>
+
+    <div class="search-bar">
+      <input type="text" placeholder="Search in KidZora">
+      <button>🔍</button>
+    </div>
+
+    <nav class="header-links">
+      <a href="/login" id="login-link">Login</a>
+      <a href="/signup" id="signup-link">Sign Up</a>
+      <a href="#" class="cart">🛒</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Banner / Slider -->
+    <section class="banner">
+      <div class="slide">
+        <img src="static/images/banner1.jpg" alt="KidZora Sale">
+      </div>
+      <div class="slide">
+        <img src="static/images/banner2.jpg" alt="New Arrivals">
+      </div>
+    </section>
+
+    <!-- Flash Sale -->
+    <section class="flash-sale">
+      <div class="flash-header">
+        <h2>Flash Sale</h2>
+        <div class="flash-controls">
+          <span>On Sale Now</span>
+          <span id="countdown">Ending in: 00:00:00</span>
+          <button>SHOP ALL PRODUCTS</button>
+        </div>
+      </div>
+      <div class="flash-items">
+        <div class="item">Product 1</div>
+        <div class="item">Product 2</div>
+        <div class="item">Product 3</div>
+      </div>
+    </section>
+
+    <!-- Categories -->
+    <section class="categories">
+      <h2>Categories</h2>
+      <div class="category-grid">
+        <div class="category">Baby Clothes & Accessories</div>
+        <div class="category">Educational Materials</div>
+        <div class="category">Nursery Furniture</div>
+        <div class="category">Toys & Games</div>
+        <div class="category">Strollers & Gear</div>
+        <div class="category">Safety and Health</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Follow Us</p>
+    <div class="social-icons">
+      <a href="#">📘</a>
+      <a href="#">📸</a>
+      <a href="#">🐦</a>
+    </div>
+    <p>&copy; 2025 KidZora. All Rights Reserved.</p>
+  </footer>
+
+  <!-- Optional Script: Countdown for Flash Sale -->
+  <script>
+    // Example: 1 hour countdown
+    let countdownTime = 60 * 60;
+    const countdownEl = document.getElementById("countdown");
+
+    function updateCountdown() {
+      const hours = Math.floor(countdownTime / 3600);
+      const minutes = Math.floor((countdownTime % 3600) / 60);
+      const seconds = countdownTime % 60;
+      countdownEl.textContent = `Ending in: ${hours.toString().padStart(2, '0')}:`
+        + `${minutes.toString().padStart(2, '0')}:`
+        + `${seconds.toString().padStart(2, '0')}`;
+      if (countdownTime > 0) countdownTime--;
+    }
+
+    setInterval(updateCountdown, 1000);
+  </script>
+</body>
+</html>

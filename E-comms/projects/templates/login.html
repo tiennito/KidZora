@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - KidZora</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1 class="logo">KidZora</h1>
+    
+    <!-- Login Form -->
+    <form id="loginForm">
+      <input type="email" id="username" name="username" placeholder="Enter E-mail address" required />
+      <input type="password" id="login_password" name="password" placeholder="Password" required />
+      
+      <div class="forgot">
+        <a href="#">Forgot Password</a>
+      </div>
+
+      <div class="btn-wrapper">
+        <button type="submit" class="btn_log">Login</button>
+      </div>
+
+      <p class="signup-text">
+        Don’t have an account? <a href="{{ url_for('signup') }}" class="signup">Sign up</a>
+      </p>
+    </form>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
+    // ✅ Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDL41xZVMTTcjjC12c3uOK2Ft4smmSYwgs",
+      authDomain: "kidzora-a3808.firebaseapp.com",
+      projectId: "kidzora-a3808",
+      storageBucket: "kidzora-a3808.appspot.com",
+      messagingSenderId: "581527879563",
+      appId: "1:581527879563:web:3c733f8075cc29a222b98e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // ✅ Handle Login Form
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("username").value;
+      const password = document.getElementById("login_password").value;
+
+      try {
+        // Firebase Auth Login
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // ✅ Get Firebase ID Token
+        const token = await user.getIdToken();
+        console.log("Token:", token.substring(0, 20) + "..."); // debug
+
+        // ✅ Send token to Flask backend
+        const res = await fetch("/verify_token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token })
+        });
+
+        if (res.ok) {
+          window.location.href = "/dashboard";
+        } else {
+          const errorData = await res.json();
+          alert("Login failed! " + (errorData.error || "Please try again."));
+        }
+      } catch (error) {
+        alert("Error: " + error.message);
+      }
+    });
+  </script>
+</body>
+</html>

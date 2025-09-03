@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sign Up - KidZora</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1 class="logo">KidZora</h1>
+    <h2>Sign Up</h2>
+
+    <!-- Signup Form -->
+    <form id="signupForm">
+      <input type="text" id="name" name="name" placeholder="Enter Name" required />
+      <input type="email" id="email" name="email" placeholder="Enter Email Address" required />
+      <input type="password" id="password" name="password" placeholder="Enter Password" required />
+      <input type="password" id="re_password" name="re_password" placeholder="Re-Enter Password" required />
+
+      <div class="btn-wrapper">
+        <button type="submit" class="btn_log">Sign up</button>
+      </div>
+    </form>
+
+    <p>Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+  </div>
+
+  <!-- Signup Logic with Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDL41xZVMTTcjjC12c3uOK2Ft4smmSYwgs",
+      authDomain: "kidzora-a3808.firebaseapp.com",
+      databaseURL: "https://kidzora-a3808-default-rtdb.firebaseio.com",
+      projectId: "kidzora-a3808",
+      storageBucket: "kidzora-a3808.appspot.com",  // fixed
+      messagingSenderId: "581527879563",
+      appId: "1:581527879563:web:3c733f8075cc29a222b98e",
+      measurementId: "G-HX4BXE12S4"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const database = getDatabase(app);
+
+    // Signup Form Handling
+    document.getElementById("signupForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const rePassword = document.getElementById("re_password").value;
+
+      if (password !== rePassword) {
+        alert("Passwords do not match.");
+        return;
+      }
+
+      try {
+        // Create user with Firebase Auth
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Save extra user info in Realtime Database
+        await set(ref(database, "users/" + user.uid), {
+          name: name,
+          email: email
+        });
+
+        alert("Account created successfully!");
+        window.location.href = "{{ url_for('login') }}";
+      } catch (error) {
+        alert("Error: " + error.message);
+      }
+    });
+  </script>
+</body>
+</html>

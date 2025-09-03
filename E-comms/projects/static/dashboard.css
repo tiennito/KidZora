@@ -1,0 +1,195 @@
+/* Reset some default styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #f9f9f9;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Header */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 15px 40px;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2a4d8f;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin: 0 30px;
+  max-width: 500px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 20px 0 0 20px;
+  outline: none;
+}
+
+.search-bar button {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-left: none;
+  border-radius: 0 20px 20px 0;
+  background: #2a4d8f;
+  color: white;
+  cursor: pointer;
+}
+
+.header-links a {
+  margin-left: 20px;
+  text-decoration: none;
+  color: #2a4d8f;
+  font-weight: 500;
+}
+
+.header-links .cart {
+  font-size: 1.3rem;
+}
+
+/* Banner */
+.banner {
+  display: flex;
+  gap: 20px;
+  padding: 20px 40px;
+  background: #f2f4f8;
+}
+
+.banner .slide {
+  flex: 1;
+  background: #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Flash Sale */
+.flash-sale {
+  padding: 40px;
+  background: white;
+  margin: 20px 0;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.flash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.flash-header h2 {
+  color: #e63946;
+}
+
+.flash-controls span {
+  margin-right: 15px;
+  font-weight: 500;
+}
+
+.flash-controls button {
+  padding: 8px 15px;
+  border: none;
+  background: #2a4d8f;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.flash-items {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.flash-items .item {
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  padding: 30px;
+  text-align: center;
+  border-radius: 8px;
+  transition: transform 0.2s;
+}
+
+.flash-items .item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Categories */
+.categories {
+  padding: 40px;
+  background: white;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.categories h2 {
+  margin-bottom: 20px;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.category {
+  background: #f2f4f8;
+  padding: 20px;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.category:hover {
+  background: #dbe3f1;
+}
+
+/* Footer */
+footer {
+  background: #2a4d8f;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+footer .social-icons {
+  margin: 10px 0;
+}
+
+footer .social-icons a {
+  margin: 0 10px;
+  text-decoration: none;
+  font-size: 1.2rem;
+  color: white;
+}
