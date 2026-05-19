@@ -31,8 +31,14 @@ class Config:
     VAPID_PUBLIC_KEY  = os.environ.get('VAPID_PUBLIC_KEY', '')
     VAPID_MAILTO      = os.environ.get('VAPID_MAILTO', 'mailto:admin@kidzora.com')
 
-    # Ensure upload folder exists
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    # Ensure upload folder exists (only if not in serverless environment)
+    @staticmethod
+    def ensure_upload_folder():
+        try:
+            os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
+        except (PermissionError, OSError):
+            # Serverless environment - uploads folder not critical
+            pass
 
 class DevelopmentConfig(Config):
     DEBUG = True

@@ -7,6 +7,10 @@ def create_app(config_name='default'):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     app.jinja_env.auto_reload = True
+    
+    # Safely ensure upload folder exists (for local/development only)
+    from config import Config
+    Config.ensure_upload_folder()
 
     # ── Custom Jinja2 filters ──────────────────────────────────────────────────
     @app.template_filter('currency')
