@@ -2,13 +2,6 @@
   "buildCommand": "pip install --no-cache-dir -r kidzora/requirements.txt",
   "outputDirectory": ".",
   "framework": "flask",
-  "functions": {
-    "api/index.py": {
-      "memory": 2048,
-      "maxDuration": 30,
-      "includeFiles": "kidzora/**,app/**"
-    }
-  },
   "regions": ["sfo1"],
   "env": {
     "PYTHONOPTIMIZE": "2",
