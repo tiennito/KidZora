@@ -1,0 +1,11 @@
+{
+  "buildCommand": "pip install -r kidzora/requirements.txt",
+  "outputDirectory": ".",
+  "framework": "flask",
+  "functions": {
+    "api/index.py": {
+      "memory": 3008,
+      "maxDuration": 30
+    }
+  }
+}
