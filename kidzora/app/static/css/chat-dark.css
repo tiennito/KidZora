@@ -1,0 +1,112 @@
+/*
+ * KidZora – Dark Chat Theme
+ * Overrides base chat.css for the unified dark Messenger look.
+ * Used by: admin, seller, buyer chat windows.
+ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%; overflow: hidden;
+  background: #0f1117;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ── Wrap ────────────────────────────────────────────────────── */
+.kz-chat-wrap {
+  max-width: none;
+  width: 100%;
+  height: 100vh;
+  border-radius: 0;
+}
+
+/* ── Header ──────────────────────────────────────────────────── */
+.kz-chat-header {
+  border-radius: 0;
+  background: #16181f;
+  border-bottom: 1px solid #2a2c38;
+}
+.kz-chat-header-name { color: #e4e6eb; font-size: 1rem; }
+.kz-chat-header-sub  { color: #8b8fa8; font-size: .76rem; }
+
+/* ── Back arrow ──────────────────────────────────────────────── */
+.kz-back-btn {
+  color: #8b8fa8;
+  margin-right: .6rem;
+  font-size: 1rem;
+  line-height: 1;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: color .15s;
+}
+.kz-back-btn:hover { color: #e4e6eb; }
+
+/* ── Message area ────────────────────────────────────────────── */
+.kz-msg-area { background: #0f1117; }
+
+/* ── Their bubble ────────────────────────────────────────────── */
+.kz-bubble-row.theirs .kz-bubble {
+  background: #1e2130;
+  color: #e4e6eb;
+}
+
+/* ── My bubble ───────────────────────────────────────────────── */
+.kz-bubble-row.mine .kz-bubble {
+  background: #4f46e5;
+  color: #fff;
+}
+
+/* ── Date divider ────────────────────────────────────────────── */
+.kz-date-divider { color: #4b5163; }
+
+/* ── Input bar ───────────────────────────────────────────────── */
+.kz-input-bar {
+  border-radius: 0;
+  background: #16181f;
+  border-top: 1px solid #2a2c38;
+  box-shadow: none;
+}
+.kz-input-bar textarea {
+  background: #1e2130;
+  border-color: transparent;
+  color: #e4e6eb;
+  border-radius: 20px;
+}
+.kz-input-bar textarea::placeholder { color: #4b5163; }
+.kz-input-bar textarea:focus        { border-color: #4f46e5; background: #1e2130; }
+
+/* ── Typing bubble ───────────────────────────────────────────── */
+.kz-typing-bubble { background: #1e2130; }
+.kz-typing-bubble span { background: #8b8fa8; }
+
+/* ── Role badges ─────────────────────────────────────────────── */
+.kz-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .2rem;
+  font-size: .6rem;
+  font-weight: 700;
+  padding: .12rem .45rem;
+  border-radius: 999px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+.kz-role-seller { background: #291500; color: #fbbf24; }
+.kz-role-buyer  { background: #0c1d3e; color: #93c5fd; }
+.kz-role-rider  { background: #1f0a00; color: #fdba74; }
+.kz-role-admin  { background: #1a0a3d; color: #c4b5fd; }
+
+/* ── Scrollbar ───────────────────────────────────────────────── */
+.kz-msg-area::-webkit-scrollbar              { width: 4px; }
+.kz-msg-area::-webkit-scrollbar-track       { background: transparent; }
+.kz-msg-area::-webkit-scrollbar-thumb       { background: #2a2c38; border-radius: 4px; }
+.kz-msg-area::-webkit-scrollbar-thumb:hover { background: #3d3f52; }
+
+/* ── Empty state ─────────────────────────────────────────────── */
+.kz-empty-state { color: #4b5163; }
+
+/* ── Tick colours (seen / delivered / sent) ──────────────────── */
+.kz-tick-seen      { color: #818cf8; }
+.kz-tick-delivered { color: #6b7280; }
+.kz-tick-sent      { color: #4b5163; }

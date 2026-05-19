@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Terms & Consent - KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="Review and accept the KidZora terms and conditions to complete your registration.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Terms & Consent - KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth/register-terms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="progress-indicator">
+    <div class="step-indicator">1</div>
+    <div class="step-indicator" style="background: linear-gradient(135deg, #6c757d, #495057);">2</div>
+    <div class="step-indicator" style="background: linear-gradient(135deg, #ffc107, #e0a800);">3</div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-11">
+            <div class="card shadow-lg border-0 fade-in">
+                <div class="card-body p-5">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <div class="d-inline-block position-relative">
+                            <i class="fas fa-user-shield fa-3x text-primary mb-3"></i>
+                            <div class="position-absolute" style="top: 0; right: -40px;">
+                                <span class="badge bg-success">Secure</span>
+                            </div>
+                        </div>
+                        <h2 class="card-title">Terms & Consent</h2>
+                        <p class="lead text-muted">Please review and accept our terms</p>
+                    </div>
+                    
+                    <!-- Account Type Display -->
+                    <div class="alert alert-info mb-4 fade-in">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Selected Account Type: 
+                            </h5>
+                            <div class="d-flex align-items-center">
+                                {% if account_type == 'buyer' %}
+                                    <span class="badge bg-primary pulse-border">
+                                        <i class="fas fa-shopping-cart me-1"></i>Buyer
+                                    </span>
+                                {% elif account_type == 'seller' %}
+                                    <span class="badge bg-success pulse-border">
+                                        <i class="fas fa-store me-1"></i>Seller
+                                    </span>
+                                {% elif account_type == 'rider' %}
+                                    <span class="badge bg-warning pulse-border">
+                                        <i class="fas fa-motorcycle me-1"></i>Rider
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <button onclick="window.history.back()" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-arrow-left me-1"></i>Change
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Terms and Conditions -->
+                    <div class="card mb-4 consent-card slide-in-right">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-contract me-2"></i>Terms and Conditions
+                                <span class="badge bg-light text-primary ms-2">Important</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="terms-container">
+                                <div class="fade-in">
+                                    <h6 class="text-primary fw-bold">1. Account Registration</h6>
+                                    <p>By registering an account with KidZora, you agree to provide accurate and complete information and maintain the security of your account credentials.</p>
+                                    
+                                    <h6 class="text-primary fw-bold">2. User Responsibilities</h6>
+                                    <p>Users are responsible for all activities that occur under their account and must immediately notify us of any unauthorized use.</p>
+                                    
+                                    <h6 class="text-primary fw-bold">3. Prohibited Activities</h6>
+                                    <p>Users may not use the service for any illegal or unauthorized purpose including fraud, harassment, or violation of applicable laws.</p>
+                                    
+                                    <h6 class="text-primary fw-bold">4. Privacy Policy</h6>
+                                    <p>Your privacy is important to us. Please review our Privacy Policy to understand how we collect, use, and protect your information.</p>
+                                    
+                                    <h6 class="text-primary fw-bold">5. Account Termination</h6>
+                                    <p>KidZora reserves the right to terminate accounts that violate these terms without prior notice.</p>
+                                    
+                                    <h6 class="text-primary fw-bold">6. Contact Information</h6>
+                                    <p>For questions about these Terms, please contact us at support@kidzora.com</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Privacy Policy -->
+                    <div class="card mb-4 consent-card slide-in-right">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-shield-alt me-2"></i>Privacy Policy
+                                <span class="badge bg-light text-success ms-2">Protected</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="terms-container">
+                                <div class="fade-in">
+                                    <h6 class="text-success fw-bold">Information Collection</h6>
+                                    <p>We collect information you provide directly to us, such as when you create an account, make a purchase, or contact us.</p>
+                                    
+                                    <h6 class="text-success fw-bold">Information Use</h6>
+                                    <p>We use the information we collect to provide, maintain, and improve our services.</p>
+                                    
+                                    <h6 class="text-success fw-bold">Information Sharing</h6>
+                                    <p>We do not sell, trade, or otherwise transfer your personal information to third parties without your consent.</p>
+                                    
+                                    <h6 class="text-success fw-bold">Data Security</h6>
+                                    <p>We implement appropriate security measures to protect your personal information.</p>
+                                    
+                                    <h6 class="text-success fw-bold">Cookies</h6>
+                                    <p>We use cookies to enhance your experience on our platform.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Consent Checkboxes -->
+                    <div class="card consent-card slide-in-right">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-check-circle me-2"></i>Your Consent
+                                <span class="badge bg-light text-warning ms-2">Required</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="consentForm" method="POST" action="{{ url_for('auth.register_form', type=account_type) }}">
+                                <input type="hidden" name="account_type" value="{{ account_type }}">
+                                
+                                <div class="form-check mb-4">
+                                    <label class="animated-checkbox">
+                                        <input type="checkbox" id="terms" name="terms" required>
+                                        <span class="checkmark"></span>
+                                    </label>
+                                    <label for="terms" class="form-check-label">
+                                        <strong>I have read and agree to the Terms and Conditions</strong>
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-4">
+                                    <label class="animated-checkbox">
+                                        <input type="checkbox" id="privacy" name="privacy" required>
+                                        <span class="checkmark"></span>
+                                    </label>
+                                    <label for="privacy" class="form-check-label">
+                                        <strong>I have read and agree to the Privacy Policy</strong>
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-4">
+                                    <label class="animated-checkbox">
+                                        <input type="checkbox" id="newsletter" name="newsletter">
+                                        <span class="checkmark"></span>
+                                    </label>
+                                    <label for="newsletter" class="form-check-label">
+                                        I would like to receive newsletters and promotional offers
+                                        <span class="badge bg-info ms-2">Optional</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="d-flex gap-3 mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                                        <i class="fas fa-arrow-right me-2"></i>Continue to Registration
+                                    </button>
+                                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-secondary btn-lg">
+                                        <i class="fas fa-arrow-left me-2"></i>Back
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

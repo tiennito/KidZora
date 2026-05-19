@@ -1,0 +1,28 @@
+/* =============================================================
+   KidZora – Rider / Profile Page
+   ============================================================= */
+
+.rp-avatar-wrap {
+  width: 90px;
+  height: 90px;
+  font-size: 2rem;
+}
+
+.rp-avatar-img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.rp-avatar-input-hidden {
+  display: none;
+}
+
+.rp-avatar-help {
+  font-size: .72rem;
+}
+
+.rp-doc-help {
+  font-size: .72rem;
+}

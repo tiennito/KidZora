@@ -1,0 +1,778 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id[:8]|upper }} – KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="View the details and status of your KidZora order.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Order #{{ order.id[:8]|upper }} – KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/buyer/order-detail.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('buyer.orders') }}">My Orders</a></li>
+      <li class="breadcrumb-item active">Order #{{ order.id[:8]|upper }}</li>
+    </ol>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} alert-dismissible fade show">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="row g-4">
+
+    <!-- ── LEFT: tracker + items ─────────────────────────────────── -->
+    <div class="col-lg-8">
+
+      <!-- Order Tracking Card -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-4">
+            <i class="fas fa-map-marker-alt me-2 text-primary"></i>Order Tracking
+          </h5>
+
+          {% if is_cancelled %}
+            <div class="cancelled-banner rounded p-3 text-center">
+              <i class="fas fa-times-circle fa-2x text-danger mb-2"></i>
+              <h6 class="text-danger fw-bold mb-1">Order Cancelled</h6>
+              <p class="text-muted mb-1 small">This order has been cancelled.</p>
+              <form method="POST"
+                    action="{{ url_for('buyer.reorder', order_id=order.id) }}"
+                    class="mt-2">
+                <button type="submit" class="btn btn-outline-danger btn-sm px-4">
+                  <i class="fas fa-redo me-1"></i>Buy Again
+                </button>
+              </form>
+            </div>
+          {% else %}
+            <div class="tracker-wrap mb-2">
+              {% for step_key, step_icon, step_label in status_steps %}
+                {% set idx = loop.index0 %}
+                {% if idx < current_idx %}
+                  {% set cls = 'done' %}
+                {% elif idx == current_idx %}
+                  {% set cls = 'active' %}
+                {% else %}
+                  {% set cls = '' %}
+                {% endif %}
+                <div class="tracker-step {{ cls }}">
+                  <div class="tracker-icon">
+                    <i class="{{ step_icon }}"></i>
+                  </div>
+                  <span class="tracker-label">{{ step_label }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <!-- Date info -->
+          <div class="d-flex gap-3 flex-wrap mt-3 mb-1">
+            <small class="text-muted">
+              <i class="fas fa-calendar me-1"></i>
+              Placed: <strong>{{ order.created_at[:10] if order.created_at else '—' }}</strong>
+            </small>
+            {% if order.updated_at and order.updated_at != order.created_at %}
+            <small class="text-muted">
+              <i class="fas fa-sync me-1"></i>
+              Updated: <strong>{{ order.updated_at[:10] }}</strong>
+            </small>
+            {% endif %}
+          </div>
+
+          <!-- ── Vertical Activity Timeline ── -->
+          {% if not is_cancelled %}
+          <div class="mt-3">
+            <button class="btn btn-link btn-sm text-decoration-none p-0 text-muted"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#activityTimeline"
+                    aria-expanded="false">
+              <i class="fas fa-list-ul me-1"></i>View activity log
+              <i class="fas fa-chevron-down ms-1" style="font-size:.65rem;"></i>
+            </button>
+            <div class="collapse mt-3" id="activityTimeline">
+              <div class="position-relative" style="padding-left:28px;">
+                <!-- vertical line -->
+                <div class="position-absolute" style="left:9px;top:10px;bottom:10px;width:2px;background:#e5e7eb;border-radius:2px;"></div>
+                {% for step_key, step_icon, step_label in status_steps %}
+                  {% set idx = loop.index0 %}
+                  {% set done   = idx < current_idx %}
+                  {% set active = idx == current_idx %}
+                  {% set desc_done, desc_next = step_details.get(step_key, ('','')) %}
+                  <div class="d-flex align-items-start gap-3 mb-3 position-relative">
+                    <!-- dot -->
+                    <div class="position-absolute" style="left:-28px;top:3px;">
+                      {% if done %}
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:20px;height:20px;background:#0d6efd;">
+                          <i class="fas fa-check" style="font-size:.52rem;color:#fff;"></i>
+                        </div>
+                      {% elif active %}
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:20px;height:20px;background:#fff;border:3px solid #0d6efd;">
+                          <div style="width:6px;height:6px;border-radius:50%;background:#0d6efd;"></div>
+                        </div>
+                      {% else %}
+                        <div class="rounded-circle"
+                             style="width:20px;height:20px;background:#f3f4f6;border:2px solid #d1d5db;"></div>
+                      {% endif %}
+                    </div>
+                    <!-- text -->
+                    <div class="flex-grow-1">
+                      <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="fw-semibold {% if done or active %}text-dark{% else %}text-muted{% endif %}"
+                              style="font-size:.85rem;">{{ step_label }}</span>
+                        {% if done %}
+                          {% if idx == 0 and order.created_at %}
+                            <span class="text-muted" style="font-size:.72rem;">{{ order.created_at[:10] }}</span>
+                          {% elif active == false and idx == current_idx - 1 and order.updated_at %}
+                            <span class="text-muted" style="font-size:.72rem;">{{ order.updated_at[:10] }}</span>
+                          {% endif %}
+                          <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle"
+                                style="font-size:.6rem;padding:.1rem .4rem;">Done</span>
+                        {% elif active %}
+                          <span class="badge rounded-pill bg-primary text-white"
+                                style="font-size:.6rem;padding:.1rem .4rem;">Now</span>
+                        {% endif %}
+                      </div>
+                      <p class="mb-0 mt-1 {% if done or active %}text-muted{% else %}text-muted opacity-50{% endif %}"
+                         style="font-size:.78rem;line-height:1.4;">
+                        {% if done %}{{ desc_done }}
+                        {% elif active %}{{ desc_next }}
+                        {% else %}{{ desc_done }}
+                        {% endif %}
+                      </p>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          {# ── Order Received button (shown only when courier marked delivered) ── #}
+          {% if order.status == 'delivered' %}
+          <div class="mt-4 p-3 rounded-3 border border-success bg-success-subtle text-center">
+            <p class="mb-2 small fw-semibold text-success">
+              <i class="fas fa-truck-ramp-box me-1"></i>
+              Your order has been marked as delivered by the rider.
+            </p>
+            {% if order.proof_of_delivery_url %}
+            <div class="mb-3">
+              <p class="small text-muted mb-1"><i class="fas fa-camera me-1"></i>Proof of Delivery</p>
+              <a href="{{ order.proof_of_delivery_url }}" target="_blank" rel="noopener"
+                 title="View full-size proof photo">
+                <img src="{{ order.proof_of_delivery_url }}" alt="Proof of delivery"
+                     class="img-fluid rounded"
+                     style="max-height:180px;object-fit:cover;border:2px solid #198754;">
+              </a>
+            </div>
+            {% endif %}
+            <p class="mb-3 text-muted small">Did you receive your order? Confirm to complete the transaction.</p>
+            <button type="button" class="btn btn-success"
+                    data-bs-toggle="modal" data-bs-target="#receiptReviewModal">
+              <i class="fas fa-box-open me-2"></i>Order Received
+            </button>
+          </div>
+          {% endif %}
+
+          {# ── Completed confirmation ── #}
+          {% if order.status == 'completed' %}
+          <div class="mt-4 p-3 rounded-3 border border-success bg-success-subtle text-center">
+            <i class="fas fa-circle-check fa-2x text-success mb-2"></i>
+            <p class="mb-1 fw-semibold text-success">You have confirmed receipt of this order.</p>
+            {% if order.proof_of_delivery_url %}
+            <div class="mt-2 mb-3">
+              <p class="small text-muted mb-1"><i class="fas fa-camera me-1"></i>Proof of Delivery</p>
+              <a href="{{ order.proof_of_delivery_url }}" target="_blank" rel="noopener"
+                 title="View full-size proof photo">
+                <img src="{{ order.proof_of_delivery_url }}" alt="Proof of delivery"
+                     class="img-fluid rounded"
+                     style="max-height:160px;object-fit:cover;border:2px solid #198754;">
+              </a>
+            </div>
+            {% endif %}
+            <form method="POST"
+                  action="{{ url_for('buyer.reorder', order_id=order.id) }}"
+                  class="mt-2">
+              <button type="submit" class="btn btn-success btn-sm px-4">
+                <i class="fas fa-redo me-1"></i>Buy Again
+              </button>
+            </form>
+          </div>
+          {% endif %}
+
+          {# ── Cancellation status banners ── #}
+          {% if order.cancel_requested and order.cancel_status == 'pending_review' %}
+          <div class="mt-4 p-3 rounded-3 border border-warning bg-warning-subtle">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-hourglass-half text-warning fa-lg"></i>
+              <div>
+                <p class="mb-0 fw-semibold text-warning-emphasis">Cancellation Request Pending</p>
+                <p class="mb-0 small text-muted">The seller is reviewing your cancellation request. You will be notified once a decision is made.</p>
+              </div>
+            </div>
+          </div>
+
+          {% elif order.cancel_requested and order.cancel_status == 'rejected' %}
+          <div class="mt-4 p-3 rounded-3 border border-danger bg-danger-subtle">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-times-circle text-danger fa-lg"></i>
+              <div>
+                <p class="mb-0 fw-semibold text-danger">Cancellation Request Rejected</p>
+                {% if order.cancel_response %}
+                <p class="mb-0 small text-muted">Seller's reason: <em>{{ order.cancel_response }}</em></p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          {# ── Cancel button (pending or confirmed, not already requested) ── #}
+          {% if order.status in ('pending', 'confirmed') and not order.cancel_requested %}
+          <div class="mt-4">
+            <button class="btn btn-outline-danger btn-sm"
+                    data-bs-toggle="modal" data-bs-target="#cancelModal">
+              <i class="fas fa-times-circle me-1"></i>Request Cancellation
+            </button>
+          </div>
+          {% endif %}
+
+          {# ── Return / Refund section (delivered or completed) ── #}
+          {% if order.status in ('delivered', 'completed') %}
+          <div class="mt-4">
+            {% if return_request %}
+              {# Already has a return request — show summary + link #}
+              {% set rrs = return_request.status %}
+              {% set rrcol = {
+                'pending':          'warning',
+                'seller_approved':  'success',
+                'seller_rejected':  'danger',
+                'escalated':        'info',
+                'admin_approved':   'success',
+                'admin_rejected':   'secondary',
+              }.get(rrs, 'secondary') %}
+              <div class="p-3 rounded-3 border border-{{ rrcol }} bg-{{ rrcol }}-subtle">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                  <div>
+                    <p class="mb-1 small fw-semibold">
+                      <i class="fas fa-undo-alt me-1"></i>Return / Refund Request
+                    </p>
+                    <span class="badge bg-{{ rrcol }}">{{ rrs|replace('_',' ')|title }}</span>
+                  </div>
+                  <a href="{{ url_for('buyer.return_detail', rr_id=return_request.id) }}"
+                     class="btn btn-outline-{{ rrcol }} btn-sm">
+                    <i class="fas fa-eye me-1"></i>View Request
+                  </a>
+                </div>
+              </div>
+            {% else %}
+              {# No return request yet — show button #}
+              <button class="btn btn-outline-warning btn-sm"
+                      data-bs-toggle="modal" data-bs-target="#returnModal">
+                <i class="fas fa-undo-alt me-1"></i>Request Return / Refund
+              </button>
+            {% endif %}
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+      {# ── Return / Refund Modal ── #}
+      {% if order.status in ('delivered', 'completed') and not return_request %}
+      <div class="modal fade" id="returnModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content">
+            <div class="modal-header border-0 pb-1">
+              <h6 class="modal-title fw-bold">
+                <i class="fas fa-undo-alt text-warning me-2"></i>Request Return / Refund
+              </h6>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('buyer.submit_return', order_id=order.id) }}"
+                  enctype="multipart/form-data">
+              <div class="modal-body">
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Request Type <span class="text-danger">*</span></label>
+                  <select class="form-select form-select-sm" name="refund_type" required>
+                    <option value="refund">Refund Only (keep the item)</option>
+                    <option value="return_and_refund">Return &amp; Refund (send item back)</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Reason <span class="text-danger">*</span></label>
+                  <select class="form-select form-select-sm" name="reason" required>
+                    <option value="">— Select a reason —</option>
+                    <option value="wrong_item">Wrong item received</option>
+                    <option value="damaged">Item arrived damaged</option>
+                    <option value="defective">Item is defective / not working</option>
+                    <option value="not_as_described">Item not as described</option>
+                    <option value="incomplete">Incomplete / missing items</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Details <span class="text-muted fw-normal">(optional)</span></label>
+                  <textarea class="form-control form-control-sm" name="details" rows="3"
+                            placeholder="Please describe the issue in more detail…"></textarea>
+                </div>
+
+                <!-- Evidence Attachments -->
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">
+                    <i class="fas fa-paperclip me-1 text-secondary"></i>Evidence Attachments
+                    <span class="text-muted fw-normal">(optional — up to 5 files)</span>
+                  </label>
+                  <p class="small text-muted mb-2">
+                    Attach photos or short videos to support your claim.
+                    Accepted: JPG, PNG, GIF, WEBP, MP4, MOV, AVI, WEBM. Max 30 MB per file.
+                  </p>
+
+                  <!-- Drop zone -->
+                  <div id="rrDropZone"
+                       class="border border-2 border-dashed rounded-3 p-4 text-center text-muted"
+                       style="cursor:pointer; border-style:dashed !important; background:#fafafa;"
+                       onclick="document.getElementById('evidenceInput').click()">
+                    <i class="fas fa-cloud-upload-alt fa-2x mb-2 opacity-50"></i>
+                    <p class="mb-0 small">Click to browse or drag &amp; drop files here</p>
+                    <p class="mb-0" style="font-size:.72rem;">Images &amp; Videos • Max 5 files</p>
+                  </div>
+                  <input type="file"
+                         id="evidenceInput"
+                         name="evidence_files"
+                         multiple
+                         accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/quicktime,video/x-msvideo,video/webm,video/x-matroska"
+                         class="d-none"
+                         onchange="previewEvidenceFiles(this)">
+
+                  <!-- Preview grid -->
+                  <div id="evidencePreview" class="row g-2 mt-2"></div>
+                </div>
+
+              </div>
+              <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-warning btn-sm">
+                  <i class="fas fa-paper-plane me-1"></i>Submit Request
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- ── Cancel Order Modal ── -->
+      {% if order.status in ('pending', 'confirmed') and not order.cancel_requested %}
+      <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header border-0 pb-1">
+              <h6 class="modal-title fw-bold" id="cancelModalLabel">
+                <i class="fas fa-times-circle text-danger me-2"></i>Request Order Cancellation
+              </h6>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('buyer.cancel_order', order_id=order.id) }}">
+              <div class="modal-body">
+                {% if order.status == 'pending' %}
+                <div class="alert alert-info py-2 small">
+                  <i class="fas fa-info-circle me-1"></i>
+                  This order hasn't been confirmed yet. It will be <strong>cancelled immediately</strong>.
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Reason <span class="text-muted fw-normal">(optional)</span></label>
+                  <textarea class="form-control form-control-sm" name="reason" rows="3"
+                            placeholder="Tell us why you're cancelling…"></textarea>
+                </div>
+                {% else %}
+                <div class="alert alert-warning py-2 small">
+                  <i class="fas fa-exclamation-triangle me-1"></i>
+                  The order is already <strong>confirmed</strong>. Your request will be sent to the seller for approval.
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Reason <span class="text-danger">*</span></label>
+                  <textarea class="form-control form-control-sm" name="reason" rows="3"
+                            placeholder="Please explain why you want to cancel…" required></textarea>
+                </div>
+                {% endif %}
+              </div>
+              <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Keep Order</button>
+                <button type="submit" class="btn btn-danger btn-sm">
+                  <i class="fas fa-times me-1"></i>
+                  {% if order.status == 'pending' %}Cancel Order{% else %}Submit Request{% endif %}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+
+      <!-- Order Items Card -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold py-3">
+          <i class="fas fa-boxes me-2 text-primary"></i>Items in this Order
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Product</th>
+                <th class="text-center">Qty</th>
+                <th class="text-end">Unit Price</th>
+                <th class="text-end">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if items %}
+                {% for item in items %}
+                {% set prod = item.products or {} %}
+                {% set imgs = prod.images if prod.images else [] %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-3">
+                      {% if imgs %}
+                        <img src="{{ imgs[0] }}" class="rounded" style="width:52px;height:52px;object-fit:cover;" alt="product">
+                      {% else %}
+                        <div class="rounded bg-light d-flex align-items-center justify-content-center" style="width:52px;height:52px;">
+                          <i class="fas fa-image text-muted"></i>
+                        </div>
+                      {% endif %}
+                      <div>
+                        <div class="fw-semibold">{{ prod.name or item.get('name','Product') }}</div>
+                        {% if item.product_variants %}
+                          <span class="badge bg-secondary fw-normal small">{{ item.product_variants.name }}</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-center">{{ item.quantity or 1 }}</td>
+                  <td class="text-end">₱{{ item.price|float|currency if item.price else '0.00' }}</td>
+                  <td class="text-end fw-semibold">₱{{ (item.price|float * (item.quantity or 1))|currency if item.price else '0.00' }}</td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-4">No item details available.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+            <tfoot class="table-light">
+              <tr>
+                <td colspan="3" class="text-end fw-bold">Order Total</td>
+                <td class="text-end fw-bold text-primary fs-6">₱{{ order.total_amount|float|currency if order.total_amount else '0.00' }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── RIGHT: order summary / info ──────────────────────────── -->
+    <div class="col-lg-4">
+
+      <!-- Order Summary -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold py-3">
+          <i class="fas fa-receipt me-2 text-primary"></i>Order Summary
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0 small">
+            <dt class="col-5 text-muted">Order ID</dt>
+            <dd class="col-7 fw-semibold">#{{ order.id[:8]|upper }}</dd>
+
+            <dt class="col-5 text-muted">Date</dt>
+            <dd class="col-7">{{ order.created_at[:10] if order.created_at else '—' }}</dd>
+
+            <dt class="col-5 text-muted">Status</dt>
+            <dd class="col-7">
+              {% set s = order.status or 'pending' %}
+              {% set color = {'pending':'warning','confirmed':'info','preparing':'info',
+                              'ready_for_pickup':'info','out_for_delivery':'primary',
+                              'delivered':'success','completed':'success',
+                              'cancelled':'danger'}.get(s,'secondary') %}
+              <span class="badge bg-{{ color }}">{{ s|replace('_',' ')|title }}</span>
+            </dd>
+
+            {% if order.delivery_address %}
+            {% set addr = order.delivery_address %}
+            <dt class="col-5 text-muted">Ship to</dt>
+            <dd class="col-7">
+              <span class="fw-semibold">{{ addr.full_name or '—' }}</span>
+              <span class="text-muted small ms-1">· {{ addr.city or '' }}{% if addr.province %}, {{ addr.province }}{% endif %}</span>
+              <br>
+              <a class="small text-primary text-decoration-none" data-bs-toggle="collapse" href="#addrDetails" role="button" aria-expanded="false">
+                <i class="fas fa-chevron-down me-1" style="font-size:.65rem;"></i>See full address
+              </a>
+              <div class="collapse mt-2" id="addrDetails">
+                <div class="border rounded p-2 bg-light small lh-lg">
+                  {% if addr.street_name %}
+                  <div class="d-flex gap-2">
+                    <span class="text-muted" style="min-width:90px;">Street</span>
+                    <span class="fw-semibold">{{ addr.street_name }}</span>
+                  </div>
+                  {% endif %}
+                  {% if addr.barangay %}
+                  <div class="d-flex gap-2">
+                    <span class="text-muted" style="min-width:90px;">Barangay</span>
+                    <span class="fw-semibold">{{ addr.barangay }}</span>
+                  </div>
+                  {% endif %}
+                  {% if addr.city %}
+                  <div class="d-flex gap-2">
+                    <span class="text-muted" style="min-width:90px;">City / Municipality</span>
+                    <span class="fw-semibold">{{ addr.city }}</span>
+                  </div>
+                  {% endif %}
+                  {% if addr.province %}
+                  <div class="d-flex gap-2">
+                    <span class="text-muted" style="min-width:90px;">Province</span>
+                    <span class="fw-semibold">{{ addr.province }}</span>
+                  </div>
+                  {% endif %}
+                  {% if addr.region %}
+                  <div class="d-flex gap-2">
+                    <span class="text-muted" style="min-width:90px;">Region</span>
+                    <span class="fw-semibold">{{ addr.region }}</span>
+                  </div>
+                  {% endif %}
+                  {% if addr.postal_code %}
+                  <div class="d-flex gap-2">
+                    <span class="text-muted" style="min-width:90px;">Postal Code</span>
+                    <span class="fw-semibold">{{ addr.postal_code }}</span>
+                  </div>
+                  {% endif %}
+                  {% if addr.phone %}
+                  <div class="d-flex gap-2">
+                    <span class="text-muted" style="min-width:90px;">Phone</span>
+                    <span class="fw-semibold">{{ addr.phone }}</span>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </dd>
+            {% endif %}
+
+            {% if order.notes %}
+            <dt class="col-5 text-muted">Notes</dt>
+            <dd class="col-7">{{ order.notes }}</dd>
+            {% endif %}
+
+            <dt class="col-5 text-muted">Total</dt>
+            <dd class="col-7 fw-bold text-primary">₱{{ order.total_amount|float|currency if order.total_amount else '0.00' }}</dd>
+          </dl>
+        </div>
+      </div>
+
+      {% if rider %}
+      <!-- Rider Info -->
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white fw-semibold py-3">
+          <i class="fas fa-motorcycle me-2 text-success"></i>Your Rider
+        </div>
+        <div class="card-body d-flex align-items-center gap-3 py-3">
+          {% if rider.avatar_url %}
+          <img src="{{ rider.avatar_url }}" class="rounded-circle flex-shrink-0"
+               style="width:50px;height:50px;object-fit:cover;" alt="Rider photo">
+          {% else %}
+          <div class="rounded-circle bg-success-subtle d-flex align-items-center justify-content-center flex-shrink-0"
+               style="width:50px;height:50px;">
+            <i class="fas fa-motorcycle text-success fs-5"></i>
+          </div>
+          {% endif %}
+          <div>
+            <p class="mb-0 fw-semibold">{{ rider.first_name }} {{ rider.last_name }}</p>
+            <p class="mb-0 small text-muted"><i class="fas fa-shield-alt me-1 text-success"></i>KidZora Verified Rider</p>
+            {% if rider.phone %}
+            <p class="mb-0 small text-muted mt-1"><i class="fas fa-phone me-1"></i>{{ rider.phone }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Rider Rating -->
+      {% if order.status in ('delivered', 'completed') %}
+      <div class="card border-0 shadow-sm mb-4" id="rider-rating-card">
+        <div class="card-header bg-white fw-semibold py-2" style="font-size:.88rem;">
+          <i class="fas fa-star me-2 text-warning"></i>Rate Your Rider
+        </div>
+        <div class="card-body py-3">
+          {% if rider_rating %}
+          <!-- Already rated -->
+          <div class="text-center py-2">
+            <div class="mb-1" style="color:#f59e0b;font-size:1.1rem;">
+              {% for i in range(1,6) %}
+                {% if i <= rider_rating.rating %}<i class="fas fa-star"></i>
+                {% else %}<i class="far fa-star" style="color:#d1d5db;"></i>{% endif %}
+              {% endfor %}
+            </div>
+            <p class="mb-1 fw-semibold" style="font-size:.85rem;">You rated this rider {{ rider_rating.rating }}/5</p>
+            {% if rider_rating.feedback %}
+            <p class="mb-0 text-muted" style="font-size:.8rem;font-style:italic;">"{{ rider_rating.feedback }}"</p>
+            {% endif %}
+            <button class="btn btn-outline-secondary btn-sm mt-2" style="font-size:.75rem;border-radius:6px;"
+                    onclick="document.getElementById('riderRatingForm').classList.toggle('d-none')">
+              <i class="fas fa-pen me-1"></i>Edit
+            </button>
+          </div>
+          {% endif %}
+
+          <!-- Rating form (hidden after submission, shown for new) -->
+          <form id="riderRatingForm" method="post"
+                action="{{ url_for('buyer.rate_rider', order_id=order.id) }}"
+                class="{% if rider_rating %}d-none{% endif %}">
+            <div class="d-flex justify-content-center gap-1 mb-3" id="riderStars">
+              {% for i in range(1,6) %}
+              <i class="fas fa-star rr-star"
+                 data-val="{{ i }}"
+                 style="font-size:1.5rem;cursor:pointer;"></i>
+              {% endfor %}
+            </div>
+            <input type="hidden" name="rider_rating" id="riderRatingInput"
+                   value="{{ rider_rating.rating if rider_rating else '' }}">
+            <textarea name="rider_feedback" class="form-control mb-2"
+                      style="font-size:.83rem;border-radius:8px;" rows="2"
+                      placeholder="Optional feedback about your delivery experience…">{{ rider_rating.feedback if rider_rating else '' }}</textarea>
+            <button type="submit" class="btn btn-warning btn-sm w-100" style="border-radius:8px;font-weight:600;">
+              <i class="fas fa-star me-1"></i>
+              {{ 'Update Rating' if rider_rating else 'Submit Rating' }}
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+      {% endif %}
+
+      <!-- Help / Contact -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-4">
+          <i class="fas fa-headset fa-2x text-primary mb-2"></i>
+          <h6 class="fw-bold">Need help?</h6>
+          <p class="text-muted small mb-3">Have an issue with this order? Contact support or message the seller.</p>
+          <a href="{{ url_for('buyer.orders') }}" class="btn btn-outline-primary btn-sm w-100">
+            <i class="fas fa-arrow-left me-1"></i>Back to My Orders
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+{# ── Receipt + Optional Review Modal ─────────────────────────── #}
+{% if order.status == 'delivered' %}
+<div class="modal fade" id="receiptReviewModal" tabindex="-1"
+     aria-labelledby="receiptReviewModalLabel" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-1 position-relative">
+        <div class="text-center w-100 pt-2">
+          <i class="fas fa-circle-check fa-2x text-success mb-2"></i>
+          <h5 class="modal-title fw-bold" id="receiptReviewModalLabel">Order Received!</h5>
+          <p class="text-muted small mb-0">
+            How was your experience? Leaving a review helps other buyers.
+            <strong class="text-success">Totally optional</strong> — you can skip anytime.
+          </p>
+        </div>
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3"
+                data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form method="POST" action="{{ url_for('buyer.confirm_receipt', order_id=order.id) }}"
+            id="receiptReviewForm">
+        <div class="modal-body pt-3">
+
+          {% for item in items %}
+          {% set prod = item.products or {} %}
+          {% set imgs = prod.images if prod.images else [] %}
+          {% set variant = item.product_variants %}
+          <div class="border rounded-3 p-3 mb-3">
+            {# Product header #}
+            <div class="d-flex align-items-center gap-3 mb-3">
+              {% if imgs %}
+              <img src="{{ imgs[0] }}" class="rounded" style="width:50px;height:50px;object-fit:cover;" alt="">
+              {% else %}
+              <div class="rounded bg-light d-flex align-items-center justify-content-center"
+                   style="width:50px;height:50px;">
+                <i class="fas fa-image text-muted"></i>
+              </div>
+              {% endif %}
+              <div>
+                <div class="fw-semibold small">{{ prod.name or 'Product' }}</div>
+                {% if variant %}
+                <span class="badge bg-secondary fw-normal" style="font-size:.7rem;">{{ variant.name }}</span>
+                {% endif %}
+              </div>
+            </div>
+
+            {# Star Picker #}
+            <div class="mb-2">
+              <p class="text-muted small mb-1">Rate this item <span class="text-muted fw-normal">(optional)</span></p>
+              <div class="d-flex gap-1 modal-star-picker" data-pid="{{ item.product_id }}">
+                {% for i in range(1, 6) %}
+                <i class="far fa-star modal-star"
+                   data-val="{{ i }}"
+                   style="font-size:1.6rem;cursor:pointer;color:#f59e0b;transition:transform .1s;"></i>
+                {% endfor %}
+              </div>
+              <input type="hidden" name="rating_{{ item.product_id }}"
+                     id="rating_{{ item.product_id }}" value="">
+              {% if variant %}
+              <input type="hidden" name="variant_id_{{ item.product_id }}"
+                     value="{{ item.variant_id or '' }}">
+              {% endif %}
+            </div>
+
+            {# Review text fields — revealed after picking a star #}
+            <div class="review-extra-fields" id="fields_{{ item.product_id }}" style="display:none;">
+              <div class="mb-2">
+                <input type="text" name="title_{{ item.product_id }}"
+                       class="form-control form-control-sm"
+                       placeholder="Title (optional)" maxlength="120">
+              </div>
+              <textarea name="body_{{ item.product_id }}"
+                        class="form-control form-control-sm" rows="3"
+                        placeholder="Share your experience… (optional)" maxlength="2000"></textarea>
+            </div>
+          </div>
+          {% endfor %}
+
+        </div>{# /modal-body #}
+
+        <div class="modal-footer border-0 flex-column gap-2 pt-0 pb-3 px-3">
+          <button type="submit" name="submit_review" value="1"
+                  class="btn btn-success w-100 fw-semibold">
+            <i class="fas fa-paper-plane me-2"></i>Submit Review &amp; Confirm Receipt
+          </button>
+          <button type="submit" name="skip_review" value="1"
+                  class="btn btn-outline-secondary w-100">
+            <i class="fas fa-forward me-1"></i>Skip – Just Confirm Receipt
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/buyer/order-detail.js') }}"></script>
+{% endblock %}

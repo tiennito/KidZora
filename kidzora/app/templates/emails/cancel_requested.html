@@ -1,0 +1,14 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2 style="color:#d97706;margin:0 0 8px;">⚠️ Cancellation Request Received</h2>
+<p style="color:#374151;margin:0 0 16px;">
+    A buyer has requested to cancel order <strong>{{ order_ref }}</strong>.
+    Please review and approve or reject this request.
+</p>
+<div style="background:#fffbeb;border-left:4px solid #d97706;padding:16px;border-radius:6px;margin:0 0 20px;">
+    <strong>Buyer's reason:</strong><br>
+    <span style="color:#374151;">{{ reason or 'No reason provided.' }}</span>
+</div>
+<p style="color:#6b7280;font-size:.85rem;">Log in to your seller dashboard to take action.</p>
+{% endblock %}

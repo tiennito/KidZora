@@ -1,0 +1,399 @@
+{% extends "rider/base.html" %}
+{% block title %}Delivery #{{ order.id[:8]|upper }} – KidZora Rider{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Delivery – KidZora Rider">
+{% endblock %}
+
+{% block page_content %}
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('rider.deliveries') }}">My Deliveries</a></li>
+    <li class="breadcrumb-item active">Order #{{ order.id[:8]|upper }}</li>
+  </ol>
+</nav>
+
+{% set s = order.status or 'out_for_delivery' %}
+{% set color = {'rider_assigned':'warning','out_for_delivery':'primary','delivered':'success','completed':'success','cancelled':'danger','preparing':'warning'}.get(s,'secondary') %}
+
+<div class="row g-4">
+
+  <!-- ── LEFT: items + actions ─────────────────────────────────────────── -->
+  <div class="col-lg-7">
+
+    <!-- Status banner -->
+    <div class="rider-card mb-0">
+      <div class="rider-card-body p-3">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div>
+            <h5 class="fw-bold mb-0">Order #{{ order.id[:8]|upper }}</h5>
+            <small class="text-muted">Placed {{ order.created_at[:10] if order.created_at else '—' }}</small>
+          </div>
+          <span class="badge bg-{{ color }} px-3 py-2 fs-6">
+            {{ s|replace('_',' ')|title }}
+          </span>
+        </div>
+
+        <!-- Confirm Pickup (rider_assigned → out_for_delivery) -->
+        {% if s == 'rider_assigned' and rider_id and order.rider_id == rider_id %}
+        <hr class="my-3">
+        <div class="alert alert-warning mb-3 py-2">
+          <i class="fas fa-store me-2"></i>
+          <strong>Head to the seller's location</strong> and collect the package.
+          Once you have the item in hand, tap the button below.
+        </div>
+        <form action="{{ url_for('rider.confirm_pickup', order_id=order.id) }}" method="POST"
+              onsubmit="return confirm('Confirm you have physically picked up the package from the seller?')">
+          <button type="submit" class="btn btn-warning px-4 fw-semibold">
+            <i class="fas fa-hand-holding-box me-2"></i>I've Picked Up the Order
+          </button>
+        </form>
+        <hr class="my-3">
+        <button type="button" class="btn btn-outline-danger btn-sm"
+                data-bs-toggle="modal" data-bs-target="#handBackModal">
+          <i class="fas fa-undo me-1"></i>I Can't Complete This Delivery
+        </button>
+
+        <!-- Mark as Delivered -->
+        {% elif s == 'out_for_delivery' and rider_id and order.rider_id == rider_id %}
+        <hr class="my-3">
+        <p class="mb-2 small text-muted"><i class="fas fa-camera me-1 text-success"></i>Take a photo of the package at the customer's door before marking as delivered.</p>
+        <form action="{{ url_for('rider.mark_delivered', order_id=order.id) }}" method="POST"
+              enctype="multipart/form-data" id="deliverForm">
+          <!-- Proof photo upload -->
+          <div class="mb-3">
+            <label for="proofPhoto" class="form-label small fw-semibold mb-1">
+              Proof of Delivery Photo <span class="text-danger">*</span>
+            </label>
+            <input type="file" class="form-control form-control-sm"
+                   name="proof_photo" id="proofPhoto"
+                   accept="image/*" capture="environment" required>
+            <div class="text-muted mt-1" style="font-size:.71rem;">JPG, PNG or WEBP · max 10 MB</div>
+            <!-- Live preview -->
+            <div id="proofPreviewWrap" class="d-none mt-2">
+              <img id="proofPreviewImg" src="" alt="Preview"
+                   class="img-fluid rounded"
+                   style="max-height:200px;object-fit:cover;border:2px solid #198754;">
+              <div class="text-success mt-1" style="font-size:.72rem;">
+                <i class="fas fa-check-circle me-1"></i>Photo selected — ready to submit.
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success px-4" id="deliverBtn">
+            <i class="fas fa-check-circle me-2"></i>Mark as Delivered
+          </button>
+        </form>
+        {% elif s not in ['rider_assigned', 'out_for_delivery'] %}
+          {% if s in ['delivered','completed'] %}
+          <div class="alert alert-success mt-3 mb-0 py-2">
+            <i class="fas fa-check-circle me-2"></i>
+            Delivered on {{ order.delivered_at[:10] if order.delivered_at else '—' }}
+          </div>          {% if order.proof_of_delivery_url %}
+          <div class="mt-3">
+            <p class="small fw-semibold mb-1"><i class="fas fa-camera me-1 text-success"></i>Proof of Delivery</p>
+            <a href="{{ order.proof_of_delivery_url }}" target="_blank" rel="noopener">
+              <img src="{{ order.proof_of_delivery_url }}" alt="Proof of delivery"
+                   class="img-fluid rounded" style="max-height:220px;object-fit:cover;border:2px solid #198754;">
+            </a>
+          </div>
+          {% endif %}          {% endif %}
+        {% elif not rider_id or order.rider_id != rider_id %}
+        <!-- Available to accept -->
+        <hr class="my-3">
+        <form action="{{ url_for('rider.accept_order', order_id=order.id) }}" method="POST"
+              onsubmit="return confirm('Accept this delivery?')">
+          <button type="submit" class="btn btn-success px-4">
+            <i class="fas fa-check me-2"></i>Accept Delivery
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Order Items -->
+    <div class="rider-card mt-3">
+      <div class="rider-card-header">
+        <i class="fas fa-boxes me-2 text-success"></i>Items to Deliver
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Product</th>
+              <th class="text-center">Qty</th>
+              <th class="text-end">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if items %}
+              {% for item in items %}
+              {% set prod = item.products or {} %}
+              {% set imgs = prod.images if prod.images else [] %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    {% if imgs %}
+                      <img src="{{ imgs[0] }}" class="order-thumb" alt="">
+                    {% else %}
+                      <div class="order-thumb-ph"><i class="fas fa-image"></i></div>
+                    {% endif %}
+                    <div>
+                      <div class="fw-semibold small">{{ prod.name or 'Product' }}</div>
+                      {% if item.product_variants %}
+                        <span class="badge bg-light text-secondary border" style="font-size:.68rem;">{{ item.product_variants.name }}</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </td>
+                <td class="text-center">{{ item.quantity or 1 }}</td>
+                <td class="text-end fw-semibold">₱{{ (item.price|float * (item.quantity or 1))|currency if item.price else '0.00' }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="3" class="text-center text-muted py-3">No items found.</td></tr>
+            {% endif %}
+          </tbody>
+          <tfoot class="table-light">
+            <tr>
+              <td colspan="2" class="text-end fw-bold">Order Total</td>
+              <td class="text-end fw-bold text-success">₱{{ order.total_amount|float|currency if order.total_amount else '0.00' }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── RIGHT: address + chat ─────────────────────────────────────────── -->
+  <div class="col-lg-5">
+
+    <!-- Delivery Address -->
+    <div class="rider-card mb-3">
+      <div class="rider-card-header">
+        <i class="fas fa-map-marker-alt me-2 text-danger"></i>Delivery Address
+      </div>
+      <div class="rider-card-body">
+        {% set addr = order.delivery_address or {} %}
+        {% if addr %}
+          <p class="fw-bold mb-1">{{ addr.full_name or '—' }}</p>
+          {% if addr.phone %}
+          <p class="mb-2">
+            <a href="tel:{{ addr.phone }}" class="btn btn-outline-success btn-sm">
+              <i class="fas fa-phone me-1"></i>{{ addr.phone }}
+            </a>
+          </p>
+          {% endif %}
+          <dl class="row small mb-0">
+            {% if addr.street_name %}
+            <dt class="col-5 text-muted">Street</dt>
+            <dd class="col-7">{{ addr.street_name }}</dd>
+            {% endif %}
+            {% if addr.barangay %}
+            <dt class="col-5 text-muted">Barangay</dt>
+            <dd class="col-7">{{ addr.barangay }}</dd>
+            {% endif %}
+            {% if addr.city %}
+            <dt class="col-5 text-muted">City</dt>
+            <dd class="col-7">{{ addr.city }}</dd>
+            {% endif %}
+            {% if addr.province %}
+            <dt class="col-5 text-muted">Province</dt>
+            <dd class="col-7">{{ addr.province }}</dd>
+            {% endif %}
+            {% if addr.postal_code %}
+            <dt class="col-5 text-muted">Postal Code</dt>
+            <dd class="col-7">{{ addr.postal_code }}</dd>
+            {% endif %}
+          </dl>
+        {% else %}
+          <p class="text-muted mb-0">No address on file.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Message Seller -->
+    <div class="rider-card">
+      <div class="rider-card-header">
+        <i class="fas fa-comments me-2 text-success"></i>Message Seller
+        {% set seller = order.sellers or {} %}
+        {% if seller.shop_name %}
+          <span class="text-muted fw-normal ms-1 small">· {{ seller.shop_name }}</span>
+        {% endif %}
+      </div>
+      <div class="rider-card-body p-0">
+
+        <!-- Chat history -->
+        <div class="chat-box px-3 py-2" id="chatBox">
+          {% if messages %}
+            {% for msg in messages %}
+            {% set is_mine = msg.sender_id == current_user.id %}
+            <div class="d-flex justify-content-{{ 'end' if is_mine else 'start' }} mb-2"
+                 data-id="{{ msg.id }}">
+              <div>
+                <div class="msg-bubble {{ 'sent' if is_mine else 'received' }}">
+                  {{ msg.content }}
+                </div>
+                <div class="text-muted mt-1 {{ 'text-end' if is_mine else 'text-start' }}" style="font-size:.68rem;">
+                  {{ msg.created_at[:16].replace('T',' ') if msg.created_at else '' }}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted text-center small py-3 kzc-empty">No messages yet. Send a quick update to the seller.</p>
+          {% endif %}
+          <div id="chatTyping"
+               style="visibility:hidden;font-size:.78rem;color:#6c757d;padding:.25rem 0;">
+            <i class="fas fa-ellipsis-h me-1"></i>Seller is typing…
+          </div>
+        </div>
+
+        <!-- Quick message buttons -->
+        <div class="px-3 pt-2 pb-1 d-flex gap-1 flex-wrap border-top bg-light">
+          {% for quick in ["I've picked up the order.", "On the way to deliver.", "Arrived at the address.", "Customer not responding.", "Delivered successfully!"] %}
+          <button type="button" class="btn btn-outline-secondary btn-sm quick-msg" style="font-size:.72rem;"
+                  data-msg="{{ quick }}">{{ quick }}</button>
+          {% endfor %}
+        </div>
+
+        <!-- Message form -->
+        <form id="msgForm"
+              class="px-3 pb-3 pt-2"
+              data-send-url="{{ url_for('rider.chat_send', other_user_id=seller_profile_id) if seller_profile_id else '' }}"
+              data-poll-url="{{ url_for('rider.chat_poll', other_user_id=seller_profile_id) if seller_profile_id else '' }}"
+              data-typing-url="{{ url_for('rider.chat_typing', other_user_id=seller_profile_id) if seller_profile_id else '' }}"
+              data-my-id="{{ current_user.id }}"
+              data-last-ts="{{ messages[-1].created_at if messages else '' }}">
+          <div class="input-group">
+            <input type="text" id="msgInput" class="form-control form-control-sm"
+                   placeholder="Type a message…" autocomplete="off">
+            <button type="submit" class="btn btn-success btn-sm px-3">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% if s == 'rider_assigned' and rider_id and order.rider_id == rider_id %}
+{# Hand-Back Modal — only rendered for rider_assigned orders owned by this rider #}
+<div class="modal fade" id="handBackModal" tabindex="-1" aria-labelledby="handBackLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-1">
+        <h6 class="modal-title fw-bold" id="handBackLabel">
+          <i class="fas fa-undo text-danger me-2"></i>Return Order to Pickup Pool
+        </h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{{ url_for('rider.hand_back', order_id=order.id) }}" method="POST">
+        <div class="modal-body">
+          <p class="small text-muted mb-3">
+            The order will go back to the pickup pool so another rider can take it.
+            The seller and buyer will both be notified.
+          </p>
+          <label for="handBackReason" class="form-label small fw-semibold">
+            Reason <span class="text-danger">*</span>
+          </label>
+          <select class="form-select form-select-sm mb-2" id="handBackReason" name="reason" required>
+            <option value="" disabled selected>Select a reason…</option>
+            <option>Vehicle broke down / accident</option>
+            <option>Personal emergency</option>
+            <option>Cannot locate the seller's address</option>
+            <option>Order is too large / heavy for my vehicle</option>
+            <option>Accepted by mistake</option>
+            <option>Other</option>
+          </select>
+          <input type="text" class="form-control form-control-sm d-none" id="handBackOther"
+                 name="reason_other" placeholder="Please describe…">
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary btn-sm"
+                  data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger btn-sm" id="handBackSubmit">
+            <i class="fas fa-undo me-1"></i>Return Order
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var sel   = document.getElementById('handBackReason');
+  var other = document.getElementById('handBackOther');
+  var btn   = document.getElementById('handBackSubmit');
+  if (!sel) return;
+  sel.addEventListener('change', function () {
+    var isOther = sel.value === 'Other';
+    other.classList.toggle('d-none', !isOther);
+    other.required = isOther;
+    if (isOther) other.focus();
+  });
+  // Override form name so the selected "Other" text is submitted as reason
+  sel.closest('form').addEventListener('submit', function (e) {
+    if (sel.value === 'Other') {
+      if (!other.value.trim()) {
+        e.preventDefault();
+        other.classList.remove('d-none');
+        other.focus();
+        return;
+      }
+      sel.value = other.value.trim();
+    }
+  });
+})();
+</script>
+{% endif %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/rider/delivery-detail.js') }}"></script>
+<script>
+(function () {
+  var input   = document.getElementById('proofPhoto');
+  var preview = document.getElementById('proofPreviewWrap');
+  var img     = document.getElementById('proofPreviewImg');
+  var form    = document.getElementById('deliverForm');
+  var btn     = document.getElementById('deliverBtn');
+
+  if (input) {
+    input.addEventListener('change', function () {
+      var file = input.files && input.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        img.src = e.target.result;
+        preview.classList.remove('d-none');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      if (!input || !input.files || !input.files[0]) {
+        e.preventDefault();
+        alert('Please select a proof-of-delivery photo before submitting.');
+        return;
+      }
+      if (!confirm('Confirm delivery? This cannot be undone.')) {
+        e.preventDefault();
+        return;
+      }
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading…';
+      }
+    });
+  }
+})();
+</script>
+{% endblock %}

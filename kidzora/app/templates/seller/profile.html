@@ -1,0 +1,288 @@
+{% extends "seller/base.html" %}
+
+{% block title %}Store Profile – KidZora Seller{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Store Profile – KidZora Seller">
+{% endblock %}
+{% block page_title %}Store Profile{% endblock %}
+
+{% block page_content %}
+
+<form id="profileForm" method="POST" action="{{ url_for('seller.profile') }}" enctype="multipart/form-data">
+
+  <div class="row g-4">
+
+    <!-- LEFT: Store + Personal Info -->
+    <div class="col-lg-8">
+
+      <!-- Store Information -->
+      <div class="seller-form-section">
+        <h6><i class="fas fa-store me-2 text-primary"></i>Store Information</h6>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Business Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="business_name" required
+                   value="{{ current_user.business_name or '' }}" placeholder="Your business name">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Business Type</label>
+            <select class="form-select" name="business_type">
+              <option value="">Select…</option>
+              {% for val, label in [('individual','Individual'),('sole_proprietorship','Sole Proprietorship'),
+                                    ('partnership','Partnership'),('corporation','Corporation')] %}
+              <option value="{{ val }}" {{ 'selected' if current_user.business_type == val else '' }}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">ID Type</label>
+            <select class="form-select" name="seller_id_type">
+              <option value="">Select…</option>
+              {% for val, label in [('passport','Passport'),('drivers_license',"Driver's License"),
+                                    ('national_id','National ID'),('umid','UMID'),
+                                    ('philhealth_id','PhilHealth ID'),('sss_id','SSS ID'),('tin_id','TIN ID')] %}
+              <option value="{{ val }}" {{ 'selected' if current_user.seller_id_type == val else '' }}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">ID Number</label>
+            <input type="text" class="form-control" name="seller_id_number"
+                   value="{{ current_user.seller_id_number or '' }}" placeholder="Your government ID number">
+          </div>
+        </div>
+      </div>
+
+      <!-- Store Customization -->
+      <div class="seller-form-section">
+        <h6><i class="fas fa-paint-brush me-2 text-primary"></i>Store Customization</h6>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-semibold">Shop Name</label>
+            <input type="text" class="form-control" name="shop_name"
+                   value="{{ seller_row.shop_name or '' }}"
+                   placeholder="The name buyers see on your storefront" maxlength="80">
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Short Description <small class="text-muted fw-normal">(shown in search results)</small></label>
+            <input type="text" class="form-control" name="shop_description"
+                   value="{{ seller_row.shop_description or '' }}"
+                   placeholder="One-line tagline, e.g. 'Quality pre-loved kids items at great prices'" maxlength="160">
+            <div class="form-text">Displayed under your shop name on the store header and product cards.</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">About the Store</label>
+            <textarea class="form-control" name="about_store" rows="5"
+                      placeholder="Tell buyers about your store — what you sell, your story, return policy, etc."
+                      maxlength="2000">{{ seller_row.about_store or '' }}</textarea>
+            <div class="form-text">Shown in an "About" section on your public store page. Max 2,000 characters.</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Shop Banner Image</label>
+            {% if seller_row.shop_banner_url %}
+            <div class="mb-2 rounded overflow-hidden border" style="max-height:140px;">
+              <img id="bannerPreview" src="{{ seller_row.shop_banner_url }}" alt="Current banner"
+                   style="width:100%;height:140px;object-fit:cover;">
+            </div>
+            {% else %}
+            <div id="bannerPlaceholder" class="mb-2 rounded border bg-light d-flex align-items-center justify-content-center text-muted"
+                 style="height:100px;">
+              <i class="fas fa-image me-2"></i>No banner uploaded yet
+            </div>
+            <img id="bannerPreview" src="" alt="Banner preview"
+                 style="display:none;width:100%;height:140px;object-fit:cover;" class="mb-2 rounded border">
+            {% endif %}
+            <label class="btn btn-sm btn-outline-primary mb-0" style="cursor:pointer;">
+              <i class="fas fa-upload me-1"></i>Upload Banner
+              <input type="file" name="shop_banner" id="bannerInput" accept="image/*" style="display:none;">
+            </label>
+            <p class="text-muted small mt-1 mb-0">JPG, PNG or WEBP &middot; recommended 1400 × 480 px &middot; shown across the top of your public store page.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Personal Info -->
+      <div class="seller-form-section">
+        <h6><i class="fas fa-user me-2 text-primary"></i>Personal Information</h6>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">First Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="first_name" required
+                   value="{{ current_user.first_name or '' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Last Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="last_name" required
+                   value="{{ current_user.last_name or '' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" value="{{ current_user.email }}" disabled>
+            <div class="form-text">Email cannot be changed here.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" class="form-control" name="phone"
+                   value="{{ current_user.phone or '' }}" placeholder="09xxxxxxxxx"
+                   maxlength="11" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          </div>
+        </div>
+      </div>
+
+      <!-- Address -->
+      <div class="seller-form-section">
+        <h6><i class="fas fa-map-marker-alt me-2 text-primary"></i>Address</h6>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Region</label>
+            <input type="text" class="form-control" name="region" value="{{ current_user.region or '' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Province</label>
+            <input type="text" class="form-control" name="province" value="{{ current_user.province or '' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">City/Municipality</label>
+            <input type="text" class="form-control" name="city" value="{{ current_user.city or '' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Barangay</label>
+            <input type="text" class="form-control" name="barangay" value="{{ current_user.barangay or '' }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Building / Unit No.</label>
+            <input type="text" class="form-control" name="building_number" value="{{ current_user.building_number or '' }}">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label">Street Name</label>
+            <input type="text" class="form-control" name="street_name" value="{{ current_user.street_name or '' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Postal Code</label>
+            <input type="text" class="form-control" name="postal_code"
+                   value="{{ current_user.postal_code or '' }}" maxlength="4"
+                   oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          </div>
+        </div>
+      </div>
+
+      <!-- Change Password -->
+      <div class="seller-form-section">
+        <h6><i class="fas fa-lock me-2 text-primary"></i>Change Password <small class="text-muted fw-normal">(leave blank to keep current)</small></h6>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">New Password</label>
+            <input type="password" class="form-control" name="new_password" id="new_password"
+                   placeholder="Min 8 chars, upper, lower, number, symbol">
+            <div class="progress mt-2" style="height:4px;">
+              <div class="progress-bar" id="pwStrengthBar" style="width:0%;transition:width .3s;"></div>
+            </div>
+            <small class="text-muted" id="pwStrengthText"></small>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Confirm New Password</label>
+            <input type="password" class="form-control" name="confirm_password" id="confirm_password"
+                   placeholder="Repeat new password">
+            <div class="invalid-feedback">Passwords do not match.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Actions + Documents -->
+    <div class="col-lg-4">
+
+      <!-- Avatar / Store Photo -->
+      <div class="seller-form-section">
+        <h6><i class="fas fa-camera me-2 text-primary"></i>Store Photo</h6>
+        <div class="d-flex flex-column align-items-center gap-3">
+          <div id="avatarPreviewWrap" style="width:96px;height:96px;border-radius:50%;overflow:hidden;background:#1e293b;border:2.5px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#94a3b8;">
+            {% if current_user.avatar_url %}
+              <img id="avatarPreview" src="{{ current_user.avatar_url }}" alt="Store photo"
+                   style="width:100%;height:100%;object-fit:cover;object-position:center;">
+            {% else %}
+              <span id="avatarInitial">{{ (current_user.business_name or current_user.first_name or '?')[0]|upper }}</span>
+            {% endif %}
+          </div>
+          <label class="btn btn-sm btn-outline-primary mb-0" style="cursor:pointer;">
+            <i class="fas fa-upload me-1"></i>Upload Photo
+            <input type="file" name="avatar" id="avatarInput" accept="image/*" style="display:none;">
+          </label>
+          <p class="text-muted small text-center mb-0">JPG, PNG or WEBP &middot; shown in chat notifications</p>
+        </div>
+      </div>
+
+      <!-- Save -->
+      <div class="seller-form-section sticky-top" style="top:76px;">
+        <h6><i class="fas fa-save me-2 text-primary"></i>Save Changes</h6>
+        <p class="text-muted small">Review your information then click save.</p>
+        <div class="d-grid">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i>Save Profile
+          </button>
+        </div>
+      </div>
+
+      <!-- Submitted Documents -->
+      <div class="seller-form-section mt-4">
+        <h6><i class="fas fa-paperclip me-2 text-primary"></i>Submitted Documents</h6>
+        {% set docs = [
+          ('Government ID',   current_user.seller_id_file,       'fa-id-card',       'primary'),
+          ('Business Permit', current_user.business_permit_file, 'fa-file-alt',      'success'),
+          ('BIR Certificate', current_user.bir_file,             'fa-file-invoice',  'warning'),
+        ] %}
+        <div class="d-grid gap-2">
+          {% for label, url, icon, color in docs %}
+            {% if url %}
+            <a href="{{ url }}" target="_blank"
+               class="btn btn-sm btn-outline-{{ color }} d-flex align-items-center gap-2 text-start">
+              <i class="fas {{ icon }}"></i>
+              <span class="flex-grow-1">{{ label }}</span>
+              <i class="fas fa-external-link-alt small"></i>
+            </a>
+            {% else %}
+            <div class="btn btn-sm btn-outline-secondary disabled d-flex align-items-center gap-2 opacity-50">
+              <i class="fas {{ icon }}"></i>
+              <span class="flex-grow-1">{{ label }}</span>
+              <span class="badge bg-secondary">Not uploaded</span>
+            </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+        <p class="text-muted small mt-2 mb-0">
+          To update documents, please contact admin support.
+        </p>
+      </div>
+
+      <!-- Account Status -->
+      <div class="seller-form-section mt-4">
+        <h6><i class="fas fa-shield-alt me-2 text-primary"></i>Account Status</h6>
+        <table class="table table-sm mb-0">
+          <tr>
+            <th class="text-muted fw-normal small border-0">Approval</th>
+            <td class="border-0">
+              {% if current_user.is_approved %}
+                <span class="status-pill status-completed">Approved</span>
+              {% else %}
+                <span class="status-pill status-pending">Pending</span>
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <th class="text-muted fw-normal small">Member Since</th>
+            <td class="small text-muted">{{ current_user.created_at[:10] if current_user.created_at else '—' }}</td>
+          </tr>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</form>
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/seller/profile.js') }}"></script>
+{% endblock %}

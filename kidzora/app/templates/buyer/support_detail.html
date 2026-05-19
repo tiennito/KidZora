@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Ticket #{{ ticket.id[:8]|upper }} – KidZora Support{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="View and reply to your KidZora support ticket.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Ticket #{{ ticket.id[:8]|upper }} – KidZora Support">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Thread ── */
+  .reply-thread { display: flex; flex-direction: column; gap: 1rem; }
+
+  .reply-bubble {
+    display: flex;
+    gap: .75rem;
+    align-items: flex-start;
+    max-width: 85%;
+  }
+  .reply-bubble.admin-side { align-self: flex-start; }
+  .reply-bubble.buyer-side { align-self: flex-end; flex-direction: row-reverse; }
+
+  .reply-av {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .reply-av.admin { background: #6610f2; color: #fff; }
+  .reply-av.buyer { background: #0d6efd; color: #fff; }
+
+  .reply-content {
+    background: #f1f3f5;
+    border-radius: .75rem;
+    padding: .75rem 1rem;
+    font-size: .93rem;
+    line-height: 1.55;
+    position: relative;
+  }
+  .admin-side .reply-content {
+    background: #f3f0ff;
+    border-left: 3px solid #6610f2;
+    border-radius: 0 .75rem .75rem .75rem;
+  }
+  .buyer-side .reply-content {
+    background: #e7f0ff;
+    border-right: 3px solid #0d6efd;
+    border-radius: .75rem 0 .75rem .75rem;
+  }
+  .reply-meta { font-size: .75rem; color: #6c757d; margin-top: .3rem; }
+
+  /* ── Status badge ── */
+  .ticket-header-badge { font-size: .8rem; vertical-align: middle; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:780px">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('buyer.support') }}">Help & Support</a></li>
+      <li class="breadcrumb-item active">Ticket #{{ ticket.id[:8]|upper }}</li>
+    </ol>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} alert-dismissible fade show">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- Ticket header -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body px-4 py-3">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold mb-1">{{ ticket.subject }}</h5>
+          <small class="text-muted">
+            <i class="fas fa-tag me-1"></i>{{ ticket.category_label }}
+            &nbsp;·&nbsp;
+            Opened {{ ticket.created_at[:10] }}
+          </small>
+        </div>
+        <span class="badge bg-{{ ticket.status_color }} ticket-header-badge fs-6 px-3 py-2">
+          {{ ticket.status_label }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thread -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+      {% if replies %}
+        <div class="reply-thread">
+          {% for r in replies %}
+            {% set side = 'admin-side' if r.is_admin else 'buyer-side' %}
+            {% set av_cls = 'admin' if r.is_admin else 'buyer' %}
+            {% set av_init = 'K' if r.is_admin else current_user.first_name[0]|upper %}
+            <div class="reply-bubble {{ side }}">
+              <div class="reply-av {{ av_cls }}">{{ av_init }}</div>
+              <div>
+                <div class="reply-content">{{ r.content }}</div>
+                <div class="reply-meta text-{{ 'end' if not r.is_admin else 'start' }}">
+                  {% if r.is_admin %}<strong>KidZora Support</strong> · {% endif %}
+                  {{ r.created_at[11:16] }} · {{ r.created_at[:10] }}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted text-center mb-0">No messages yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Reply form -->
+  {% if not is_closed %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom">
+      <h6 class="mb-0 fw-semibold"><i class="fas fa-reply me-2 text-primary"></i>Reply</h6>
+    </div>
+    <div class="card-body p-4">
+      <form method="POST" action="{{ url_for('buyer.support_detail', ticket_id=ticket.id) }}">
+        <div class="mb-3">
+          <textarea name="content" class="form-control" rows="4"
+                    placeholder="Type your message here…" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-paper-plane me-1"></i>Send Reply
+        </button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+    <div class="alert alert-secondary text-center">
+      <i class="fas fa-lock me-2"></i>This ticket is {{ ticket.status_label|lower }}.
+      <a href="{{ url_for('buyer.support') }}" class="alert-link">Open a new ticket</a> if you need more help.
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

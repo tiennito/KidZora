@@ -1,0 +1,61 @@
+/* ══════════════════════════════════════════════
+   buyer/browse.css
+   Styles for buyer/browse.html
+══════════════════════════════════════════════ */
+
+/* ── Product card image / placeholder ── */
+.browse-card-img         { height: 180px; object-fit: cover; }
+.browse-card-placeholder { height: 180px; }
+
+.browse-filter-panel .card {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(233, 237, 245, 0.9) !important;
+  border-radius: 22px;
+  box-shadow: 0 18px 34px rgba(126, 138, 184, 0.12) !important;
+}
+
+.row .card.position-relative {
+  border-radius: 20px;
+  border: 1px solid rgba(233, 237, 245, 0.9) !important;
+  box-shadow: 0 18px 34px rgba(126, 138, 184, 0.12) !important;
+}
+
+.row .card.position-relative .card-img-top,
+.browse-card-placeholder {
+  border-radius: 20px 20px 0 0;
+}
+
+.card-title a {
+  color: #31405f !important;
+  font-weight: 800;
+}
+
+.browse-shop-link,
+.card-text {
+  color: #77839d !important;
+}
+
+.browse-condition-badge {
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: #ff8ea8 !important;
+}
+
+/* ── Condition badge ── */
+.browse-condition-badge { font-size: .7rem; }
+
+/* ── Category / age-group badge pills ── */
+.browse-product-badge { font-size: .7rem; }
+
+/* ── Shop name attribution link ── */
+.browse-shop-wrap { position: relative; z-index: 1; }
+.browse-shop-link { font-size: .72rem; }
+
+/* ── Price range input width ── */
+.browse-price-input { width: 90px; }
+
+/* ── Mobile filter panel: hidden by default, shown when JS adds .is-open ──
+   On md+ the panel is always visible (Bootstrap d-md-block overrides this). ── */
+@media (max-width: 767.98px) {
+  .browse-filter-panel          { display: none; }
+  .browse-filter-panel.is-open  { display: block; }
+}

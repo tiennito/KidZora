@@ -1,0 +1,197 @@
+{# ═══════════════════════════════════════════════════════════════
+   shared/_inbox_body.html
+   ─────────────────────────────────────────────────────────────
+   Variables expected from the route:
+     convos        – list, each item has chat_url pre-built
+     all_users     – list, each item has chat_url pre-built
+     badge         – "Admin" | "Seller" | "Buyer"
+     dashboard_url – url for the dashboard icon button
+     tabs_config   – list of {key, label, icon} dicts
+     stat3_role    – role string to count for 3rd stat box
+     stat3_label   – label for the 3rd stat box  (e.g. "Sellers")
+═══════════════════════════════════════════════════════════════ #}
+
+{# ── pre-compute unread counts per role ── #}
+{% set ns = namespace(all_u=0) %}
+{% for c in convos %}{% set ns.all_u = ns.all_u + c.unread %}{% endfor %}
+
+{% set unread_color = 'has-unread' if ns.all_u else 'no-unread' %}
+{% set stat3_count  = convos|selectattr('role','equalto',stat3_role)|list|length %}
+
+<div class="adm-inbox-shell">
+
+  <!-- ══ LEFT PANE ══ -->
+  <div class="adm-left">
+
+    <!-- Header -->
+    <div class="adm-left-header">
+      <div class="adm-left-header-left">
+        <h2>Messages<span class="adm-panel-badge adm-panel-badge--{{ badge|lower }}">{{ badge }}</span></h2>
+      </div>
+      <div class="adm-left-header-right">
+        <button class="adm-icon-btn" id="kzNewChatToggle" title="New conversation">
+          <i class="fas fa-edit" id="kzNewChatIcon"></i>
+        </button>
+        <a href="{{ dashboard_url }}" class="adm-icon-btn" title="Dashboard">
+          <i class="fas fa-th-large"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="adm-stats-bar">
+      <div class="adm-stat">
+        <div class="adm-stat-num">{{ convos|length }}</div>
+        <div class="adm-stat-lbl">Chats</div>
+      </div>
+      <div class="adm-stat">
+        <div class="adm-stat-num {{ unread_color }}">{{ ns.all_u }}</div>
+        <div class="adm-stat-lbl">Unread</div>
+      </div>
+      <div class="adm-stat">
+        <div class="adm-stat-num adm-stat-sellers">{{ stat3_count }}</div>
+        <div class="adm-stat-lbl">{{ stat3_label }}</div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="adm-search-wrap">
+      <div class="adm-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="kzMsgrSearch" placeholder="Search by name…" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="adm-tabs" id="kzInboxTabs">
+      {# All tab – always first #}
+      <button class="adm-tab active" data-tab="all">
+        <i class="fas fa-layer-group" style="font-size:.7rem"></i> All
+        {% if ns.all_u %}<span class="adm-tab-count">{{ ns.all_u }}</span>{% endif %}
+      </button>
+      {% for t in tabs_config %}
+        {% set tab_u = convos|selectattr('role','equalto',t.key)|sum(attribute='unread') %}
+        <button class="adm-tab" data-tab="{{ t.key }}">
+          <i class="fas {{ t.icon }}" style="font-size:.7rem"></i> {{ t.label }}
+          {% if tab_u %}<span class="adm-tab-count">{{ tab_u }}</span>{% endif %}
+        </button>
+      {% endfor %}
+    </div>
+
+    <!-- Conversation list -->
+    <div class="adm-convo-list" id="kzConvoList">
+      {% if convos %}
+        {% for c in convos %}
+        {% set rk = c.role if c.role in ('seller','buyer','rider','admin') else 'buyer' %}
+        <a href="{{ c.chat_url }}"
+           class="adm-convo-row {% if c.unread %}unread{% endif %}"
+           data-role="{{ rk }}"
+           data-name="{{ c.name|lower }}">
+
+          <div class="adm-av-wrap">
+            {% if c.avatar_url %}
+              <div class="adm-av adm-av--photo"><img src="{{ c.avatar_url }}" alt=""></div>
+            {% else %}
+              <div class="adm-av adm-av--{{ rk }}">{{ c.name[0].upper() }}</div>
+            {% endif %}
+            <span class="adm-av-dot adm-av-dot--{{ rk }}"></span>
+          </div>
+
+          <div class="adm-row-body">
+            <div class="adm-row-top">
+              <span class="adm-row-name">{{ c.name }}</span>
+              <span class="adm-row-time">{{ c.time_label }}</span>
+            </div>
+            <div class="adm-row-mid">
+              {% if rk == 'seller' %}
+                <span class="adm-role-chip adm-role-chip--seller"><i class="fas fa-store"></i>Seller</span>
+              {% elif rk == 'rider' %}
+                <span class="adm-role-chip adm-role-chip--rider"><i class="fas fa-motorcycle"></i>Rider</span>
+              {% elif rk == 'admin' %}
+                <span class="adm-role-chip adm-role-chip--admin"><i class="fas fa-shield-alt"></i>Admin</span>
+              {% else %}
+                <span class="adm-role-chip adm-role-chip--buyer"><i class="fas fa-user"></i>Buyer</span>
+              {% endif %}
+            </div>
+            <div class="adm-row-bot">
+              <span class="adm-row-preview">
+                {% if c.is_mine %}<em style="color:#6b7280;font-style:normal">You: </em>{% endif %}{{ c.latest|truncate(52, true, '…') }}
+              </span>
+              {% if c.unread %}<span class="adm-unread-pill">{{ c.unread }}</span>{% endif %}
+            </div>
+          </div>
+
+        </a>
+        {% endfor %}
+      {% endif %}
+
+      <div id="kzTabEmpty" style="display:none">
+        <div class="adm-empty"><i class="fas fa-inbox"></i><p>No conversations here</p></div>
+      </div>
+
+      {% if not convos %}
+      <div class="adm-empty">
+        <i class="fas fa-comment-slash"></i>
+        <p>No messages yet</p>
+        <small>Click the <i class="fas fa-edit"></i> icon above to start a new conversation.</small>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- ══ NEW CHAT PANEL ══ -->
+    <div class="adm-newchat" id="kzNewChatPanel">
+      <div class="adm-newchat-header">
+        <span><i class="fas fa-user-plus"></i> New Conversation</span>
+        <button class="adm-icon-btn" id="kzNewChatClose" title="Close"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="adm-search-wrap" style="padding:.75rem 1rem .5rem">
+        <div class="adm-search">
+          <i class="fas fa-search"></i>
+          <input type="text" id="kzNewChatSearch" placeholder="Search users…" autocomplete="off">
+        </div>
+      </div>
+      <div class="adm-newchat-list" id="kzNewChatList">
+        {% for u in all_users %}
+        {% set rk = u.role if u.role in ('seller','buyer','rider','admin') else 'buyer' %}
+        <a href="{{ u.chat_url }}" class="adm-newchat-row" data-name="{{ u.name|lower }}">
+          {% if u.avatar_url %}
+            <div class="adm-av adm-av--photo" style="width:36px;height:36px;flex-shrink:0"><img src="{{ u.avatar_url }}" alt=""></div>
+          {% else %}
+            <div class="adm-av adm-av--{{ rk }}" style="width:36px;height:36px;font-size:.85rem;flex-shrink:0">{{ u.name[0].upper() }}</div>
+          {% endif %}
+          <div class="adm-newchat-info">
+            <span class="adm-row-name">{{ u.name }}</span>
+            {% if rk == 'seller' %}
+              <span class="adm-role-chip adm-role-chip--seller"><i class="fas fa-store"></i>Seller</span>
+            {% elif rk == 'rider' %}
+              <span class="adm-role-chip adm-role-chip--rider"><i class="fas fa-motorcycle"></i>Rider</span>
+            {% elif rk == 'admin' %}
+              <span class="adm-role-chip adm-role-chip--admin"><i class="fas fa-shield-alt"></i>Admin</span>
+            {% else %}
+              <span class="adm-role-chip adm-role-chip--buyer"><i class="fas fa-user"></i>Buyer</span>
+            {% endif %}
+          </div>
+          <i class="fas fa-chevron-right" style="color:#374151;font-size:.7rem;margin-left:auto"></i>
+        </a>
+        {% else %}
+        <div class="adm-empty"><i class="fas fa-users"></i><p>No users found</p></div>
+        {% endfor %}
+        <div id="kzNewChatEmpty" style="display:none">
+          <div class="adm-empty"><i class="fas fa-search"></i><p>No match</p></div>
+        </div>
+      </div>
+    </div><!-- /adm-newchat -->
+
+  </div><!-- /adm-left -->
+
+  <!-- ══ RIGHT PANE ══ -->
+  <div class="adm-right" id="kzChatPane">
+    <div class="adm-placeholder" id="kzChatPlaceholder">
+      <div class="adm-placeholder-icon"><i class="fas fa-comments"></i></div>
+      <h4>Your Messages</h4>
+      <p>Select a conversation on the left to open it here.</p>
+    </div>
+    <iframe id="kzChatFrame" src="" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;border:none;"></iframe>
+  </div>
+
+</div><!-- /adm-inbox-shell -->

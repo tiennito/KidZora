@@ -1,0 +1,707 @@
+{% extends "base.html" %}
+{% block title %}{{ product.meta_title or (product.name ~ ' – KidZora') }}{% endblock %}
+
+{% block seo_meta %}
+{% set _title = product.meta_title or (product.name ~ ' – KidZora') %}
+{% set _desc  = product.meta_description or ((product.description | truncate(155, True, '...')) if product.description else ('Buy ' ~ product.name ~ ' on KidZora – the trusted kids\' marketplace.')) %}
+{% set _img   = product.images[0] if product.images else (request.host_url ~ 'static/img/og-default.png') %}
+<meta name="description" content="{{ _desc }}">
+<meta name="robots" content="index, follow">
+<meta property="og:site_name" content="KidZora">
+<meta property="og:type" content="product">
+<meta property="og:title" content="{{ _title }}">
+<meta property="og:description" content="{{ _desc }}">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta property="og:image" content="{{ _img }}">
+<meta property="product:price:amount" content="{{ product.price }}">
+<meta property="product:price:currency" content="PHP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ _title }}">
+<meta name="twitter:description" content="{{ _desc }}">
+<meta name="twitter:image" content="{{ _img }}">
+<link rel="canonical" href="{{ canonical_url }}">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/buyer/product-detail.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-xl py-4" style="max-width:1200px">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb" style="font-size:.83rem">
+      <li class="breadcrumb-item"><a href="{{ url_for('buyer.browse_products') }}" class="text-decoration-none">Browse</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('buyer.browse_products', category=product.category) }}">{{ product.category }}</a></li>
+      <li class="breadcrumb-item active text-truncate" style="max-width:280px">{{ product.name }}</li>
+    </ol>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+    <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} alert-dismissible fade show mb-3">
+      {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="kz-pd-panel p-3 p-md-4 mb-3">
+    <div class="row g-4">
+
+      <!-- LEFT: gallery  -->
+      <div class="col-md-5 col-lg-4">
+        <div id="variantOverlay" class="d-none" style="position:relative">
+          <img id="variantOverlayImg" src="" alt="variant"
+               style="width:100%;height:370px;object-fit:contain;background:#fafafa;
+                      border-radius:4px;border:1px solid #eee;">
+          <button type="button" onclick="clearVariantSelection()"
+                  class="btn btn-sm btn-dark bg-opacity-75 position-absolute top-0 end-0 m-2">
+            <i class="fas fa-times me-1"></i>Back
+          </button>
+        </div>
+
+        <div id="productGallery">
+          {% if product.images and product.images|length > 0 %}
+          <div id="productCarousel" class="carousel slide" data-bs-ride="false"
+               style="border:1px solid #e0e0e0;border-radius:4px;overflow:hidden;background:#fafafa;">
+            <div class="carousel-inner">
+              {% for img in product.images %}
+              <div class="carousel-item {% if loop.first %}active{% endif %}">
+                <img src="{{ img }}" class="d-block w-100" alt="{{ product.name }}"
+                     style="height:370px;object-fit:contain;padding:14px;">
+              </div>
+              {% endfor %}
+            </div>
+            {% if product.images|length > 1 %}
+            <button class="carousel-control-prev" type="button"
+                    data-bs-target="#productCarousel" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button class="carousel-control-next" type="button"
+                    data-bs-target="#productCarousel" data-bs-slide="next">
+              <span class="carousel-control-next-icon"></span>
+            </button>
+            <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark bg-opacity-60"
+                  id="imgCounter">1 / {{ product.images|length }}</span>
+            {% endif %}
+          </div>
+          {% if product.images|length > 1 %}
+          <div class="d-flex gap-2 flex-wrap mt-2" id="thumbStrip">
+            {% for img in product.images %}
+            <img src="{{ img }}"
+                 class="kz-thumb thumb-img {% if loop.first %}active{% endif %}"
+                 data-index="{{ loop.index0 }}" alt="Thumb {{ loop.index }}">
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% else %}
+          <div class="d-flex align-items-center justify-content-center bg-light rounded"
+               style="height:370px;border:1px solid #e0e0e0;">
+            <i class="fas fa-image fa-4x text-muted"></i>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- RIGHT: info  -->
+      <div class="col-md-7 col-lg-8">
+
+        <!-- Title -->
+        <h4 class="fw-bold mb-2" style="font-size:1.45rem;line-height:1.4">{{ product.name }}</h4>
+
+        <!-- Rating + badges bar -->
+        <div class="d-flex align-items-center gap-3 pb-2 mb-3 flex-wrap"
+             style="border-bottom:1px solid #f0f0f0;font-size:.85rem">
+          {% if reviews %}
+          <span style="color:var(--kz-orange);font-weight:700;border-bottom:1px solid var(--kz-orange)">{{ avg_rating }}</span>
+          <span>
+            {% for i in range(1, 6) %}
+              {% if avg_rating >= i %}<i class="fas fa-star" style="font-size:.75rem;color:var(--kz-orange)"></i>
+              {% elif avg_rating >= i - 0.5 %}<i class="fas fa-star-half-alt" style="font-size:.75rem;color:var(--kz-orange)"></i>
+              {% else %}<i class="far fa-star" style="font-size:.75rem;color:var(--kz-orange)"></i>
+              {% endif %}
+            {% endfor %}
+          </span>
+          <a href="#reviews" style="color:var(--kz-orange)" class="text-decoration-none">
+            {{ reviews|length }} Rating{{ 's' if reviews|length != 1 }}
+          </a>
+          <span class="text-muted">|</span>
+          {% endif %}
+          {% if sold_count %}
+          <span class="text-muted">{{ sold_count }} Sold</span>
+          <span class="text-muted">|</span>
+          {% endif %}
+          {% if product.condition %}
+          <span class="kz-meta-pill kz-pill-{{ 'green' if product.condition == 'new' else 'amber' }}">
+            <i class="fas fa-{% if product.condition == 'new' %}certificate{% else %}box-open{% endif %} me-1"></i>{{ product.condition|replace('_',' ')|title }}
+          </span>
+          {% endif %}
+          {% if product.age_group %}
+          <span class="kz-meta-pill kz-pill-blue">
+            <i class="fas fa-child me-1"></i>Ages: {{ product.age_group }}
+          </span>
+          {% endif %}
+        </div>
+
+        <!-- Price box -->
+        <div class="kz-price-box mb-3">
+          {% if product._on_sale %}
+            <div class="d-flex align-items-baseline gap-2 flex-wrap">
+              <div class="kz-price text-danger">&#8369;<span id="displayPrice">{{ product._effective_price|currency }}</span></div>
+              <span class="text-muted text-decoration-line-through">&#8369;{{ product.price|float|currency }}</span>
+              <span class="badge bg-danger" style="font-size:.7rem;">SALE</span>
+            </div>
+          {% else %}
+            <div class="kz-price">&#8369;<span id="displayPrice">{{ product.price|float|currency }}</span></div>
+          {% endif %}
+          <small class="text-muted" id="variantHint"></small>
+        </div>
+
+        <!-- Info rows -->
+        <div class="kz-info-row">
+          <span class="kz-info-label"><i class="fas fa-ticket-alt me-1"></i>Vouchers</span>
+          <div class="kz-info-val d-flex flex-wrap gap-2">
+            {% if product.stock_quantity and product.stock_quantity > 0 %}
+            <a href="{{ url_for('buyer.cart') }}" class="kz-voucher-chip"
+               title="Add to cart, then apply vouchers at checkout">Apply on Checkout</a>
+            {% else %}
+            <span class="text-muted small">—</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="kz-info-row">
+          <span class="kz-info-label"><i class="fas fa-truck me-1"></i>Shipping</span>
+          <span class="kz-info-val text-muted small">
+            <i class="fas fa-shield-alt me-1 text-success"></i>Free &amp; Easy Returns · Buyer Protection
+          </span>
+        </div>
+
+        {% if variants %}
+        <div class="kz-info-row align-items-start">
+          <span class="kz-info-label pt-2">Variation</span>
+          <div class="kz-info-val">
+            <div class="d-flex flex-wrap gap-2" id="variantPicker">
+              {% for v in variants %}
+              <button type="button"
+                      class="kz-var-btn variant-btn"
+                      data-vid="{{ v.id }}"
+                      data-name="{{ v.name }}"
+                      data-image="{{ v.image_url or '' }}"
+                      data-modifier="{{ v.price_modifier | float }}"
+                      data-stock="{{ v.stock_quantity or 0 }}"
+                      onclick="selectVariant(this)">
+                {% if v.image_url %}<img src="{{ v.image_url }}" alt="{{ v.name }}">{% endif %}
+                {{ v.name }}
+                {% if v.price_modifier and v.price_modifier != 0 %}
+                <span class="small text-muted">
+                  {% if v.price_modifier > 0 %}+{% endif %}&#8369;{{ v.price_modifier|float|currency }}
+                </span>
+                {% endif %}
+              </button>
+              {% endfor %}
+            </div>
+            <input type="hidden" id="selectedVariantId" value="">
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="kz-info-row">
+          <span class="kz-info-label pt-2">Quantity</span>
+          <div class="kz-info-val">
+            {% if product.stock_quantity and product.stock_quantity > 0 %}
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+              <div class="kz-qty-wrap">
+                <button class="kz-qty-btn" type="button" onclick="adjustQty(-1)">−</button>
+                <input type="number" id="qtyInput" class="kz-qty-input"
+                       value="1" min="1" max="{{ product.stock_quantity }}">
+                <button class="kz-qty-btn" type="button" onclick="adjustQty(1)">+</button>
+              </div>
+              <span id="stockInfo" style="font-size:.82rem">
+                <i class="fas fa-check-circle text-success me-1"></i>
+                <span class="text-success fw-semibold">In Stock</span>
+                <span class="text-muted">({{ product.stock_quantity }} available)</span>
+              </span>
+            </div>
+            <div id="qtyError" class="mt-1" style="font-size:.78rem;color:#dc3545;display:none">
+              <i class="fas fa-exclamation-circle me-1"></i><span id="qtyErrorMsg"></span>
+            </div>
+            {% else %}
+            <span id="stockInfo"><span class="badge bg-danger py-2 px-3">Out of Stock</span></span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="mt-4 d-flex gap-3 flex-wrap">
+          {% if product.stock_quantity and product.stock_quantity > 0 %}
+          <form id="addToCartForm"
+                action="{{ url_for('buyer.cart_add', product_id=product.id) }}"
+                method="POST" class="d-inline m-0">
+            <input type="hidden" name="variant_id" id="cartVariantId" value="">
+            <input type="hidden" name="qty" id="cartQtyHidden" value="1">
+            <button id="addToCartBtn" type="submit" class="kz-btn-cart">
+              <i class="fas fa-cart-plus"></i>Add to Cart
+            </button>
+          </form>
+          <form id="buyNowForm"
+                action="{{ url_for('buyer.buy_now', product_id=product.id) }}"
+                method="POST" class="d-inline m-0">
+            <input type="hidden" name="variant_id" id="buyNowVariantId" value="">
+            <input type="hidden" name="qty" id="buyNowQtyHidden" value="1">
+            <button id="buyNowBtn" type="submit" class="kz-btn-buy">
+              <i class="fas fa-bolt"></i>Buy Now
+            </button>
+          </form>
+          {% else %}
+          <button class="kz-btn-cart" disabled><i class="fas fa-cart-plus"></i>Add to Cart</button>
+          <button class="kz-btn-buy"  disabled><i class="fas fa-bolt"></i>Buy Now</button>
+          {% endif %}
+          <button id="wishlistBtn"
+                  class="kz-btn-wish{% if is_wishlisted %} active{% endif %}"
+                  data-product-id="{{ product.id }}"
+                  title="{% if is_wishlisted %}Remove from Favorites{% else %}Add to Favorites{% endif %}">
+            <i class="{% if is_wishlisted %}fas{% else %}far{% endif %} fa-heart"></i>
+            <span class="kz-wish-label">{% if is_wishlisted %}Favorited{% else %}Favorite{% endif %}</span>
+          </button>
+          {% if current_user.is_authenticated and current_user.role == 'buyer' %}
+          <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#reportProductModal">
+            <i class="fas fa-flag me-1"></i>Report Product
+          </button>
+          {% endif %}
+        </div>
+
+      </div>{# /col right #}
+    </div>{# /row #}
+  </div>{# /top panel #}
+
+  <!-- â•â• SELLER CARD  -->
+  {% if seller %}
+  <div class="kz-pd-panel p-4 mb-3">
+    <div class="d-flex align-items-center gap-4 flex-wrap">
+      <div class="d-flex align-items-center gap-3">
+        {% set shop_av = seller.avatar_url if seller.avatar_url else seller.avatar %}
+        {% if shop_av %}
+        <img src="{{ shop_av }}" class="kz-seller-avatar" alt="store logo">
+        {% else %}
+        <div class="kz-seller-avatar">
+          {{ (seller.shop_name or seller.first_name or 'S')[0].upper() }}
+        </div>
+        {% endif %}
+        <div>
+          <div class="fw-semibold" style="font-size:.95rem">
+            {{ seller.shop_name or seller.business_name or (seller.first_name ~ ' ' ~ seller.last_name) }}
+          </div>
+          {% if seller.city %}
+          <small class="text-muted">
+            <i class="fas fa-map-marker-alt me-1"></i>{{ seller.city }}{% if seller.province %}, {{ seller.province }}{% endif %}
+          </small>
+          {% endif %}
+        </div>
+      </div>
+      <div class="d-flex gap-2 ms-auto flex-wrap">
+        <a href="{{ url_for('buyer.seller_shop', seller_id=seller.id) }}"
+           class="btn btn-outline-secondary btn-sm px-3">
+          <i class="fas fa-store me-1"></i>View Shop
+        </a>
+        {% if current_user.is_authenticated and seller.user_id != current_user.id %}
+        <button id="pd-follow-btn"
+                data-seller-id="{{ seller.id }}"
+                class="btn btn-sm px-3 {% if is_following_seller %}btn-danger{% else %}btn-outline-danger{% endif %}">
+          <i class="fas fa-heart me-1"></i>
+          <span id="pd-follow-label">{{ 'Following' if is_following_seller else 'Follow Shop' }}</span>
+        </button>
+        {% endif %}
+        {% if seller.user_id != current_user.id %}
+        <a href="{{ url_for('buyer.chat', other_user_id=seller.user_id) }}"
+           class="btn btn-outline-primary btn-sm px-3">
+          <i class="fas fa-comment-dots me-1"></i>Chat Now
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="row g-2 mt-3 pt-3 border-top">
+      <div class="col-6 col-md-3 kz-seller-stat">
+        <span class="kz-ss-lbl">Ratings</span>
+        <span class="val">{{ seller.review_count if seller.review_count else '—' }}</span>
+      </div>
+      <div class="col-6 col-md-3 kz-seller-stat">
+        <span class="kz-ss-lbl">Avg Rating</span>
+        <span class="val{% if seller.avg_rating and seller.avg_rating > 0 %} text-warning{% endif %}">
+          {% if seller.avg_rating and seller.avg_rating > 0 %}
+          <i class="fas fa-star me-1" style="font-size:.8rem"></i>{{ seller.avg_rating }}
+          {% else %}—{% endif %}
+        </span>
+      </div>
+      <div class="col-6 col-md-3 kz-seller-stat">
+        <span class="kz-ss-lbl">Products</span>
+        <span class="val">{{ seller.product_count if seller.product_count is defined else '—' }}</span>
+      </div>
+      <div class="col-6 col-md-3 kz-seller-stat">
+        <span class="kz-ss-lbl">Joined</span>
+        <span class="val">{{ seller.joined or '—' }}</span>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- â•â• DETAILS TABS  -->
+  <div class="kz-pd-panel mb-3">
+    <div class="d-flex border-bottom px-3">
+      <button class="kz-tab-btn active" data-tab="specs">Product Specifications</button>
+      <button class="kz-tab-btn"        data-tab="desc">Product Description</button>
+    </div>
+    <div id="tab-specs" class="kz-tab-pane active px-3 py-3">
+      <table class="table table-borderless mb-0">
+        <tbody>
+          {% if product.category %}
+          <tr class="kz-spec-row"><td class="text-muted">Category</td><td>{{ product.category }}</td></tr>
+          {% endif %}
+          {% if product.age_group %}
+          <tr class="kz-spec-row"><td class="text-muted">Age Group</td><td>{{ product.age_group }}</td></tr>
+          {% endif %}
+          {% if product.condition %}
+          <tr class="kz-spec-row"><td class="text-muted">Condition</td><td>{{ product.condition|replace('_',' ')|title }}</td></tr>
+          {% endif %}
+          <tr class="kz-spec-row">
+            <td class="text-muted">Stock</td>
+            <td>
+              {% if product.stock_quantity and product.stock_quantity > 0 %}
+                <span class="text-success fw-semibold">In Stock</span> <span class="text-muted">({{ product.stock_quantity }} units)</span>
+              {% else %}
+                <span class="text-danger fw-semibold">Out of Stock</span>
+              {% endif %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="tab-desc" class="kz-tab-pane px-3 py-3">
+      <p style="white-space:pre-line;font-size:.9rem;line-height:1.8;color:#444">
+        {{ product.description or 'No description available.' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- â•â• PRODUCT RATINGS  -->
+  <div class="kz-pd-panel p-4 mb-5" id="reviews">
+    <h5 class="fw-bold mb-4">Product Ratings</h5>
+
+    {% if reviews %}
+    <!-- Score summary -->
+    <div class="kz-ratings-box d-flex align-items-center gap-5 flex-wrap mb-4">
+      <div class="text-center" style="min-width:90px">
+        <div class="kz-big-score">{{ avg_rating }}</div>
+        <div class="mt-1">
+          {% for i in range(1, 6) %}
+            {% if avg_rating >= i %}<i class="fas fa-star" style="color:var(--kz-orange);font-size:1.1rem"></i>
+            {% elif avg_rating >= i - 0.5 %}<i class="fas fa-star-half-alt" style="color:var(--kz-orange);font-size:1.1rem"></i>
+            {% else %}<i class="far fa-star" style="color:var(--kz-orange);font-size:1.1rem"></i>
+            {% endif %}
+          {% endfor %}
+        </div>
+        <small class="text-muted">out of 5</small>
+      </div>
+      <div style="max-width:280px;flex:1">
+        {% for star in [5, 4, 3, 2, 1] %}
+        {% set cnt = rating_dist[star] %}
+        {% set pct = ((cnt / reviews|length) * 100)|round|int %}
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="small" style="width:1.2rem;text-align:right">{{ star }}</span>
+          <i class="fas fa-star" style="font-size:.7rem;color:var(--kz-orange)"></i>
+          <div class="flex-grow-1 rounded-pill overflow-hidden" style="height:6px;background:#eee">
+            <div class="kz-star-bar" data-pct="{{ pct }}"></div>
+          </div>
+          <span class="small text-muted" style="width:1.5rem">{{ cnt }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Filter pills -->
+    {% set with_comments = reviews | selectattr('body') | list | length %}
+    {% set with_media    = reviews | selectattr('media_urls') | list | length %}
+    {% set review_variants = reviews | selectattr('variant_name') | map(attribute='variant_name') | unique | list %}
+    <div class="d-flex flex-wrap gap-2 mb-4">
+      <button class="kz-filter-pill active" data-filter-type="all" data-filter-val="">All ({{ reviews|length }})</button>
+      {% for star in [5, 4, 3, 2, 1] %}
+      <button class="kz-filter-pill" data-filter-type="star" data-filter-val="{{ star }}">{{ star }} Star ({{ rating_dist[star] }})</button>
+      {% endfor %}
+      {% if with_comments %}
+      <button class="kz-filter-pill" data-filter-type="comments" data-filter-val="1">With Comments ({{ with_comments }})</button>
+      {% endif %}
+      {% if with_media %}
+      <button class="kz-filter-pill" data-filter-type="media" data-filter-val="1">With Media ({{ with_media }})</button>
+      {% endif %}
+      {% for vname in review_variants %}
+      <button class="kz-filter-pill" data-filter-type="variant" data-filter-val="{{ vname }}">
+        {{ vname }} ({{ reviews | selectattr('variant_name', 'equalto', vname) | list | length }})
+      </button>
+      {% endfor %}
+    </div>
+
+    <!-- Review list -->
+    <div id="reviewList">
+      {% for review in reviews %}
+      <div class="kz-review-card review-card"
+           id="review-{{ review.id }}"
+           data-variant="{{ review.variant_name or '' }}"
+           data-rating="{{ review.rating }}"
+           data-has-body="{{ '1' if review.body else '0' }}"
+           data-has-media="{{ '1' if review.media_urls else '0' }}">
+        <div class="d-flex gap-3">
+          <div class="kz-rev-avatar">{{ (review._reviewer_name or 'A')[0].upper() }}</div>
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <strong style="font-size:.88rem">{{ review._reviewer_name }}</strong>
+              {% if review.is_verified_purchase %}
+              <span style="font-size:.7rem;color:#26aa99;background:#e8f9f7;padding:2px 8px;border-radius:2px">
+                <i class="fas fa-check-circle me-1"></i>Verified Purchase
+              </span>
+              {% endif %}
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
+              <span>
+                {% for i in range(1, 6) %}
+                <i class="fas fa-star kz-review-star {% if i <= review.rating %}kz-star-on{% else %}kz-star-off{% endif %}" style="font-size:.72rem"></i>
+                {% endfor %}
+              </span>
+              <small class="text-muted">{{ review.created_at[:10] }}</small>
+              {% if review.title %}<span style="font-size:.85rem;font-weight:600;color:#333">· {{ review.title }}</span>{% endif %}
+            </div>
+            {% if review.variant_name %}
+            <div class="mt-1 mb-1"><span class="kz-variation-tag">Variation: {{ review.variant_name }}</span></div>
+            {% endif %}
+            {% if review.body %}
+            <p class="mt-2 mb-2" style="font-size:.88rem;color:#444;line-height:1.6">{{ review.body }}</p>
+            {% endif %}
+            {% if review.media_urls %}
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              {% for url in review.media_urls %}
+              {% set ext = url.rsplit('.', 1)[-1].lower() %}
+              {% if ext in ['mp4', 'mov', 'avi', 'webm', 'mkv'] %}
+              <div style="position:relative;width:80px;height:80px;cursor:pointer;flex-shrink:0"
+                   onclick="openMediaModal('{{ url }}', 'video')">
+                <video src="{{ url }}" class="kz-media-thumb" style="width:100%;height:100%"></video>
+                <div style="position:absolute;inset:0;background:rgba(0,0,0,.35);border-radius:4px;
+                            display:flex;align-items:center;justify-content:center">
+                  <i class="fas fa-play-circle text-white" style="font-size:1.6rem"></i>
+                </div>
+              </div>
+              {% else %}
+              <img src="{{ url }}" class="kz-media-thumb"
+                   onclick="openMediaModal('{{ url }}', 'image')" alt="Review photo">
+              {% endif %}
+              {% endfor %}
+            </div>
+            {% endif %}
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+              <button class="btn btn-sm btn-outline-secondary helpful-btn
+                             {% if review.id in my_helpful_ids %}active{% endif %}"
+                      data-review-id="{{ review.id }}"
+                      data-voted="{{ 'true' if review.id in my_helpful_ids else 'false' }}"
+                      style="font-size:.75rem;padding:3px 10px">
+                <i class="fas fa-thumbs-up me-1"></i>Helpful
+                <span class="helpful-count">({{ review.helpful_count or 0 }})</span>
+              </button>
+              {% if current_user.id == review.buyer_id %}
+              <button class="btn btn-sm btn-link text-primary p-0 ms-auto"
+                      style="font-size:.78rem"
+                      data-review="{{ review|tojson|e }}"
+                      onclick="openEditReview(JSON.parse(this.dataset.review))">
+                <i class="fas fa-pen me-1"></i>Edit
+              </button>
+              <form method="POST"
+                    action="{{ url_for('buyer.delete_review', review_id=review.id) }}"
+                    class="d-inline"
+                    onsubmit="return confirm('Delete your review?')">
+                <input type="hidden" name="product_id" value="{{ product.id }}">
+                <button type="submit" class="btn btn-sm btn-link text-danger p-0" style="font-size:.78rem">
+                  <i class="fas fa-trash me-1"></i>Delete
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if reviews|length > 5 %}
+    <!-- Review pagination -->
+    <div class="d-flex justify-content-center align-items-center gap-1 mt-4" id="reviewPager"></div>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="fas fa-comment-slash fa-2x d-block mb-2 opacity-25"></i>No reviews yet — be the first!
+    </div>
+    {% endif %}
+
+  </div>{# /ratings panel #}
+
+  {# ── From the same shop ────────────────────────────────────── #}
+  {% if same_shop %}
+  <div class="kz-pd-panel p-4 mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold mb-0">From the Same Shop</h5>
+      {% if seller %}
+      <a href="{{ url_for('buyer.seller_shop', seller_id=seller.id) }}"
+         class="text-decoration-none small fw-semibold" style="color:var(--kz-orange)">
+        See All <i class="fas fa-chevron-right ms-1" style="font-size:.7rem"></i>
+      </a>
+      {% endif %}
+    </div>
+    <div class="d-flex gap-3 overflow-auto pb-2" style="scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">
+      {% for sp in same_shop %}
+      <a href="{{ url_for('buyer.product_detail', product_id=sp.id) }}"
+         class="text-decoration-none flex-shrink-0" style="width:160px;scroll-snap-align:start">
+        <div class="card border-0 shadow-sm h-100">
+          {% if sp.image_url %}
+          <img src="{{ sp.image_url }}" alt="{{ sp.name }}"
+               class="card-img-top" style="height:140px;object-fit:cover">
+          {% else %}
+          <div class="bg-light d-flex align-items-center justify-content-center" style="height:140px">
+            <i class="fas fa-image fa-2x text-muted"></i>
+          </div>
+          {% endif %}
+          <div class="card-body p-2">
+            <div class="small fw-semibold text-dark" style="display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.3;min-height:2.6em">{{ sp.name }}</div>
+            <div class="fw-bold mt-1" style="color:var(--kz-orange);font-size:.9rem">&#8369;{{ sp.price|float|currency }}</div>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── You may also like ──────────────────────────────────────── #}
+  {% if also_like %}
+  <div class="kz-pd-panel p-4 mb-4">
+    <h5 class="fw-bold mb-3">You May Also Like</h5>
+    <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 g-3">
+      {% for al in also_like %}
+      <div class="col">
+        <a href="{{ url_for('buyer.product_detail', product_id=al.id) }}" class="text-decoration-none">
+          <div class="card border-0 shadow-sm h-100">
+            {% if al.image_url %}
+            <img src="{{ al.image_url }}" alt="{{ al.name }}"
+                 class="card-img-top" style="height:160px;object-fit:cover">
+            {% else %}
+            <div class="bg-light d-flex align-items-center justify-content-center" style="height:160px">
+              <i class="fas fa-image fa-2x text-muted"></i>
+            </div>
+            {% endif %}
+            <div class="card-body p-2">
+              <div class="small fw-semibold text-dark" style="display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ al.name }}</div>
+              <div class="d-flex justify-content-between align-items-center mt-1">
+                <span class="fw-bold" style="color:var(--kz-orange);font-size:.9rem">&#8369;{{ al.price|float|currency }}</span>
+                {% if al.sold_count %}
+                <span class="text-muted" style="font-size:.72rem">{{ al.sold_count }} sold</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>{# /container #}
+
+<!-- Media lightbox -->
+<div id="mediaModal" class="modal fade" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-dark border-0">
+      <div class="modal-header border-0 pb-0">
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center p-2" id="mediaModalBody"></div>
+    </div>
+  </div>
+</div>
+
+{% if current_user.is_authenticated and current_user.role == 'buyer' %}
+<div class="modal fade" id="reportProductModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" method="POST" action="{{ url_for('buyer.report_product', product_id=product.id) }}">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-flag me-2 text-danger"></i>Report Product</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small mb-3">Tell us what is wrong with this listing.</p>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Reason <span class="text-danger">*</span></label>
+          <select class="form-select" name="reason" required>
+            <option value="">Select a reason</option>
+            <option value="Counterfeit or fake item">Counterfeit or fake item</option>
+            <option value="Misleading description or photos">Misleading description or photos</option>
+            <option value="Prohibited or unsafe product">Prohibited or unsafe product</option>
+            <option value="Spam or duplicate listing">Spam or duplicate listing</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="mb-0">
+          <label class="form-label fw-semibold">Details (optional)</label>
+          <textarea class="form-control" name="details" rows="4"
+                    placeholder="Add more context to help admins review this report."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-danger">
+          <i class="fas fa-paper-plane me-1"></i>Submit Report
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+{% block extra_js %}
+{# NOTE: window.KZ_PD must stay here — Flask/Jinja2 renders {{ }} tags.
+   External .js files are static and cannot use {{ }} template syntax. #}
+<div id="pdConfig" hidden
+     data-base-price="{{ (product._effective_price if product._effective_price is defined else product.price|float) }}"
+     data-base-stock="{{ product.stock_quantity or 0 }}"
+     data-helpful-url="{{ url_for('buyer.toggle_helpful', review_id='PLACEHOLDER') }}"
+     data-wishlist-url="{{ url_for('buyer.toggle_wishlist', product_id=product.id) }}"></div>
+<script src="{{ url_for('static', filename='js/buyer/product-detail.js') }}"></script>
+{% if seller and current_user.is_authenticated and seller.user_id != current_user.id %}
+<script>
+(function () {
+  const btn = document.getElementById('pd-follow-btn');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    const sellerId = btn.dataset.sellerId;
+    btn.disabled = true;
+    fetch(`/buyer/shop/${sellerId}/follow`, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin',
+    })
+    .then(r => r.json())
+    .then(data => {
+      const label = document.getElementById('pd-follow-label');
+      if (data.following) {
+        btn.classList.replace('btn-outline-danger', 'btn-danger');
+        label.textContent = 'Following';
+      } else {
+        btn.classList.replace('btn-danger', 'btn-outline-danger');
+        label.textContent = 'Follow Shop';
+      }
+      btn.disabled = false;
+    })
+    .catch(() => { btn.disabled = false; });
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

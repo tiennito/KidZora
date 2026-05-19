@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ report.title }} – KidZora</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #333; padding: 24px; }
+
+    /* ── toolbar (hidden on print) ─────────────────────── */
+    .toolbar {
+      display: flex; gap: 8px; margin-bottom: 20px;
+    }
+    .toolbar button {
+      padding: 8px 16px; border: none; border-radius: 4px;
+      cursor: pointer; font-size: 13px; font-weight: bold;
+    }
+    .btn-print { background: #2c3e50; color: #fff; }
+    .btn-close-tab { background: #e74c3c; color: #fff; }
+
+    /* ── page header ──────────────────────────────────── */
+    .rpt-header {
+      text-align: center; border-bottom: 2px solid #2c3e50;
+      padding-bottom: 12px; margin-bottom: 18px;
+    }
+    .rpt-header h1 { font-size: 22px; color: #2c3e50; }
+    .rpt-header .subtitle { font-size: 13px; color: #666; margin-top: 4px; }
+
+    /* ── meta row ─────────────────────────────────────── */
+    .rpt-meta {
+      display: flex; justify-content: space-between;
+      margin-bottom: 18px; font-size: 11px; color: #555;
+      border-bottom: 1px solid #eee; padding-bottom: 8px;
+    }
+
+    /* ── section titles ───────────────────────────────── */
+    .section-title {
+      font-size: 13px; font-weight: bold; text-transform: uppercase;
+      letter-spacing: 0.4px; border-bottom: 1px solid #ccc;
+      padding-bottom: 4px; margin: 18px 0 10px; color: #2c3e50;
+    }
+
+    /* ── stat cards ───────────────────────────────────── */
+    .stats-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+    .stat-box {
+      border: 1px solid #ddd; border-radius: 4px;
+      padding: 8px 14px; min-width: 110px; text-align: center;
+    }
+    .stat-box .value { font-size: 15px; font-weight: bold; color: #2c3e50; }
+    .stat-box .label { font-size: 10px; color: #888; margin-top: 2px; }
+
+    /* ── tables ───────────────────────────────────────── */
+    table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 11px; }
+    thead th { background: #2c3e50; color: #fff; padding: 6px 8px; text-align: left; }
+    tbody td { padding: 5px 8px; border-bottom: 1px solid #eee; }
+    tbody tr:nth-child(even) td { background: #f9f9f9; }
+
+    /* ── split tables layout ──────────────────────────── */
+    .two-col { display: flex; gap: 20px; margin-bottom: 14px; }
+    .two-col > div { flex: 1; }
+
+    /* ── footer ───────────────────────────────────────── */
+    .rpt-footer {
+      margin-top: 28px; text-align: center;
+      font-size: 10px; color: #aaa;
+      border-top: 1px solid #eee; padding-top: 10px;
+    }
+
+    /* ── print tweaks ─────────────────────────────────── */
+    @media print {
+      .toolbar { display: none !important; }
+      body { padding: 0; }
+      thead th {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- toolbar visible only in browser, hidden when printing -->
+  <div class="toolbar">
+    <button class="btn-print" onclick="window.print()">🖨 Print / Save as PDF</button>
+    <button class="btn-close-tab" onclick="window.close()">✕ Close</button>
+  </div>
+
+  <div class="rpt-header">
+    <h1>KidZora &mdash; {{ report.title }}</h1>
+    <div class="subtitle">
+      {{ report.report_type | title }} Report &nbsp;&middot;&nbsp;
+      Period: {{ (report.start_date or '')[:10] }} &ndash; {{ (report.end_date or '')[:10] }}
+    </div>
+  </div>
+
+  <div class="rpt-meta">
+    <span>Generated: {{ (report.created_at or '')[:10] }}</span>
+    <span>KidZora Admin Reports</span>
+    <span>Period: {{ (report.start_date or '')[:10] }} &ndash; {{ (report.end_date or '')[:10] }}</span>
+  </div>
+
+  <!-- ═══════════ SALES ═══════════ -->
+  {% if report.report_type == 'sales' %}
+
+  <div class="section-title">Summary</div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="value">{{ data.get('total_orders', 0) }}</div><div class="label">Total Orders</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('completed_orders', 0) }}</div><div class="label">Completed</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('cancelled_orders', 0) }}</div><div class="label">Cancelled</div></div>
+    <div class="stat-box"><div class="value">₱{{ '{:,.2f}'.format(data.get('total_revenue', 0)) }}</div><div class="label">Total Revenue</div></div>
+    <div class="stat-box"><div class="value">₱{{ '{:,.2f}'.format(data.get('total_commission', 0)) }}</div><div class="label">Commission</div></div>
+    <div class="stat-box"><div class="value">₱{{ '{:,.2f}'.format(data.get('total_seller_earnings', 0)) }}</div><div class="label">Seller Earnings</div></div>
+    <div class="stat-box"><div class="value">₱{{ '{:,.2f}'.format(data.get('avg_order_value', 0)) }}</div><div class="label">Avg Order Value</div></div>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-title">Orders by Status</div>
+      <table>
+        <thead><tr><th>Status</th><th>Count</th></tr></thead>
+        <tbody>
+          {% for status, count in (data.get('orders_by_status') or {}).items() %}
+          <tr><td>{{ status | title }}</td><td>{{ count }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="section-title">Orders by Payment</div>
+      <table>
+        <thead><tr><th>Method</th><th>Count</th></tr></thead>
+        <tbody>
+          {% for method, count in (data.get('orders_by_payment') or {}).items() %}
+          <tr><td>{{ method | title }}</td><td>{{ count }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-title">Order Details</div>
+  <table>
+    <thead>
+      <tr><th>Date</th><th>Order ID</th><th>Amount (PHP)</th><th>Commission (PHP)</th><th>Status</th><th>Payment</th></tr>
+    </thead>
+    <tbody>
+      {% for row in data.get('rows', []) %}
+      <tr>
+        <td>{{ row.created_at }}</td>
+        <td>{{ row.order_id }}…</td>
+        <td>₱{{ '{:,.2f}'.format(row.amount) }}</td>
+        <td>₱{{ '{:,.2f}'.format(row.commission) }}</td>
+        <td>{{ row.status | title }}</td>
+        <td>{{ row.payment_method | title }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" style="text-align:center;color:#999;">No orders in this period</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- ═══════════ USERS ═══════════ -->
+  {% elif report.report_type == 'users' %}
+
+  <div class="section-title">Summary</div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="value">{{ data.get('total_new_users', 0) }}</div><div class="label">New Users</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('new_buyers', 0) }}</div><div class="label">Buyers</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('new_sellers', 0) }}</div><div class="label">Sellers</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('new_riders', 0) }}</div><div class="label">Riders</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('approved_sellers', 0) }}</div><div class="label">Approved Sellers</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('pending_sellers', 0) }}</div><div class="label">Pending Sellers</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('banned_users', 0) }}</div><div class="label">Banned</div></div>
+  </div>
+
+  <div class="section-title">New Registrations</div>
+  <table>
+    <thead><tr><th>Date</th><th>Name</th><th>Role</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for row in data.get('rows', []) %}
+      <tr>
+        <td>{{ row.registered }}</td>
+        <td>{{ row.name }}</td>
+        <td>{{ row.role | title }}</td>
+        <td>{{ row.status }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" style="text-align:center;color:#999;">No new users in this period</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- ═══════════ COMMISSIONS ═══════════ -->
+  {% elif report.report_type == 'commissions' %}
+
+  <div class="section-title">Summary</div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="value">{{ data.get('transaction_count', 0) }}</div><div class="label">Orders</div></div>
+    <div class="stat-box"><div class="value">₱{{ '{:,.2f}'.format(data.get('total_commission', 0)) }}</div><div class="label">Total Commission</div></div>
+    <div class="stat-box"><div class="value">₱{{ '{:,.2f}'.format(data.get('total_earnings', 0)) }}</div><div class="label">Seller Earnings</div></div>
+  </div>
+
+  <div class="section-title">Commission Breakdown</div>
+  <table>
+    <thead>
+      <tr><th>Date</th><th>Order ID</th><th>Amount (PHP)</th><th>Commission (PHP)</th><th>Seller Earnings (PHP)</th></tr>
+    </thead>
+    <tbody>
+      {% for row in data.get('transactions', []) %}
+      <tr>
+        <td>{{ (row.get('created_at') or '')[:10] }}</td>
+        <td>{{ (row.get('order_id') or '')[:8] }}…</td>
+        <td>₱{{ '{:,.2f}'.format(row.get('amount', 0)) }}</td>
+        <td>₱{{ '{:,.2f}'.format(row.get('commission_amount', 0)) }}</td>
+        <td>₱{{ '{:,.2f}'.format(row.get('seller_earnings', 0)) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" style="text-align:center;color:#999;">No completed orders in this period</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- ═══════════ ACTIVITY ═══════════ -->
+  {% elif report.report_type == 'activity' %}
+
+  <div class="section-title">Summary</div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="value">{{ data.get('total_orders', 0) }}</div><div class="label">Total Orders</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('completed_orders', 0) }}</div><div class="label">Completed</div></div>
+    <div class="stat-box"><div class="value">₱{{ '{:,.2f}'.format(data.get('total_revenue', 0)) }}</div><div class="label">Revenue</div></div>
+    <div class="stat-box"><div class="value">₱{{ '{:,.2f}'.format(data.get('total_commission', 0)) }}</div><div class="label">Commission</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('total_new_users', 0) }}</div><div class="label">New Users</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('banned_users', 0) }}</div><div class="label">Banned Users</div></div>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-title">Orders by Status</div>
+      <table>
+        <thead><tr><th>Status</th><th>Count</th></tr></thead>
+        <tbody>
+          {% for status, count in (data.get('orders_by_status') or {}).items() %}
+          <tr><td>{{ status | title }}</td><td>{{ count }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="section-title">New Users by Role</div>
+      <table>
+        <thead><tr><th>Role</th><th>Count</th></tr></thead>
+        <tbody>
+          {% for role, count in (data.get('new_users_by_role') or {}).items() %}
+          <tr><td>{{ role | title }}</td><td>{{ count }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════ PRODUCT PERFORMANCE ═══════════ -->
+  {% elif report.report_type == 'products' %}
+
+  <div class="section-title">Summary</div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="value">{{ data.get('total_products_sold', 0) }}</div><div class="label">Unique Products</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('total_quantity_sold', 0) }}</div><div class="label">Total Quantity</div></div>
+    <div class="stat-box"><div class="value">₱{{ '{:,.2f}'.format(data.get('total_revenue', 0)) }}</div><div class="label">Total Revenue</div></div>
+    <div class="stat-box"><div class="value">₱{{ '{:,.2f}'.format(data.get('avg_revenue_per_product', 0)) }}</div><div class="label">Avg per Product</div></div>
+  </div>
+
+  <div class="section-title">Top 10 Best-Selling Products</div>
+  <table>
+    <thead>
+      <tr><th>Rank</th><th>Product Name</th><th>Quantity Sold</th><th>Revenue (PHP)</th></tr>
+    </thead>
+    <tbody>
+      {% for idx, row in enumerate(data.get('top_10_products', []), 1) %}
+      <tr>
+        <td>{{ idx }}</td>
+        <td>{{ row.product_name }}</td>
+        <td style="text-align:center;">{{ row.quantity_sold }}</td>
+        <td style="text-align:right;">₱{{ '{:,.2f}'.format(row.total_revenue) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" style="text-align:center;color:#999;">No products sold in this period</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="section-title">All Products Sold</div>
+  <table>
+    <thead>
+      <tr><th>Product Name</th><th>Quantity Sold</th><th>Revenue (PHP)</th></tr>
+    </thead>
+    <tbody>
+      {% for row in data.get('all_products', []) %}
+      <tr>
+        <td>{{ row.product_name }}</td>
+        <td style="text-align:center;">{{ row.quantity_sold }}</td>
+        <td style="text-align:right;">₱{{ '{:,.2f}'.format(row.total_revenue) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" style="text-align:center;color:#999;">No products sold in this period</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- ═══════════ USER GROWTH ═══════════ -->
+  {% elif report.report_type == 'user_growth' %}
+
+  <div class="section-title">Summary</div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="value">{{ data.get('total_new_users', 0) }}</div><div class="label">Total New Users</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('by_role', {}).get('buyer', 0) }}</div><div class="label">Buyers</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('by_role', {}).get('seller', 0) }}</div><div class="label">Sellers</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('by_role', {}).get('rider', 0) }}</div><div class="label">Riders</div></div>
+  </div>
+
+  <div class="section-title">Daily Registration Trend</div>
+  <table>
+    <thead>
+      <tr><th>Date</th><th>New Users</th><th>Cumulative</th></tr>
+    </thead>
+    <tbody>
+      {% for row in data.get('daily_data', []) %}
+      <tr>
+        <td>{{ row.date }}</td>
+        <td style="text-align:center;">{{ row.new_users }}</td>
+        <td style="text-align:center;">{{ row.cumulative }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" style="text-align:center;color:#999;">No registrations in this period</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- ═══════════ CATEGORY SALES ═══════════ -->
+  {% elif report.report_type == 'category_sales' %}
+
+  <div class="section-title">Summary</div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="value">{{ data.get('total_categories', 0) }}</div><div class="label">Active Categories</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('total_quantity_sold', 0) }}</div><div class="label">Total Quantity</div></div>
+    <div class="stat-box"><div class="value">₱{{ '{:,.2f}'.format(data.get('total_revenue', 0)) }}</div><div class="label">Total Revenue</div></div>
+  </div>
+
+  <div class="section-title">Sales by Category</div>
+  <table>
+    <thead>
+      <tr><th>Category</th><th>Quantity Sold</th><th>Revenue (PHP)</th></tr>
+    </thead>
+    <tbody>
+      {% for row in data.get('breakdown', []) %}
+      <tr>
+        <td>{{ row.category }}</td>
+        <td style="text-align:center;">{{ row.quantity_sold }}</td>
+        <td style="text-align:right;">₱{{ '{:,.2f}'.format(row.total_revenue) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" style="text-align:center;color:#999;">No category sales in this period</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- ═══════════ MONTHLY ACTIVE BUYERS ═══════════ -->
+  {% elif report.report_type == 'monthly_active_buyers' %}
+
+  <div class="section-title">Summary</div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="value">{{ data.get('total_unique_buyers', 0) }}</div><div class="label">Total Unique Buyers</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('months_with_activity', 0) }}</div><div class="label">Months with Activity</div></div>
+    <div class="stat-box"><div class="value">{{ data.get('avg_buyers_per_month', 0) | int }}</div><div class="label">Avg Buyers / Month</div></div>
+  </div>
+
+  <div class="section-title">Monthly Buyer Activity</div>
+  <table>
+    <thead>
+      <tr><th>Month</th><th>Unique Buyers</th></tr>
+    </thead>
+    <tbody>
+      {% for row in data.get('monthly_breakdown', []) %}
+      <tr>
+        <td>{{ row.month }}</td>
+        <td style="text-align:center;">{{ row.unique_buyers }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="2" style="text-align:center;color:#999;">No buyer activity in this period</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- ═══════════ FALLBACK ═══════════ -->
+  {% else %}
+  <div class="section-title">Report Data</div>
+  <pre style="background:#f8f8f8;padding:12px;border-radius:4px;font-size:10px;overflow:auto;">{{ data | tojson(indent=2) }}</pre>
+  {% endif %}
+
+  <div class="rpt-footer">
+    Generated by KidZora Admin &nbsp;&middot;&nbsp; {{ (report.created_at or '')[:10] }}
+  </div>
+
+  <script>
+    // Auto-open print dialog after a short delay so the page renders first
+    window.addEventListener('load', function () {
+      setTimeout(function () { window.print(); }, 600);
+    });
+  </script>
+</body>
+</html>

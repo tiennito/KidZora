@@ -1,0 +1,164 @@
+{% extends "admin/base.html" %}
+{% block title %}Product Moderation - Admin - KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Product Moderation – KidZora Admin">
+{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+  <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h1 class="mb-1"><i class="fas fa-flag me-2 text-danger"></i>Product Moderation</h1>
+      <p class="text-muted mb-0">Review product reports and take listing actions.</p>
+    </div>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+  <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+{% endwith %}
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body py-3">
+    <form method="GET" class="d-flex gap-2 align-items-center flex-wrap">
+      <label class="small fw-semibold text-muted mb-0">Status</label>
+      <select name="status" class="form-select form-select-sm" style="max-width:220px;">
+        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+        <option value="actioned" {% if status_filter == 'actioned' %}selected{% endif %}>Actioned</option>
+        <option value="dismissed" {% if status_filter == 'dismissed' %}selected{% endif %}>Dismissed</option>
+        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+      </select>
+      <button class="btn btn-sm btn-outline-primary" type="submit">
+        <i class="fas fa-filter me-1"></i>Apply
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Reported Products
+      {% if reports %}
+      <span class="badge bg-danger ms-2">{{ reports|length }}</span>
+      {% endif %}
+    </h5>
+  </div>
+  <div class="card-body p-0">
+    {% if reports %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th style="min-width:280px;">Product</th>
+            <th style="min-width:220px;">Reported By</th>
+            <th style="min-width:160px;">Reason</th>
+            <th style="min-width:220px;">Details</th>
+            <th>Status</th>
+            <th style="min-width:210px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rep in reports %}
+          {% set p = rep.get('product') or {} %}
+          {% set reporter = rep.get('reporter') or {} %}
+          {% set reviewer = rep.get('reviewer') or {} %}
+          {% set pname = p.get('name') or 'Deleted Product' %}
+          {% set pimg = (p.get('images')[0] if p.get('images') and p.get('images')|length > 0 else None) %}
+          <tr>
+            <td>
+              <div class="d-flex gap-2 align-items-start">
+                {% if pimg %}
+                <img src="{{ pimg }}" alt="{{ pname }}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">
+                {% else %}
+                <div class="bg-light border rounded d-flex align-items-center justify-content-center" style="width:48px;height:48px;">
+                  <i class="fas fa-image text-muted"></i>
+                </div>
+                {% endif %}
+                <div>
+                  <div class="fw-semibold">{{ pname }}</div>
+                  <div class="text-muted small">Product ID: {{ p.get('id') or rep.get('product_id') }}</div>
+                  <div class="small mt-1">
+                    {% if p.get('is_deleted') %}
+                    <span class="badge bg-dark">Removed</span>
+                    {% elif p.get('is_active') %}
+                    <span class="badge bg-success">Visible</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">Hidden</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="fw-semibold">{{ ((reporter.get('first_name') or '') ~ ' ' ~ (reporter.get('last_name') or ''))|trim or 'Unknown' }}</div>
+              <div class="text-muted small">{{ reporter.get('email') or 'N/A' }}</div>
+              <div class="text-muted small mt-1">{{ (rep.get('created_at') or '')[:10] }}</div>
+            </td>
+            <td>
+              <span class="badge bg-secondary">{{ rep.get('reason') or 'Unspecified' }}</span>
+            </td>
+            <td>
+              <div class="small" style="white-space:pre-wrap;max-height:120px;overflow:auto;">{{ rep.get('details') or '—' }}</div>
+              {% if rep.get('admin_notes') %}
+              <div class="mt-2 small text-muted"><strong>Admin notes:</strong> {{ rep.get('admin_notes') }}</div>
+              {% endif %}
+              {% if reviewer.get('id') %}
+              <div class="mt-1 small text-muted">Reviewed by {{ ((reviewer.get('first_name') or '') ~ ' ' ~ (reviewer.get('last_name') or ''))|trim }}</div>
+              {% endif %}
+            </td>
+            <td>
+              {% if rep.get('status') == 'pending' %}
+              <span class="badge bg-warning text-dark">Pending</span>
+              {% elif rep.get('status') == 'actioned' %}
+              <span class="badge bg-success">{{ rep.get('action_taken') or 'Actioned' }}</span>
+              {% else %}
+              <span class="badge bg-secondary">Dismissed</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if rep.get('status') == 'pending' %}
+              <form method="POST" action="{{ url_for('admin.resolve_product_report', report_id=rep.get('id')) }}" class="mb-2">
+                <input type="hidden" name="action" value="hide">
+                <button type="submit" class="btn btn-sm btn-outline-warning w-100"
+                        onclick="return confirm('Hide this product listing from buyers?')">
+                  <i class="fas fa-eye-slash me-1"></i>Hide Listing
+                </button>
+              </form>
+              <form method="POST" action="{{ url_for('admin.resolve_product_report', report_id=rep.get('id')) }}" class="mb-2">
+                <input type="hidden" name="action" value="remove">
+                <button type="submit" class="btn btn-sm btn-outline-danger w-100"
+                        onclick="return confirm('Remove this product listing? This will mark it deleted.')">
+                  <i class="fas fa-trash-alt me-1"></i>Remove Listing
+                </button>
+              </form>
+              <form method="POST" action="{{ url_for('admin.resolve_product_report', report_id=rep.get('id')) }}">
+                <input type="hidden" name="action" value="dismiss">
+                <button type="submit" class="btn btn-sm btn-outline-secondary w-100"
+                        onclick="return confirm('Dismiss this report without product action?')">
+                  <i class="fas fa-check me-1"></i>Dismiss Report
+                </button>
+              </form>
+              {% else %}
+              <span class="text-muted small">Processed</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <i class="fas fa-shield-check fa-3x text-success mb-3 d-block"></i>
+      <p class="text-muted mb-0">No reports found for this filter.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% from 'macros.html' import render_pagination %}
+{% block title %}My Favorites – KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="Your saved products on KidZora – browse your wishlist anytime.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="My Favorites – KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/buyer/wishlist.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fas fa-heart me-2 text-danger"></i>My Favorites</h2>
+    <a href="{{ url_for('buyer.browse_products') }}" class="btn btn-primary">
+      <i class="fas fa-shopping-bag me-1"></i>Browse More
+    </a>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} alert-dismissible fade show">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <div id="wishlist-container">
+    <!-- Empty State -->
+    <div data-empty-state class="empty-state empty-state--wishlist d-none">
+      <div class="empty-state__icon empty-state__icon--float">
+        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="60" r="55" fill="#ffe5ec" stroke="#ec4899" stroke-width="2"/>
+          <path d="M60 35C60 35 45 22 35 35C28 42 30 52 45 62C50 66 55 70 60 75C65 70 70 66 75 62C90 52 92 42 85 35C75 22 60 35 60 35Z" fill="#ec4899" stroke="#ec4899" stroke-width="1.5"/>
+          <circle cx="35" cy="85" r="4" fill="#fbbf24" opacity="0.6"/>
+          <circle cx="85" cy="75" r="3" fill="#fbbf24" opacity="0.6"/>
+          <circle cx="25" cy="45" r="2.5" fill="#f472b6" opacity="0.5"/>
+        </svg>
+      </div>
+      <h2 class="empty-state__title">No Favorites Yet</h2>
+      <p class="empty-state__description">Start building your wishlist! Tap the heart icon on products you love and they'll appear here.</p>
+      <div class="empty-state__action">
+        <a href="{{ url_for('buyer.browse_products') }}" class="empty-state__btn empty-state__btn-primary">
+          <i class="fas fa-shopping-bag"></i>Explore Products
+        </a>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div data-empty-content>
+      {% if wishlist_items %}
+      <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+        {% for item in wishlist_items %}
+        <div class="col">
+          <div class="card h-100 border-0 shadow-sm">
+            {% set first_img = item.images[0] if item.images else None %}
+            {% if first_img %}
+              <img src="{{ first_img }}" class="card-img-top wishlist-card-img" alt="{{ item.name }}">
+            {% else %}
+              <div class="bg-light d-flex align-items-center justify-content-center wishlist-card-placeholder">
+                <i class="fas fa-image fa-2x text-muted"></i>
+              </div>
+            {% endif %}
+            <div class="card-body d-flex flex-column">
+              <a href="{{ url_for('buyer.product_detail', product_id=item.id) }}"
+                 class="text-decoration-none text-dark">
+                <h6 class="card-title fw-semibold mb-1">{{ item.name }}</h6>
+              </a>
+              <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
+                <span class="fw-bold text-primary">₱{{ item.price|float|currency }}</span>
+                <div class="d-flex gap-1">
+                  <form action="{{ url_for('buyer.cart_add', product_id=item.id) }}" method="POST">
+                    <input type="hidden" name="qty" value="1">
+                    <button type="submit" class="btn btn-sm btn-primary" title="Add to Cart">
+                      <i class="fas fa-cart-plus"></i>
+                    </button>
+                  </form>
+                  <form action="{{ url_for('buyer.toggle_wishlist', product_id=item.id) }}" method="POST">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove from Favorites">
+                      <i class="fas fa-heart-broken"></i>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {{ render_pagination(pagination) }}
+
+</div>
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/buyer/wishlist.js') }}"></script>
+{% endblock %}
+{% endblock %}

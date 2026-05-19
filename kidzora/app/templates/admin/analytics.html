@@ -1,0 +1,181 @@
+{% extends "admin/base.html" %}
+{% block title %}Analytics – KidZora Admin{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Analytics – KidZora Admin">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/analytics.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <!-- analytics-root: passes API URL to analytics.js -->
+  <div id="analytics-root" data-api-url="{{ url_for('admin.analytics_data') }}"></div>
+
+  <!-- Page header banner -->
+  <div class="analytics-page-header mb-4">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <h4 class="fw-bold mb-1">
+          <i class="fas fa-chart-line me-2"></i>Analytics Overview
+        </h4>
+        <p class="mb-0">Full insight into sales, orders, users and commissions.</p>
+      </div>
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-light btn-sm">
+        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Period selector -->
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-2">
+    <div>
+      <div class="adm-period-tabs" id="periodTabs">
+        <button class="btn btn-sm btn-primary active" data-period="daily"   aria-pressed="true">
+          <i class="fas fa-sun me-1"></i>Daily
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" data-period="weekly">
+          <i class="fas fa-calendar-week me-1"></i>Weekly
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" data-period="monthly">
+          <i class="fas fa-calendar-alt me-1"></i>Monthly
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" data-period="yearly">
+          <i class="fas fa-calendar me-1"></i>Yearly
+        </button>
+      </div>
+      <!-- Sub-period pills (day names / month names) -->
+      <div class="adm-sub-tabs mt-2" id="subPeriodBar"></div>
+    </div>
+    <div class="text-muted small" id="periodLabel">Today &mdash; hour by hour</div>
+  </div>
+
+  <!-- Live KPI row -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-sm-4 col-xl-2">
+      <div class="kpi-mini">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="kpi-icon" style="background:rgba(34,197,94,.12)">
+            <i class="fas fa-peso-sign text-success"></i></div>
+          <div class="kpi-lbl">Revenue</div>
+        </div>
+        <div class="kpi-val" id="kpiRevenue">&#8212;</div>
+      </div>
+    </div>
+    <div class="col-6 col-sm-4 col-xl-2">
+      <div class="kpi-mini">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="kpi-icon" style="background:rgba(99,102,241,.12)">
+            <i class="fas fa-coins" style="color:#6366f1"></i></div>
+          <div class="kpi-lbl">Commission</div>
+        </div>
+        <div class="kpi-val" id="kpiCommission">&#8212;</div>
+      </div>
+    </div>
+    <div class="col-6 col-sm-4 col-xl-2">
+      <div class="kpi-mini">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="kpi-icon" style="background:rgba(59,130,246,.12)">
+            <i class="fas fa-shopping-bag text-primary"></i></div>
+          <div class="kpi-lbl">Orders</div>
+        </div>
+        <div class="kpi-val" id="kpiOrders">&#8212;</div>
+      </div>
+    </div>
+    <div class="col-6 col-sm-4 col-xl-2">
+      <div class="kpi-mini">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="kpi-icon" style="background:rgba(34,197,94,.12)">
+            <i class="fas fa-check-circle text-success"></i></div>
+          <div class="kpi-lbl">Completed</div>
+        </div>
+        <div class="kpi-val" id="kpiCompleted">&#8212;</div>
+      </div>
+    </div>
+    <div class="col-6 col-sm-4 col-xl-2">
+      <div class="kpi-mini">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="kpi-icon" style="background:rgba(239,68,68,.12)">
+            <i class="fas fa-times-circle text-danger"></i></div>
+          <div class="kpi-lbl">Cancelled</div>
+        </div>
+        <div class="kpi-val" id="kpiCancelled">&#8212;</div>
+      </div>
+    </div>
+    <div class="col-6 col-sm-4 col-xl-2">
+      <div class="kpi-mini">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="kpi-icon" style="background:rgba(245,158,11,.12)">
+            <i class="fas fa-user-plus text-warning"></i></div>
+          <div class="kpi-lbl">New Users</div>
+        </div>
+        <div class="kpi-val" id="kpiNewUsers">&#8212;</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Chart 1: Revenue vs Commission (full width) ───────────────── -->
+  <div class="row g-3 mb-3">
+    <div class="col-12">
+      <div class="chart-card">
+        <div class="chart-title fs-6">
+          <i class="fas fa-chart-area me-2 text-success"></i>
+          Revenue vs Commission
+          <span class="text-muted fw-normal small ms-2">Click a sub-period pill to zoom in</span>
+        </div>
+        <canvas id="chartRevenue" height="60"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Chart 2 + 3: Orders + Status ─────────────────────────────── -->
+  <div class="row g-3 mb-3">
+    <div class="col-lg-7">
+      <div class="chart-card">
+        <div class="chart-title fs-6">
+          <i class="fas fa-shopping-cart me-2 text-primary"></i>Orders Volume
+        </div>
+        <canvas id="chartOrders" height="120"></canvas>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="chart-card">
+        <div class="chart-title fs-6">
+          <i class="fas fa-chart-pie me-2 text-warning"></i>Order Status Breakdown
+        </div>
+        <canvas id="chartStatus" height="170"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Chart 4 + 5: Top Sellers + New Users ─────────────────────── -->
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="chart-card">
+        <div class="chart-title fs-6">
+          <i class="fas fa-medal me-2 text-danger"></i>Top 5 Sellers by Revenue
+        </div>
+        <canvas id="chartTopSellers" height="150"></canvas>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="chart-card">
+        <div class="chart-title fs-6">
+          <i class="fas fa-user-plus me-2 text-info"></i>New User Registrations
+        </div>
+        <canvas id="chartNewUsers" height="150"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/admin/analytics.js') }}"></script>
+{% endblock %}

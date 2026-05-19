@@ -1,0 +1,118 @@
+/* =============================================================
+   KidZora – Seller / Analytics Page
+   ============================================================= */
+
+/* ── Page wrapper ──────────────────────────────────────── */
+.slr-analytics-wrap { padding: 1.25rem; }
+
+/* ── Page header ───────────────────────────────────────── */
+.slr-page-header {
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+  border-radius: 14px;
+  padding: 1.4rem 1.6rem;
+  color: #fff;
+  margin-bottom: 1.25rem;
+}
+.slr-page-header h4 { font-size: 1.2rem; font-weight: 800; margin: 0 0 .15rem; }
+.slr-page-header p  { font-size: .82rem; opacity: .85; margin: 0; }
+
+/* ── Period tabs ───────────────────────────────────────── */
+.slr-period-tabs { display: flex; gap: .4rem; flex-wrap: wrap; }
+.slr-period-tabs .btn { font-size: .8rem; padding: .3rem .75rem; border-radius: 8px; }
+
+/* ── KPI cards ─────────────────────────────────────────── */
+.slr-kpi-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: .9rem 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+}
+.slr-kpi-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .9rem;
+  flex-shrink: 0;
+}
+.slr-kpi-lbl { font-size: .68rem; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+.slr-kpi-val { font-size: 1.15rem; font-weight: 800; color: #111827; line-height: 1.1; margin-top: .15rem; }
+
+/* ── Chart cards ───────────────────────────────────────── */
+.slr-chart-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
+  height: 100%;
+}
+.slr-chart-title {
+  font-size: .88rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+/* ── Loading spinner ───────────────────────────────────── */
+#slrSpinner {
+  display: none;
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  background: #1d4ed8;
+  color: #fff;
+  padding: .4rem .9rem;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 600;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .2);
+}
+
+/* ── Loading skeletons ─────────────────────────────────── */
+@keyframes slr-shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+.slr-shimmer-bg {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 600px 100%;
+  animation: slr-shimmer 1.4s infinite linear;
+  border-radius: 6px;
+}
+
+/* KPI value shimmer */
+.slr-kpi-skel {
+  display: none;
+  height: 1.15rem;
+  width: 72%;
+  border-radius: 5px;
+  margin-top: .15rem;
+}
+.slr-kpi-skel.slr-sk-active { display: block; }
+.slr-kpi-val.slr-sk-hidden  { display: none !important; }
+
+/* Chart skeleton */
+.slr-chart-skeleton               { display: none; }
+.slr-chart-skeleton.slr-sk-active { display: block; }
+
+.slr-skel-chart-body              { width: 100%; border-radius: 8px; }
+.slr-skel-chart-body.h-rev        { height: 220px; }
+.slr-skel-chart-body.h-ord        { height: 262px; }
+.slr-skel-chart-body.h-sts        { height: 262px; }
+.slr-skel-chart-body.h-top        { height: 180px; }
+
+.slr-skel-xaxis {
+  width: 100%;
+  height: 10px;
+  border-radius: 4px;
+  margin-top: .5rem;
+}

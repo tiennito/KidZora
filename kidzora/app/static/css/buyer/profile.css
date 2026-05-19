@@ -1,0 +1,97 @@
+/* ══════════════════════════════════════════════
+   buyer/profile.css
+   Styles for buyer/profile.html
+══════════════════════════════════════════════ */
+
+/* ── Profile navigation bar ── */
+.profile-nav-bar {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+  margin-bottom: 2rem;
+}
+
+.profile-nav-bar .btn-light {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  color: #007bff !important;
+  border: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.5rem 0.75rem !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.profile-nav-bar .btn-light:hover {
+  background-color: #fff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  color: #0056b3 !important;
+}
+
+.profile-nav-bar .btn-light i {
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .profile-nav-bar {
+    padding: 1rem;
+  }
+
+  .profile-nav-bar .btn-light {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.5rem !important;
+  }
+
+  .profile-nav-bar .btn-light i {
+    font-size: 0.85rem;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .profile-nav-bar .btn-light span {
+    font-size: 0.65rem;
+    display: block;
+  }
+}
+
+/* ── Save panel sidebar ── */
+.profile-save-sticky {
+  position: sticky;
+  top: 76px;
+}
+
+/* ── Avatar preview wrapper ── */
+.profile-avatar-wrap {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #1e293b;
+  border: 2.5px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* ── Saved address action buttons ── */
+.addr-action-btn {
+  font-size: .72rem;
+  padding: .2rem .55rem;
+}
+
+/* ── "Default" badge on saved address ── */
+.addr-badge-default {
+  font-size: .6rem;
+}

@@ -1,0 +1,16 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2 style="color:#dc2626;margin:0 0 8px;">❌ Cancellation Request Rejected</h2>
+<p style="color:#374151;margin:0 0 16px;">
+    Unfortunately, the seller has rejected your cancellation request for order <strong>{{ order_ref }}</strong>.
+    Your order will continue to be processed.
+</p>
+<div style="background:#fef2f2;border-left:4px solid #dc2626;padding:16px;border-radius:6px;margin:0 0 20px;">
+    <strong>Seller's reason:</strong><br>
+    <span style="color:#374151;">{{ seller_reason or 'No reason provided.' }}</span>
+</div>
+<p style="color:#6b7280;font-size:.85rem;">
+    If you still have an issue with the order, you may open a Return/Refund request after delivery.
+</p>
+{% endblock %}

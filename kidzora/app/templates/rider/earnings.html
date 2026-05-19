@@ -1,0 +1,170 @@
+{% extends "rider/base.html" %}
+{% block title %}Earnings – KidZora Rider{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Earnings – KidZora Rider">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/rider/earnings.css') }}">
+{% endblock %}
+
+{% block page_content %}
+<div class="re-wrap">
+  <div class="re-header">
+    <h4><i class="fas fa-wallet me-2"></i>Earnings</h4>
+    <p>Track your delivery income across the selected period.</p>
+  </div>
+
+  <div class="rider-card mb-4">
+    <div class="rider-card-body p-3">
+      <form method="GET" class="re-filter-form" id="riderEarningsFilterForm">
+        <input type="hidden" name="period" id="rePeriodInput" value="{{ current_period }}">
+
+        <div class="re-period-row">
+          <div class="re-period-tabs" id="rePeriodTabs" data-current-period="{{ current_period }}">
+            <button type="button" class="btn btn-sm {{ 'btn-success' if current_period == 'today' else 'btn-outline-success' }}" data-period="today">
+              <i class="fas fa-sun me-1"></i>Today
+            </button>
+            <button type="button" class="btn btn-sm {{ 'btn-success' if current_period == 'weekly' else 'btn-outline-success' }}" data-period="weekly">
+              <i class="fas fa-calendar-week me-1"></i>Weekly
+            </button>
+            <button type="button" class="btn btn-sm {{ 'btn-success' if current_period == 'monthly' else 'btn-outline-success' }}" data-period="monthly">
+              <i class="fas fa-calendar-alt me-1"></i>Monthly
+            </button>
+            <button type="button" class="btn btn-sm {{ 'btn-success' if current_period == 'yearly' else 'btn-outline-success' }}" data-period="yearly">
+              <i class="fas fa-calendar me-1"></i>Yearly
+            </button>
+            <button type="button" class="btn btn-sm {{ 'btn-success' if current_period == 'custom' else 'btn-outline-success' }}" data-period="custom">
+              <i class="fas fa-sliders-h me-1"></i>Custom
+            </button>
+          </div>
+          <div class="re-period-label" id="rePeriodLabel">{{ period_label }}</div>
+        </div>
+
+        <div class="re-custom-row {% if current_period != 'custom' %}d-none{% endif %}" id="reCustomRow">
+          <div class="re-filter-group">
+            <label class="re-filter-label">From</label>
+            <input type="date" name="start_date" value="{{ start_date }}" class="form-control form-control-sm re-filter-input" id="reStartDateInput">
+          </div>
+          <div class="re-filter-group">
+            <label class="re-filter-label">To</label>
+            <input type="date" name="end_date" value="{{ end_date }}" class="form-control form-control-sm re-filter-input" id="reEndDateInput">
+          </div>
+          <button type="submit" class="btn btn-success btn-sm px-3" id="reApplyCustomBtn">
+            <i class="fas fa-filter me-1"></i>Apply Custom Range
+          </button>
+        </div>
+
+        <a href="{{ url_for('rider.export_earnings_csv', period=current_period, start_date=start_date, end_date=end_date) }}"
+           class="btn btn-outline-success btn-sm px-3">
+          <i class="fas fa-file-csv me-1"></i>Export CSV
+        </a>
+        <a href="{{ url_for('rider.export_earnings_pdf', period=current_period, start_date=start_date, end_date=end_date) }}"
+           class="btn btn-outline-secondary btn-sm px-3"
+           target="_blank" rel="noopener">
+          <i class="fas fa-file-pdf me-1"></i>Export PDF
+        </a>
+      </form>
+    </div>
+  </div>
+
+  <div class="re-top-grid">
+    <div class="rider-stat re-stat-card">
+      <div class="stat-val re-stat-value">₱{{ total_earned|float|currency }}</div>
+      <div class="stat-lbl"><i class="fas fa-wallet me-1"></i>Earned in this period</div>
+    </div>
+
+    <div class="rider-card re-chart-card">
+      <div class="rider-card-header re-chart-header">
+        <div>
+          <i class="fas fa-chart-line me-2 text-success"></i>Daily Earnings Trend
+        </div>
+        <span class="re-chart-subtitle">{{ period_title }} · {{ chart_data.total_deliveries }} delivery{{ 'ies' if chart_data.total_deliveries != 1 else 'y' }} in this range</span>
+      </div>
+      <div class="rider-card-body">
+        <div class="re-chart-metrics">
+          <div class="re-metric-pill">
+            <span class="re-metric-label">Active Days</span>
+            <strong>{{ chart_data.active_days }}</strong>
+          </div>
+          <div class="re-metric-pill">
+            <span class="re-metric-label">Peak Day</span>
+            <strong>{{ chart_data.peak_day_label }}</strong>
+          </div>
+          <div class="re-metric-pill">
+            <span class="re-metric-label">Peak Earnings</span>
+            <strong>₱{{ chart_data.peak_day_amount|float|currency }}</strong>
+          </div>
+          <div class="re-metric-pill">
+            <span class="re-metric-label">Avg / Delivery</span>
+            <strong>₱{{ chart_data.average_per_delivery|float|currency }}</strong>
+          </div>
+        </div>
+
+        <div class="re-chart-wrap {% if not chart_data.has_data %}is-empty{% endif %}">
+          <canvas id="riderEarningsChart" height="110" {% if not chart_data.has_data %}hidden{% endif %}></canvas>
+          <div class="re-chart-empty" {% if chart_data.has_data %}hidden{% endif %}>
+            <i class="fas fa-chart-line"></i>
+            <p>No completed deliveries in this range yet.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rider-card">
+    <div class="rider-card-header">
+      <i class="fas fa-list me-2 text-success"></i>Delivery Breakdown
+    </div>
+    <div class="rider-card-body p-0">
+      {% if deliveries %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0 re-table">
+          <thead class="table-light">
+            <tr>
+              <th>Order</th>
+              <th>Delivered</th>
+              <th class="text-end">Delivery Fee</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in deliveries %}
+            <tr>
+              <td>
+                <a href="{{ url_for('rider.delivery_detail', order_id=d.id) }}" class="fw-semibold text-success text-decoration-none">
+                  #{{ d.id[:8]|upper }}
+                </a>
+              </td>
+              <td class="text-muted small">{{ d.delivered_at[:10] if d.delivered_at else (d.updated_at[:10] if d.updated_at else '—') }}</td>
+              <td class="text-end fw-semibold">₱{{ d.delivery_fee|float|currency if d.delivery_fee else '0.00' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot class="table-light">
+            <tr>
+              <td colspan="2" class="text-end fw-bold">Total</td>
+              <td class="text-end fw-bold text-success">₱{{ total_earned|float|currency }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      {% else %}
+      <div class="re-empty-state">
+        <i class="fas fa-wallet"></i>
+        <p>No earnings in this period.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script id="kz-rider-earnings-data" type="application/json">{{ chart_data | tojson }}</script>
+<script id="kz-rider-earnings-filter-data" type="application/json">{{ {'currentPeriod': current_period, 'periodLabel': period_label} | tojson }}</script>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/rider/earnings.js') }}"></script>
+{% endblock %}

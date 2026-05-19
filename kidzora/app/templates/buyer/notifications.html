@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Notifications – KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="Your KidZora notifications – order updates, messages and more.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Notifications – KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/buyer/notifications.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 notif-container">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="fw-bold mb-0">
+        <i class="fas fa-bell me-2 text-primary"></i>Notifications
+      </h4>
+      <p class="text-muted small mb-0">Your recent activity and updates</p>
+    </div>
+    {% if unread_count %}
+    <span class="badge bg-danger rounded-pill fs-6">{{ unread_count }} new</span>
+    {% endif %}
+  </div>
+
+  <div id="notifications-container">
+    <!-- Empty State -->
+    <div data-empty-state class="empty-state empty-state--notifications d-none">
+      <div class="empty-state__icon empty-state__icon--float">
+        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="60" r="55" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <path d="M52 28C52 25.8 53.3 24 55 24C56.7 24 58 25.8 58 28M40 42H80C82.2 42 84 43.8 84 46V76C84 78.2 82.2 80 80 80H40C37.8 80 36 78.2 36 76V46C36 43.8 37.8 42 40 42Z" fill="none" stroke="#f59e0b" stroke-width="2"/>
+          <circle cx="60" cy="90" r="5" fill="#f59e0b"/>
+          <path d="M30 35L42 32M90 35L78 32" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+        </svg>
+      </div>
+      <h2 class="empty-state__title">All Caught Up!</h2>
+      <p class="empty-state__description">You don't have any new notifications right now. We'll keep you updated on your orders and other important activity.</p>
+      <div class="empty-state__action">
+        <a href="{{ url_for('buyer.browse_products') }}" class="empty-state__btn empty-state__btn-primary">
+          <i class="fas fa-shopping-bag"></i>Continue Shopping
+        </a>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div data-empty-content>
+      {% if notifications %}
+        <div class="d-flex flex-column gap-2">
+        {% for n in notifications %}
+          {% set was_unread = not n.is_read %}
+          {# icon + color by type #}
+          {% set ntype = n.type or '' %}
+          {% if 'order_placed' in ntype %}
+            {% set ic = 'fas fa-shopping-bag' %}{% set clr = 'text-primary' %}{% set bgcls = 'notif-bg-blue' %}
+          {% elif 'order_confirmed' in ntype or 'confirmed' in ntype %}
+            {% set ic = 'fas fa-check-circle' %}{% set clr = 'text-info' %}{% set bgcls = 'notif-bg-sky' %}
+          {% elif 'order_preparing' in ntype or 'preparing' in ntype %}
+            {% set ic = 'fas fa-box' %}{% set clr = 'text-warning' %}{% set bgcls = 'notif-bg-yellow' %}
+          {% elif 'out_delivery' in ntype or 'delivery' in ntype %}
+            {% set ic = 'fas fa-motorcycle' %}{% set clr = 'text-primary' %}{% set bgcls = 'notif-bg-blue' %}
+          {% elif 'delivered' in ntype %}
+            {% set ic = 'fas fa-house-user' %}{% set clr = 'text-success' %}{% set bgcls = 'notif-bg-green' %}
+          {% elif 'completed' in ntype %}
+            {% set ic = 'fas fa-star' %}{% set clr = 'text-success' %}{% set bgcls = 'notif-bg-green' %}
+          {% elif 'cancelled' in ntype or 'cancel' in ntype %}
+            {% set ic = 'fas fa-times-circle' %}{% set clr = 'text-danger' %}{% set bgcls = 'notif-bg-red' %}
+          {% elif 'return' in ntype %}
+            {% set ic = 'fas fa-undo-alt' %}{% set clr = 'text-warning' %}{% set bgcls = 'notif-bg-yellow' %}
+          {% elif 'message' in ntype %}
+            {% set ic = 'fas fa-comment-dots' %}{% set clr = 'text-primary' %}{% set bgcls = 'notif-bg-blue' %}
+          {% else %}
+            {% set ic = 'fas fa-bell' %}{% set clr = 'text-secondary' %}{% set bgcls = 'notif-bg-default' %}
+          {% endif %}
+
+          {% set url = n._url or '' %}
+          <div class="card border-0 shadow-sm {{ bgcls }} {% if was_unread %}border-start border-primary border-3{% endif %}">
+            <div class="card-body py-3 px-3 d-flex align-items-start gap-3">
+              <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 notif-icon-wrap">
+                <i class="{{ ic }} {{ clr }}"></i>
+              </div>
+              <div class="flex-grow-1 min-width-0">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                  <p class="mb-0 fw-semibold notif-title">{{ n.title }}</p>
+                  <span class="text-muted flex-shrink-0 notif-date">
+                    {{ n.created_at[:10] if n.created_at else '' }}
+                  </span>
+                </div>
+                {% if n.body %}
+                <p class="mb-0 text-muted mt-1 notif-body">{{ n.body }}</p>
+                {% endif %}
+                {% if url %}
+                <a href="{{ url }}" class="btn btn-sm btn-outline-primary mt-2 py-0 px-2 notif-view-btn">View details →</a>
+                {% endif %}
+              </div>
+              {% if was_unread %}
+              <span class="badge bg-primary rounded-pill align-self-center flex-shrink-0 notif-badge-new">New</span>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/kidzora-utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/buyer/notifications.js') }}"></script>
+{% endblock %}
+{% endblock %}

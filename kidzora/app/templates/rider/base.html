@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% if current_user.is_authenticated %}
+  <meta name="kz-uid" content="{{ current_user.id }}">
+  <meta name="kz-role" content="{{ current_user.role }}">
+  {% endif %}
+  <title>{% block title %}Rider Panel – KidZora{% endblock %}</title>
+
+  <!-- SEO Meta Tags -->
+  {% block seo_meta %}
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:site_name" content="KidZora">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Rider Panel – KidZora">
+  {% endblock %}
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏍️</text></svg>">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Rider CSS (split by component) -->
+  <link href="{{ url_for('static', filename='css/rider/layout.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/rider/sidebar.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/rider/cards.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/rider/deliveries.css') }}" rel="stylesheet">
+  <!-- Embedded chat panel styles (moved to root) -->
+  <link href="{{ url_for('static', filename='css/embedded-chat.css') }}" rel="stylesheet">
+  <!-- KidZora Toast -->
+  <link href="{{ url_for('static', filename='css/kidzora-toast.css') }}" rel="stylesheet">
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body style="margin:0;padding:0;overflow-x:hidden;">
+
+<!-- ── Top Navbar ─────────────────────────────────────────────────────────── -->
+<nav class="navbar navbar-dark px-3 py-2" style="background:linear-gradient(90deg,#8f9bff,#ff8ea8,#73d7d0);position:sticky;top:0;z-index:200;">
+  <div class="d-flex align-items-center gap-3">
+    <button id="sidebarToggle" class="btn btn-sm btn-success border-0 d-md-none">
+      <i class="fas fa-bars"></i>
+    </button>
+    <a class="navbar-brand mb-0 h6 fw-bold" href="{{ url_for('index') }}">
+      <i class="fas fa-child me-2"></i>KidZora
+    </a>
+  </div>
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-white-50 small d-none d-md-inline">
+      <i class="fas fa-motorcycle me-1"></i>Rider Panel
+    </span>
+    <!-- ── Availability toggle ──────────────────────────────────────────── -->
+    {% set rider_available = rider_is_available|default(true) %}
+    <button id="kzAvailBtn"
+            class="btn btn-sm fw-semibold px-3 py-1 {{ 'btn-success' if rider_available else 'btn-secondary' }}"
+            title="{{ 'You are Online - click to go Offline' if rider_available else 'You are Offline - click to go Online' }}"
+            data-available="{{ 'true' if rider_available else 'false' }}"
+            style="min-width:90px;border-radius:20px;font-size:.75rem;">
+      <span id="kzAvailDot" class="kz-avail-dot {{ 'is-online' if rider_available else 'is-offline' }}"></span>
+      <span id="kzAvailLabel">{{ 'Online' if rider_available else 'Offline' }}</span>
+    </button>
+    <button id="kz-bell-btn" title="Notifications" aria-label="Notifications">
+      <i class="fas fa-bell" style="font-size:1rem;"></i>
+      <span id="kz-bell-badge"></span>
+    </button>
+    <button id="kzPushToggleBtn"
+            title="Push alerts OFF — click to enable"
+            data-push-enabled="false"
+            style="background:none;border:none;cursor:pointer;padding:.25rem .35rem;line-height:1;">
+      <i class="fas fa-bell-slash" style="font-size:.9rem;opacity:.5;color:#fff;"></i>
+    </button>
+    <div class="dropdown">
+      <button class="btn btn-sm btn-outline-light dropdown-toggle" data-bs-toggle="dropdown">
+        <i class="fas fa-user-circle me-1"></i>{{ current_user.first_name|default('Rider') }}
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><span class="dropdown-item-text small text-muted">{{ current_user.email|default('') }}</span></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{{ url_for('rider.profile') }}">
+          <i class="fas fa-user-cog me-2"></i>My Profile
+        </a></li>
+        <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+          <i class="fas fa-sign-out-alt me-2"></i>Logout
+        </a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+{#- Flash messages — passed to kidzora-toast.js as a JSON data island -#}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <script id="kz-flash-data" type="application/json">{{ messages | tojson }}</script>
+  {% endif %}
+{% endwith %}
+
+<!-- ── Wrapper ────────────────────────────────────────────────────────────── -->
+<div class="rider-wrapper">
+
+  <!-- Sidebar -->
+  <aside class="rider-sidebar" id="riderSidebar">
+    <div class="sidebar-brand">
+      <h5><i class="fas fa-motorcycle me-2"></i>Rider Panel</h5>
+      <small>{{ current_user.first_name|default('Rider') }} {{ current_user.last_name|default('') }}</small>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">Main</div>
+      <a href="{{ url_for('rider.dashboard') }}"
+         class="sidebar-link {% if request.endpoint == 'rider.dashboard' %}active{% endif %}">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+      </a>
+
+      <div class="sidebar-section">Deliveries</div>
+      <a href="{{ url_for('rider.available') }}"
+         class="sidebar-link {% if request.endpoint == 'rider.available' %}active{% endif %}">
+        <i class="fas fa-box-open"></i> Available Pickups
+      </a>
+      <a href="{{ url_for('rider.deliveries') }}"
+         class="sidebar-link {% if request.endpoint in ['rider.deliveries','rider.delivery_detail'] %}active{% endif %}">
+        <i class="fas fa-motorcycle"></i> My Deliveries
+      </a>
+
+      <div class="sidebar-section">Account</div>
+      <a href="{{ url_for('rider.inbox') }}"
+         class="sidebar-link {% if request.endpoint in ['rider.inbox','rider.chat'] %}active{% endif %}">
+        <i class="fas fa-inbox"></i> Messages
+      </a>
+      <a href="{{ url_for('rider.notifications') }}"
+         class="sidebar-link {% if request.endpoint == 'rider.notifications' %}active{% endif %}">
+        <i class="fas fa-bell"></i> Notifications
+      </a>
+      <a href="{{ url_for('rider.earnings') }}"
+         class="sidebar-link {% if request.endpoint == 'rider.earnings' %}active{% endif %}">
+        <i class="fas fa-wallet"></i> Earnings
+      </a>
+      <a href="{{ url_for('rider.payouts') }}"
+         class="sidebar-link {% if request.endpoint in ['rider.payouts','rider.request_payout'] %}active{% endif %}">
+        <i class="fas fa-hand-holding-usd"></i> Withdrawals
+      </a>
+      <a href="{{ url_for('rider.ratings') }}"
+         class="sidebar-link {% if request.endpoint == 'rider.ratings' %}active{% endif %}">
+        <i class="fas fa-star"></i> My Ratings
+      </a>
+      <a href="{{ url_for('rider.profile') }}"
+         class="sidebar-link {% if request.endpoint == 'rider.profile' %}active{% endif %}">
+        <i class="fas fa-user-cog"></i> Profile
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('auth.logout') }}">
+        <i class="fas fa-sign-out-alt me-1"></i>Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="rider-main">
+    {% block page_content %}{% endblock %}
+  </main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/rider/base.js') }}"></script>
+<!-- KidZora Toast -->
+<script src="{{ url_for('static', filename='js/kidzora-toast.js') }}"></script>
+<!-- Real-time notifications (polling) -->
+<script src="{{ url_for('static', filename='js/kidzora-realtime.js') }}"></script>
+<!-- Real-time badge updates (Supabase Realtime) -->
+<script src="{{ url_for('static', filename='js/kidzora-notifications-realtime.js') }}"></script>
+<!-- Web Push notifications (VAPID) -->
+<script src="{{ url_for('static', filename='js/kidzora-push.js') }}"></script>
+
+<!-- Notification Bell Panel -->
+<div id="kz-panel" role="dialog" aria-label="Notifications">
+  <div id="kz-panel-header">
+    <h6>Notifications</h6>
+    <button id="kz-panel-clear" type="button">Clear all</button>
+  </div>
+  <div id="kz-panel-list"></div>
+  <div id="kz-panel-empty">No notifications yet</div>
+  <!-- Detail slide-in -->
+  <div id="kz-panel-detail">
+    <div id="kz-panel-detail-header">
+      <button id="kz-panel-back" type="button">&#8592; Back</button>
+    </div>
+    <div id="kz-panel-detail-body"></div>
+  </div>
+</div>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

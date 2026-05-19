@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Help & Support – KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="Get help and manage your support tickets on KidZora.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Help & Support – KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .support-hero {
+    background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+    color: #fff;
+    border-radius: 1rem;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+  }
+  .support-hero h2 { font-weight: 700; margin-bottom: .25rem; }
+  .support-hero p  { opacity: .85; margin-bottom: 0; }
+
+  .ticket-row { transition: background .12s; }
+  .ticket-row:hover { background: #f8f9ff; }
+
+  .cat-badge {
+    display: inline-block;
+    font-size: .7rem;
+    font-weight: 600;
+    padding: .2rem .55rem;
+    border-radius: 50px;
+    background: #e9ecef;
+    color: #495057;
+  }
+  .new-ticket-card { border-left: 4px solid #0d6efd; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Hero -->
+  <div class="support-hero">
+    <div class="row align-items-center">
+      <div class="col">
+        <h2><i class="fas fa-life-ring me-2"></i>Help & Support</h2>
+        <p>Have a question or issue? Submit a ticket and our team will reply within 24 hours.</p>
+      </div>
+      <div class="col-auto">
+        <a href="#newTicket" class="btn btn-light fw-semibold">
+          <i class="fas fa-plus me-1"></i>New Ticket
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} alert-dismissible fade show">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="row g-4">
+
+    <!-- ── Left: my tickets ───────────────────────────────────── -->
+    <div class="col-lg-7">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+          <h6 class="mb-0 fw-bold"><i class="fas fa-ticket-alt me-2 text-primary"></i>My Tickets</h6>
+          <span class="badge bg-primary rounded-pill">{{ tickets|length }}</span>
+        </div>
+
+        {% if tickets %}
+          <div class="list-group list-group-flush">
+            {% for t in tickets %}
+            <a href="{{ url_for('buyer.support_detail', ticket_id=t.id) }}"
+               class="list-group-item list-group-item-action ticket-row px-4 py-3">
+              <div class="d-flex justify-content-between align-items-start">
+                <div class="me-3" style="min-width:0;flex:1">
+                  <div class="fw-semibold text-truncate mb-1">{{ t.subject }}</div>
+                  <span class="cat-badge me-1">{{ t.category_label }}</span>
+                  <small class="text-muted">Updated {{ t.updated_at[:10] }}</small>
+                </div>
+                <span class="badge bg-{{ t.status_color }} flex-shrink-0">{{ t.status_label }}</span>
+              </div>
+            </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="card-body text-center py-5">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <p class="text-muted mb-1">No support tickets yet.</p>
+            <small class="text-muted">Use the form to get help from our team.</small>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ── Right: new ticket form ─────────────────────────────── -->
+    <div class="col-lg-5" id="newTicket">
+      <div class="card shadow-sm border-0 new-ticket-card">
+        <div class="card-header bg-white border-bottom">
+          <h6 class="mb-0 fw-bold"><i class="fas fa-plus-circle me-2 text-primary"></i>Submit New Ticket</h6>
+        </div>
+        <div class="card-body p-4">
+          <form method="POST" action="{{ url_for('buyer.support') }}">
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Subject <span class="text-danger">*</span></label>
+              <input type="text" name="subject" class="form-control"
+                     placeholder="Briefly describe your issue" maxlength="200" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Category</label>
+              <select name="category" class="form-select">
+                {% for key, label in categories %}
+                  <option value="{{ key }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Message <span class="text-danger">*</span></label>
+              <textarea name="message" class="form-control" rows="5"
+                        placeholder="Describe your issue in detail…" required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="fas fa-paper-plane me-1"></i>Submit Ticket
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- FAQ quick links -->
+      <div class="card shadow-sm border-0 mt-3">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-3"><i class="fas fa-question-circle me-2 text-warning"></i>Common Questions</h6>
+          <ul class="list-unstyled mb-0 small">
+            <li class="mb-2"><i class="fas fa-chevron-right text-muted me-2"></i>How do I cancel an order?</li>
+            <li class="mb-2"><i class="fas fa-chevron-right text-muted me-2"></i>When will I get my refund?</li>
+            <li class="mb-2"><i class="fas fa-chevron-right text-muted me-2"></i>My item arrived damaged — what do I do?</li>
+            <li class="mb-2"><i class="fas fa-chevron-right text-muted me-2"></i>How do I change my delivery address?</li>
+            <li><i class="fas fa-chevron-right text-muted me-2"></i>My payment was charged but order not confirmed.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

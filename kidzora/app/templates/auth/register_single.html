@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+
+{% block title %}Register - KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="Create your KidZora account to start shopping for kids&#39; products.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Register - KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+                        <h2 class="card-title">Create Your Account</h2>
+                        <p class="text-muted">Join KidZora and start shopping or selling</p>
+                    </div>
+                    
+                    <!-- Personal Information -->
+                    <form id="registrationForm" method="POST" action="{{ url_for('auth.register') }}" enctype="multipart/form-data">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2"><i class="fas fa-user me-2"></i>Personal Information</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Enter your first name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Enter your last name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control" id="phone" name="phone"
+                                        placeholder="e.g. 09123456789"
+                                        maxlength="11"
+                                        pattern="[0-9]{11}"
+                                        oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                                        required>
+                                    <div class="form-text"><i class="fas fa-info-circle me-1"></i>Must be exactly 11 digits, numbers only.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Password must contain at least one lowercase letter, one uppercase letter, one number, one special character, and be at least 8 characters long.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                </div>
+                            </div>
+                        </div>
+                    
+                    <!-- Account Type Selection -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2"><i class="fas fa-user-tag me-2"></i>Account Type</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" id="role_buyer" name="role" value="buyer" checked>
+                                <label class="form-check-label" for="role_buyer">
+                                    <i class="fas fa-shopping-cart me-2"></i>
+                                    <strong>Buyer</strong>
+                                    <div class="text-muted">Shop for amazing kids' products</div>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" id="role_seller" name="role" value="seller">
+                                <label class="form-check-label" for="role_seller">
+                                    <i class="fas fa-store me-2"></i>
+                                    <strong>Seller</strong>
+                                    <div class="text-muted">Sell your kids' products</div>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" id="role_rider" name="role" value="rider">
+                                <label class="form-check-label" for="role_rider">
+                                    <i class="fas fa-motorcycle me-2"></i>
+                                    <strong>Rider</strong>
+                                    <div class="text-muted">Deliver products to customers</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Location Details -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2"><i class="fas fa-map-marker-alt me-2"></i>Location Details</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="region" class="form-label">Region <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="region" name="region" placeholder="Enter your region" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="province" class="form-label">Province <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="province" name="province" placeholder="Enter your province" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="city" class="form-label">City/Municipality <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="city" name="city" placeholder="Enter your city/municipality" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="barangay" class="form-label">Barangay <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="barangay" name="barangay" placeholder="Enter your barangay" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="postal_code" class="form-label">Postal Code <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="postal_code" name="postal_code"
+                                    placeholder="e.g. 1000"
+                                    maxlength="4"
+                                    pattern="[0-9]{4}"
+                                    oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                                    required>
+                                <div class="form-text"><i class="fas fa-info-circle me-1"></i>Philippine postal code must be exactly 4 digits.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="country" class="form-label">Country <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="country" name="country" value="Philippines" readonly>
+                                <div class="form-text">Currently serving Philippines only</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Street Address <span class="text-danger">*</span></label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-2">
+                                            <label for="building_number" class="form-label">Building/Unit Number</label>
+                                            <input type="text" class="form-control" id="building_number" name="building_number" placeholder="e.g., 123, Unit 4B">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-2">
+                                            <label for="street_name" class="form-label">Street Name</label>
+                                            <input type="text" class="form-control" id="street_name" name="street_name" placeholder="e.g., Rizal Avenue">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-text">Enter your complete address (building number and street name)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Seller Specific Fields (Hidden by default) -->
+                    <div id="sellerFields" style="display: none;">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2"><i class="fas fa-store me-2"></i>Business Information</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="business_name" class="form-label">Business Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="business_name" name="business_name" placeholder="Enter your business name">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="business_type" class="form-label">Business Type <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="business_type" name="business_type">
+                                        <option value="">Select Business Type</option>
+                                        <option value="individual">Individual</option>
+                                        <option value="corporation">Corporation</option>
+                                        <option value="partnership">Partnership</option>
+                                        <option value="sole_proprietorship">Sole Proprietorship</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="seller_id_type" class="form-label">Government ID Type <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="seller_id_type" name="seller_id_type">
+                                        <option value="">Select ID Type</option>
+                                        <option value="passport">Passport</option>
+                                        <option value="drivers_license">Driver's License</option>
+                                        <option value="national_id">National ID</option>
+                                        <option value="umid">UMID</option>
+                                        <option value="philhealth_id">PhilHealth ID</option>
+                                        <option value="sss_id">SSS ID</option>
+                                        <option value="tin_id">TIN ID</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="seller_id_number" class="form-label">ID Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="seller_id_number" name="seller_id_number" placeholder="Enter your ID number">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="seller_id_file" class="form-label">Upload Government ID <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="seller_id_file" name="seller_id_file" accept="image/*,.pdf">
+                                        <label class="input-group-text" for="seller_id_file">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </label>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Upload a clear photo or scan of your government ID (JPG, PNG, PDF)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="business_permit_file" class="form-label">Business Permit <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="business_permit_file" name="business_permit_file" accept="image/*,.pdf">
+                                        <label class="input-group-text" for="business_permit_file">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </label>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Upload your business permit or BIR registration (JPG, PNG, PDF)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="bir_file" class="form-label">BIR Certificate <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="bir_file" name="bir_file" accept="image/*,.pdf">
+                                        <label class="input-group-text" for="bir_file">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </label>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Upload your BIR Certificate of Registration (JPG, PNG, PDF)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Rider Specific Fields (Hidden by default) -->
+                    <div id="riderFields" style="display: none;">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2"><i class="fas fa-motorcycle me-2"></i>Rider Information</h5>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="licensed_id" class="form-label">Licensed ID <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="licensed_id" name="licensed_id" accept="image/*,.pdf">
+                                        <label class="input-group-text" for="licensed_id"><i class="fas fa-cloud-upload-alt"></i></label>
+                                    </div>
+                                    <div class="form-text"><i class="fas fa-info-circle me-1"></i>Upload your valid driver's license (JPG, PNG, PDF).</div>
+                                    <div id="licensed_id_preview" class="mt-2"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="original_receipt" class="form-label">Official Receipt (OR) <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="original_receipt" name="original_receipt" accept="image/*,.pdf">
+                                        <label class="input-group-text" for="original_receipt"><i class="fas fa-cloud-upload-alt"></i></label>
+                                    </div>
+                                    <div class="form-text"><i class="fas fa-info-circle me-1"></i>Upload the vehicle's Official Receipt (JPG, PNG, PDF).</div>
+                                    <div id="original_receipt_preview" class="mt-2"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="certificate_of_registration" class="form-label">Certificate of Registration (CR) <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="certificate_of_registration" name="certificate_of_registration" accept="image/*,.pdf">
+                                        <label class="input-group-text" for="certificate_of_registration"><i class="fas fa-cloud-upload-alt"></i></label>
+                                    </div>
+                                    <div class="form-text"><i class="fas fa-info-circle me-1"></i>Upload the vehicle's Certificate of Registration (JPG, PNG, PDF).</div>
+                                    <div id="certificate_of_registration_preview" class="mt-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Terms & Consent -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2"><i class="fas fa-shield-alt me-2"></i>Terms & Consent</h5>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                                <label class="form-check-label" for="terms">
+                                    <strong>I agree to Terms and Conditions</strong>
+                                    <span class="text-danger">*</span>
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="privacy" name="privacy" required>
+                                <label class="form-check-label" for="privacy">
+                                    <strong>I have read and accept Data Privacy Policy</strong>
+                                    <span class="text-danger">*</span>
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="newsletter" name="newsletter">
+                                <label class="form-check-label" for="newsletter">
+                                    I would like to receive promotional emails and newsletters from KidZora
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Create Account
+                        </button>
+                    </div>
+                </form>
+                
+                <hr>
+                
+                <div class="text-center">
+                    <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Code Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalLabel">
+                    <i class="fas fa-shield-alt me-2"></i>Email Verification Required
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
+                    <h6>Check your email for the confirmation code</h6>
+                    <p class="text-muted">We've sent a 6-digit confirmation code to your email address.</p>
+                </div>
+                <form id="confirmationForm">
+                    <div class="mb-3">
+                        <label for="confirmation_code" class="form-label">Confirmation Code</label>
+                        <input type="text" class="form-control text-center" id="confirmation_code" name="confirmation_code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" required>
+                        <div class="form-text">
+                            <small>Enter the 6-digit code sent to your email</small>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check me-2"></i>Verify & Create Account
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="resendCodeBtn">
+                            <i class="fas fa-redo me-2"></i>Resend Code
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/auth/register-single.js') }}"></script>
+{% endblock %}

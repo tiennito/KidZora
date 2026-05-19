@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat – {{ other_name }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-dark.css') }}">
+</head>
+<body>
+
+<div class="kz-chat-wrap" style="--kz-chat-h:100vh">
+
+  <!-- ── Header ─────────────────────────────────────────────── -->
+  <div class="kz-chat-header">
+
+    {% if not embed and back_url %}
+      <a href="{{ back_url }}" class="kz-back-btn" title="Back to inbox">
+        <i class="fas fa-arrow-left"></i>
+      </a>
+    {% endif %}
+
+    {% if other.avatar_url %}
+      <div class="kz-av kz-av--photo"><img src="{{ other.avatar_url }}" alt=""></div>
+    {% else %}
+      <div class="kz-av">{{ other_name[0]|upper }}</div>
+    {% endif %}
+
+    <div style="min-width:0;flex:1">
+      <div class="kz-chat-header-name">
+        {{ other_name }}
+        {% set role = other.get('role') or 'buyer' %}
+        {% if role == 'seller' %}
+          <span class="kz-role-badge kz-role-seller ms-1"><i class="fas fa-store"></i> Seller</span>
+        {% elif role == 'rider' %}
+          <span class="kz-role-badge kz-role-rider ms-1"><i class="fas fa-motorcycle"></i> Rider</span>
+        {% elif role == 'admin' %}
+          <span class="kz-role-badge kz-role-admin ms-1"><i class="fas fa-shield-alt"></i> Admin</span>
+        {% else %}
+          <span class="kz-role-badge kz-role-buyer ms-1"><i class="fas fa-user"></i> Buyer</span>
+        {% endif %}
+      </div>
+      <div class="kz-chat-header-sub" id="onlineStatus">Active now</div>
+    </div>
+
+  </div>
+
+  <!-- ── Messages ───────────────────────────────────────────── -->
+  <div class="kz-msg-area" id="msgArea">
+
+    {% set ns = namespace(last_day='') %}
+    {% for m in messages %}
+      {% set day = m.created_at[:10] if m.created_at else '' %}
+      {% if day != ns.last_day %}
+        {% set ns.last_day = day %}
+        <div class="kz-date-divider">{{ day }}</div>
+      {% endif %}
+
+      {% set is_mine = (m.sender_id == current_user.id) %}
+      <div class="kz-bubble-row {{ 'mine' if is_mine else 'theirs' }}"
+           data-ts="{{ m.created_at }}" data-id="{{ m.id }}">
+
+        {% if not is_mine %}
+          {% if other.avatar_url %}
+            <div class="kz-peer-av kz-peer-av--photo"><img src="{{ other.avatar_url }}" alt=""></div>
+          {% else %}
+            <div class="kz-peer-av">{{ other_name[0]|upper }}</div>
+          {% endif %}
+        {% endif %}
+
+        <div class="kz-bubble">{{ m.content }}</div>
+
+        <span class="kz-bubble-time">
+          {{ m.created_at[11:16] if m.created_at else '' }}
+          {% if is_mine %}
+            {% if m.is_read %}
+              <i class="fas fa-check-double ms-1 kz-tick-seen" style="font-size:.64rem"></i>
+            {% elif m.is_delivered %}
+              <i class="fas fa-check-double ms-1 kz-tick-delivered" style="font-size:.64rem"></i>
+            {% else %}
+              <i class="fas fa-check ms-1 kz-tick-sent" style="font-size:.64rem"></i>
+            {% endif %}
+          {% endif %}
+        </span>
+
+      </div>
+    {% endfor %}
+
+    {% if not messages %}
+    <div class="text-center py-5 small kz-empty-state">
+      <i class="fas fa-comment-dots fa-2x mb-2 d-block" style="opacity:.2"></i>
+      Start the conversation — say hello! 👋
+    </div>
+    {% endif %}
+
+    <!-- Typing indicator (shown/hidden by chat.js) -->
+    <div class="kz-typing-row" id="typingRow" style="display:none">
+      {% if other.avatar_url %}
+        <div class="kz-peer-av kz-peer-av--photo"><img src="{{ other.avatar_url }}" alt=""></div>
+      {% else %}
+        <div class="kz-peer-av">{{ other_name[0]|upper }}</div>
+      {% endif %}
+      <div class="kz-typing-bubble"><span></span><span></span><span></span></div>
+    </div>
+
+  </div>
+
+  <!-- ── Input bar ───────────────────────────────────────────── -->
+  <form class="kz-input-bar" id="chatForm" autocomplete="off">
+    <textarea id="msgInput" rows="1"
+              placeholder="Message {{ other_name }}…"
+              maxlength="2000"></textarea>
+    <button type="submit" class="kz-send-btn" id="sendBtn">
+      <i class="fas fa-paper-plane"></i>
+    </button>
+  </form>
+
+</div>
+
+<!-- Config read by chat.js -->
+<div id="chatConfig" hidden
+     data-my-id="{{ current_user.id }}"
+     data-other-av="{{ other.avatar_url or '' }}"
+     data-other-initial="{{ other_name[0]|upper }}"
+     data-send-url="{{ send_url }}"
+     data-poll-url="{{ poll_url }}"
+     data-typing-url="{{ typing_url }}"></div>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+
+</body>
+</html>

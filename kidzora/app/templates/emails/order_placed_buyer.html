@@ -1,0 +1,58 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2 style="color:#16a34a;margin:0 0 8px;">🛒 Order Confirmed!</h2>
+<p style="color:#374151;margin:0 0 20px;">
+    Hi <strong>{{ full_name }}</strong>! We received your order
+    and the seller will start processing it soon.
+</p>
+
+<div style="background:#f0fdf4;border-left:4px solid #16a34a;padding:16px;border-radius:6px;margin:0 0 20px;">
+    <p style="margin:0;font-weight:600;color:#15803d;font-size:1rem;">Order {{ order_ref }}</p>
+    <p style="margin:4px 0 0;color:#6b7280;font-size:.85rem;">Keep this for your records.</p>
+</div>
+
+<h3 style="font-size:.9rem;color:#374151;margin:0 0 10px;">Items Ordered</h3>
+<table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+    <thead>
+        <tr style="border-bottom:2px solid #e5e7eb;">
+            <th style="padding:6px 0;text-align:left;font-size:.8rem;color:#6b7280;font-weight:600;">ITEM</th>
+            <th style="padding:6px 0;text-align:center;font-size:.8rem;color:#6b7280;font-weight:600;">QTY</th>
+            <th style="padding:6px 0;text-align:right;font-size:.8rem;color:#6b7280;font-weight:600;">SUBTOTAL</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td style="padding:6px 0;color:#374151;">
+                {{ item.name }}
+                {% if item.variant_name or item.variant %}
+                <span style="color:#6b7280;font-size:.8rem;">({{ item.variant_name or item.variant }})</span>
+                {% endif %}
+            </td>
+            <td style="padding:6px 0;text-align:center;color:#6b7280;">x{{ item.qty }}</td>
+            <td style="padding:6px 0;text-align:right;color:#111827;font-weight:600;">₱{{ item_subtotals[loop.index0] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr style="border-top:2px solid #e5e7eb;">
+            <td colspan="2" style="padding:8px 0;font-weight:700;color:#374151;">Total</td>
+            <td style="padding:8px 0;text-align:right;font-weight:700;font-size:1rem;color:#16a34a;">₱{{ total_formatted }}</td>
+        </tr>
+    </tfoot>
+</table>
+
+<h3 style="font-size:.9rem;color:#374151;margin:0 0 8px;">Delivery Address</h3>
+<div style="background:#f9fafb;padding:14px;border-radius:6px;margin-bottom:20px;font-size:.85rem;color:#374151;line-height:1.6;">
+    <strong>{{ full_name }}</strong><br>
+    {{ phone }}<br>
+    {% if address_line %}{{ address_line }}{% else %}Address not provided.{% endif %}
+</div>
+
+<p style="color:#6b7280;font-size:.85rem;margin:0;">
+    You will receive email updates as your order progresses. You can also track it
+    from <strong>My Orders</strong> in your account.
+</p>
+{% endblock %}
+

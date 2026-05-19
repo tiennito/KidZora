@@ -1,0 +1,378 @@
+{% extends "seller/base.html" %}
+
+{% block title %}{{ 'Edit' if product else 'Add' }} Product – KidZora Seller{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="{{ 'Edit' if product else 'Add' }} Product – KidZora Seller">
+{% endblock %}
+{% block page_title %}{{ 'Edit Product' if product else 'Add New Product' }}{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('seller.products') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left me-1"></i>Back to Products
+  </a>
+{% endblock %}
+
+{% block page_content %}
+
+<form method="POST"
+      action="{{ url_for('seller.product_edit', product_id=product.id) if product else url_for('seller.product_add') }}"
+      enctype="multipart/form-data">
+
+  <div class="row g-4">
+
+    <!-- LEFT: Main details -->
+    <div class="col-lg-8">
+
+      <!-- Basic Info -->
+      <div class="seller-form-section">
+        <h6><i class="fas fa-tag me-2 text-primary"></i>Product Information</h6>
+        <div class="mb-3">
+          <label class="form-label">Product Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" name="name" required
+                 value="{{ product.name if product else '' }}" placeholder="e.g. Wooden Building Blocks Set">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" name="description" rows="4"
+                    placeholder="Describe your product in detail…">{{ product.description if product else '' }}</textarea>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Category <span class="text-danger">*</span></label>
+            <select class="form-select" name="category" required>
+              <option value="">Select category…</option>
+              {% for cat in ['toys','clothing','books','education','outdoor','electronics','accessories','other'] %}
+              <option value="{{ cat }}" {{ 'selected' if product and product.category == cat else '' }}>
+                {{ cat|title }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Age Group <span class="text-danger">*</span></label>
+            <select class="form-select" name="age_group" required>
+              <option value="">Select age group…</option>
+              {% for ag, label in [('0-2','0 – 2 years'),('3-5','3 – 5 years'),('6-8','6 – 8 years'),('9-12','9 – 12 years')] %}
+              <option value="{{ ag }}" {{ 'selected' if product and product.age_group == ag else '' }}>
+                {{ label }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pricing & Inventory -->
+      <div class="seller-form-section">
+        <h6><i class="fas fa-coins me-2 text-primary"></i>Pricing & Inventory</h6>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Price (₱) <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text">₱</span>
+              <input type="number" class="form-control" name="price" step="0.01" min="0" required
+                     value="{{ product.price if product else '' }}" placeholder="0.00">
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Stock Quantity <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" name="stock_quantity" id="stockQtyInput" min="0" required
+                   value="{{ product.stock_quantity if product else '' }}" placeholder="0">
+            <div id="stockAutoNote" class="form-text text-primary d-none">
+              <i class="fas fa-sync-alt me-1"></i>Auto-calculated from variant stocks
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Condition <span class="text-danger">*</span></label>
+            <select class="form-select" name="condition" required>
+              <option value="">Select…</option>
+              {% for cond in ['new','like_new','good','fair'] %}
+              <option value="{{ cond }}" {{ 'selected' if product and product.condition == cond else '' }}>
+                {{ cond|replace('_',' ')|title }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sale / Promotional Price -->
+      <div class="seller-form-section">
+        <h6><i class="fas fa-tag me-2 text-danger"></i>Sale / Promotional Price
+          <span class="text-muted fw-normal fs-6 ms-2">Optional</span>
+        </h6>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Sale Price (₱)</label>
+            <div class="input-group">
+              <span class="input-group-text">₱</span>
+              <input type="number" class="form-control" name="sale_price" id="salePriceInput"
+                     step="0.01" min="0"
+                     value="{{ product.sale_price if product and product.sale_price else '' }}"
+                     placeholder="Leave blank for no sale">
+            </div>
+            <div class="form-text">Must be less than the regular price.</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Sale Starts (UTC)</label>
+            <input type="datetime-local" class="form-control" name="sale_starts_at" id="saleStartInput"
+                   value="{{ product.sale_starts_at[:16] if product and product.sale_starts_at else '' }}">
+            <div class="form-text">Leave blank to start immediately.</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Sale Ends (UTC)</label>
+            <input type="datetime-local" class="form-control" name="sale_ends_at" id="saleEndInput"
+                   value="{{ product.sale_ends_at[:16] if product and product.sale_ends_at else '' }}">
+            <div class="form-text">Leave blank for no expiry.</div>
+          </div>
+        </div>
+        <div id="salePreview" class="mt-2 d-none">
+          <span class="badge bg-danger">SALE</span>
+          <span class="ms-1 small text-muted">Buyers will see
+            <strong id="salePreviewPrice"></strong>
+            <span class="text-decoration-line-through" id="salePreviewOrig"></span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Images -->
+      <div class="seller-form-section">
+        <h6><i class="fas fa-images me-2 text-primary"></i>Product Images</h6>
+
+        {% if product and product.images %}
+        <div class="mb-3">
+          <label class="form-label text-muted small">
+            Current Images
+            <span class="ms-2 text-primary" style="font-size:.72rem;">
+              <i class="fas fa-grip-horizontal me-1"></i>Drag to reorder · First image is the main photo
+            </span>
+          </label>
+          <div class="image-preview-grid" id="currentImages">
+            {% for img_url in product.images %}
+            <div class="image-preview-item" draggable="true">
+              <img src="{{ img_url }}" alt="Product image">
+              <button type="button" class="remove-img" onclick="removeExistingImage('{{ img_url }}', this)">×</button>
+            </div>
+            {% endfor %}
+          </div>
+          <!-- Hidden inputs: removed images and reorder -->
+          <input type="hidden" name="remove_images" id="removeImagesInput" value="">
+          <input type="hidden" name="images_order"  id="imagesOrderInput"
+                 value="{{ product.images | join(',') }}">
+        </div>
+        {% endif %}
+
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="productImages" name="images" accept="image/*" multiple>
+          <i class="fas fa-cloud-upload-alt fa-2x text-primary mb-2"></i>
+          <p class="mb-1 fw-semibold">Click or drag images here</p>
+          <p class="text-muted small mb-0">JPG, PNG, WEBP — max 5 MB each</p>
+        </div>
+        <div class="image-preview-grid mt-2" id="imagePreviewGrid">
+          <!-- Newly uploaded previews appear here; drag to reorder -->
+        </div>
+      </div>
+
+      <!-- Variants -->
+      <div class="seller-form-section">
+        <h6><i class="fas fa-layer-group me-2 text-primary"></i>Product Variants
+          <span class="text-muted fw-normal fs-6 ms-2">Optional – e.g. colors, sizes</span>
+        </h6>
+
+        <div id="variantsList">
+          {% if product and variants %}
+            {% for v in variants %}
+            <div class="variant-row card border rounded p-3 mb-2" data-index="{{ loop.index0 }}">
+              <input type="hidden" name="variant_id_{{ loop.index0 }}" value="{{ v.id }}">
+              <input type="hidden" name="variant_keep_image_{{ loop.index0 }}" id="varKeepImg{{ loop.index0 }}" value="{{ v.image_url or '' }}">
+              <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                  <label class="form-label small mb-1">Variant Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control form-control-sm" name="variant_name_{{ loop.index0 }}"
+                         value="{{ v.name }}" placeholder="e.g. Red, Large">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small mb-1">Price Modifier (₱)</label>
+                  <input type="number" class="form-control form-control-sm" name="variant_price_{{ loop.index0 }}"
+                         value="{{ v.price_modifier or 0 }}" step="0.01" placeholder="0.00">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label small mb-1">Stock</label>
+                  <input type="number" class="form-control form-control-sm variant-stock-input" name="variant_stock_{{ loop.index0 }}"
+                         value="{{ v.stock_quantity or 0 }}" min="0" placeholder="0"
+                         oninput="recalcTotal()">
+                </div>
+                <div class="col-md-3 text-end">
+                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeVariantRow(this)">
+                    <i class="fas fa-trash me-1"></i>Remove
+                  </button>
+                </div>
+              </div>
+              <div class="mt-2">
+                {% if v.image_url %}
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <img src="{{ v.image_url }}" class="rounded" style="width:56px;height:56px;object-fit:cover;"
+                       id="varPreview{{ loop.index0 }}" alt="variant image">
+                  <button type="button" class="btn btn-xs btn-outline-secondary btn-sm"
+                          data-idx="{{ loop.index0 }}"
+                          onclick="clearVariantImage(this.dataset.idx)">
+                    <i class="fas fa-times me-1"></i>Remove image
+                  </button>
+                </div>
+                {% else %}
+                <img src="" class="rounded d-none mb-1" style="width:56px;height:56px;object-fit:cover;"
+                     id="varPreview{{ loop.index0 }}" alt="variant image">
+                {% endif %}
+                <input type="file" class="form-control form-control-sm variant-image-input"
+                       name="variant_image_{{ loop.index0 }}" accept="image/*"
+                       data-idx="{{ loop.index0 }}"
+                       onchange="previewVariantImage(this, this.dataset.idx)">
+              </div>
+            </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        <input type="hidden" name="variant_count" id="variantCount" value="{{ variants|length if variants else 0 }}">
+
+        <button type="button" class="btn btn-sm btn-outline-primary mt-1" onclick="addVariantRow()">
+          <i class="fas fa-plus me-1"></i>Add Variant
+        </button>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Status + Actions -->
+    <div class="col-lg-4">
+
+      <!-- Publish -->
+      <div class="seller-form-section">
+        <h6><i class="fas fa-toggle-on me-2 text-primary"></i>Visibility</h6>
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" name="is_active" id="isActive"
+                 {{ 'checked' if (not product or product.is_active) else '' }}>
+          <label class="form-check-label" for="isActive">
+            Active (visible to buyers)
+          </label>
+        </div>
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i>
+            {{ 'Save Changes' if product else 'Publish Product' }}
+          </button>
+          <a href="{{ url_for('seller.products') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </div>
+
+      <!-- Summary (edit only) -->
+      {% if product %}
+      <div class="seller-form-section">
+        <h6><i class="fas fa-info-circle me-2 text-primary"></i>Product Summary</h6>
+        <table class="table table-sm mb-0">
+          <tr><th class="text-muted fw-normal small border-0">ID</th><td class="border-0 small text-muted">{{ product.id[:8]|upper }}</td></tr>
+          <tr><th class="text-muted fw-normal small">Created</th><td class="small">{{ product.created_at[:10] if product.created_at else '—' }}</td></tr>
+          <tr><th class="text-muted fw-normal small">Updated</th><td class="small">{{ product.updated_at[:10] if product.updated_at else '—' }}</td></tr>
+          <tr><th class="text-muted fw-normal small">Status</th>
+            <td><span class="status-pill {{ 'status-completed' if product.is_active else 'status-cancelled' }}">
+              {{ 'Active' if product.is_active else 'Inactive' }}</span></td>
+          </tr>
+        </table>
+      </div>
+      {% endif %}
+
+      <!-- SEO -->
+      <div class="seller-form-section">
+        <h6><i class="fas fa-search me-2 text-success"></i>SEO &amp; URL
+          <span class="text-muted fw-normal fs-6 ms-2">Optional</span>
+        </h6>
+        <div class="mb-3">
+          <label class="form-label small">URL Slug</label>
+          <div class="input-group input-group-sm">
+            <span class="input-group-text text-muted" style="font-size:.72rem;">/p/</span>
+            <input type="text" class="form-control form-control-sm" name="slug" id="seoSlug"
+                   value="{{ product.slug if product and product.slug else '' }}"
+                   placeholder="auto-generated from name"
+                   pattern="[a-z0-9\-]+" title="lowercase letters, numbers and hyphens only"
+                   maxlength="80">
+          </div>
+          <div class="form-text">Leave blank to auto-generate. Example: <code>wooden-blocks-set</code></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label small">Meta Title <span class="text-muted">(≤ 60 chars)</span></label>
+          <input type="text" class="form-control form-control-sm" name="meta_title" id="seoTitle"
+                 value="{{ product.meta_title if product and product.meta_title else '' }}"
+                 placeholder="Leave blank to use product name"
+                 maxlength="60">
+          <div class="form-text text-end"><span id="seoTitleCount">0</span>/60</div>
+        </div>
+        <div class="mb-0">
+          <label class="form-label small">Meta Description <span class="text-muted">(≤ 155 chars)</span></label>
+          <textarea class="form-control form-control-sm" name="meta_description" id="seoDesc"
+                    rows="3" maxlength="155"
+                    placeholder="Leave blank to use the first 155 chars of the product description.">{{ product.meta_description if product and product.meta_description else '' }}</textarea>
+          <div class="form-text text-end"><span id="seoDescCount">0</span>/155</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</form>
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/seller/products.js') }}"></script>
+<script src="{{ url_for('static', filename='js/seller/product-form.js') }}"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ── Auto-slug from product name ─────────────────────────────────────
+  const nameInput = document.querySelector('input[name="name"]');
+  const slugInput = document.getElementById('seoSlug');
+  let slugTouched = !!(slugInput && slugInput.value.trim());
+
+  function toSlug(s) {
+    return s.toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/[\s_]+/g, '-')
+            .replace(/-+/g, '-')
+            .slice(0, 80)
+            .replace(/^-|-$/g, '');
+  }
+
+  if (nameInput && slugInput) {
+    nameInput.addEventListener('input', function () {
+      if (!slugTouched) {
+        slugInput.value = toSlug(this.value);
+      }
+    });
+    slugInput.addEventListener('input', function () {
+      slugTouched = !!this.value.trim();
+      // sanitise on the fly
+      this.value = toSlug(this.value.replace(/-/g, ' '));
+    });
+  }
+
+  // ── Character counters ──────────────────────────────────────────────
+  function bindCounter(inputId, counterId) {
+    const el = document.getElementById(inputId);
+    const ct = document.getElementById(counterId);
+    if (!el || !ct) return;
+    function upd() {
+      const n = el.value.length;
+      const max = parseInt(el.getAttribute('maxlength') || '0', 10);
+      ct.textContent = n;
+      ct.className = (max && n > max * 0.9) ? 'text-danger' : 'text-muted';
+    }
+    el.addEventListener('input', upd);
+    upd();
+  }
+
+  bindCounter('seoTitle', 'seoTitleCount');
+  bindCounter('seoDesc',  'seoDescCount');
+})();
+</script>
+{% endblock %}

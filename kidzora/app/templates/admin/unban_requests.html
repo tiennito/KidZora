@@ -1,0 +1,149 @@
+{% extends "admin/base.html" %}
+{% block title %}Unban Requests - Admin - KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Unban Requests – KidZora Admin">
+{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+  <div class="col-12 d-flex justify-content-between align-items-center">
+    <div>
+      <h1><i class="fas fa-user-shield me-2"></i>Unban Appeal Requests</h1>
+      <p class="text-muted mb-0">Review suspension appeal submissions from users.</p>
+    </div>
+    <a href="{{ url_for('admin.users_list') }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i>Back to Users
+    </a>
+  </div>
+</div>
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+  <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+{% endwith %}
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Pending Appeals
+      {% if requests %}
+        <span class="badge bg-danger ms-2">{{ requests|length }}</span>
+      {% endif %}
+    </h5>
+  </div>
+  <div class="card-body p-0">
+    {% if requests %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>User</th>
+            <th>Role</th>
+            <th>Submitted</th>
+            <th>Message</th>
+            <th>Document</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in requests %}
+          {% set profile = req.get('profiles') or {} %}
+          {% set full_name = ((profile.get('first_name') or '') ~ ' ' ~ (profile.get('last_name') or '')) | trim %}
+          <tr>
+            <td>
+              <div class="fw-semibold">{{ full_name or 'Unknown' }}</div>
+              <div class="text-muted small">{{ profile.get('email') or 'N/A' }}</div>
+            </td>
+            <td>
+              {% set role = profile.get('role') or 'user' %}
+              <span class="badge bg-{% if role == 'seller' %}success{% elif role == 'rider' %}warning text-dark{% elif role == 'buyer' %}primary{% else %}secondary{% endif %}">
+                {{ role | title }}
+              </span>
+            </td>
+            <td class="text-muted small text-nowrap">{{ (req.get('created_at') or '')[:10] or 'N/A' }}</td>
+            <td style="max-width:300px;">
+              <div style="max-height:80px;overflow-y:auto;white-space:pre-wrap;font-size:0.9em;">{{ req.get('message') or '—' }}</div>
+            </td>
+            <td>
+              {% if req.get('file_url') %}
+                <a href="{{ req.get('file_url') }}" target="_blank" class="btn btn-sm btn-outline-info">
+                  <i class="fas fa-file me-1"></i>View
+                </a>
+              {% else %}
+                <span class="text-muted small">None</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <!-- Approve -->
+              <form method="POST"
+                    action="{{ url_for('admin.unban_approve', request_id=req.get('id')) }}"
+                    style="display:inline;"
+                    onsubmit="return confirm('Reinstate this user?');">
+                <button type="submit" class="btn btn-sm btn-success" title="Approve & Reinstate">
+                  <i class="fas fa-user-check me-1"></i>Approve
+                </button>
+              </form>
+              <!-- Reject -->
+              <button type="button" class="btn btn-sm btn-danger ms-1"
+                      title="Reject Appeal"
+                      data-request-id="{{ req.get('id') | e }}"
+                      data-user-name="{{ full_name | e }}"
+                      onclick="openRejectModal(this.dataset.requestId, this.dataset.userName)">
+                <i class="fas fa-times me-1"></i>Reject
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <i class="fas fa-check-circle fa-3x text-success mb-3 d-block"></i>
+      <p class="text-muted mb-0">No pending appeal requests.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form id="rejectForm" method="POST">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title"><i class="fas fa-times-circle me-2"></i>Reject Appeal</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Rejecting appeal for <strong id="rejectUserName"></strong>. User will remain suspended.</p>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Admin Notes <span class="text-danger">*</span></label>
+            <textarea name="admin_notes" class="form-control" rows="4" required
+              placeholder="Explain why the appeal was rejected and what the user needs to provide..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-times me-1"></i>Confirm Reject
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/unban_requests.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin/unban-requests.js') }}"></script>
+{% endblock %}

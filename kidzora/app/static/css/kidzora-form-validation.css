@@ -1,0 +1,417 @@
+/* ══════════════════════════════════════════════════════════════
+   kidzora-form-validation.css
+   Form validation feedback, error messages, and visual indicators
+   Used on all user-input forms across KidZora
+══════════════════════════════════════════════════════════════ */
+
+/* ──────────────────────────────────────────────────────────
+   Form Control Validation States
+────────────────────────────────────────────────────────── */
+
+.form-control:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+}
+
+.form-control.is-invalid:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+}
+
+.form-control.is-valid:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 0.2rem rgba(22, 163, 74, 0.25);
+}
+
+/* Valid field styling (✓ green) */
+.form-control.is-valid {
+  border-color: #16a34a;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2316a34a' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4.6 5.05c-.5.5-.8.5-1.1.1z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right calc(0.375em + 0.1875rem) center;
+  background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+  padding-right: calc(1.5em + 0.75rem);
+}
+
+/* Invalid field styling (✕ red) */
+.form-control.is-invalid {
+  border-color: #dc2626;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23dc2626' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5h-.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc2626' stroke='none'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right calc(0.375em + 0.1875rem) center;
+  background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+  padding-right: calc(1.5em + 0.75rem);
+}
+
+.form-select.is-invalid {
+  border-color: #dc2626;
+}
+
+.form-select.is-invalid:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+}
+
+.form-select.is-valid {
+  border-color: #16a34a;
+}
+
+.form-select.is-valid:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 0.2rem rgba(22, 163, 74, 0.25);
+}
+
+.form-check-input.is-invalid {
+  border-color: #dc2626;
+}
+
+.form-check-input.is-invalid:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+}
+
+.form-check-input.is-valid {
+  border-color: #16a34a;
+  background-color: #16a34a;
+}
+
+.form-check-input.is-valid:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 0.2rem rgba(22, 163, 74, 0.25);
+}
+
+/* ──────────────────────────────────────────────────────────
+   Error / Valid / Help Messages
+────────────────────────────────────────────────────────── */
+
+.invalid-feedback {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: #dc2626;
+  animation: slideInDown 0.3s ease-out;
+}
+
+.valid-feedback {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: #16a34a;
+  animation: slideInDown 0.3s ease-out;
+}
+
+.form-text {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: #64748b;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Form Animations
+────────────────────────────────────────────────────────── */
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Shake animation on form submit with errors */
+.form.has-errors .form-control.is-invalid {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Form Group Styling
+────────────────────────────────────────────────────────── */
+
+.form-group {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.form-group.has-error .form-label {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.form-group.has-success .form-label {
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.form-group.is-validating .form-control {
+  border-color: #f59e0b;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cstyle%3e.spinner%7Banimation:rotate 2s linear infinite%3Borigin:center center%7D@keyframes rotate%7Bto%7Btransform:rotate%28360deg%29%7D%7D%3c/style%3e%3cpath class='spinner' d='M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 17a7 7 0 1 1 7-7 7 7 0 0 1-7 7Z' fill='%23f59e0b'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right calc(0.375em + 0.1875rem) center;
+  background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+  padding-right: calc(1.5em + 0.75rem);
+}
+
+/* ──────────────────────────────────────────────────────────
+   Password Strength Indicator
+────────────────────────────────────────────────────────── */
+
+.password-strength-meter {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  height: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.password-strength-meter__bar {
+  flex: 1;
+  background-color: #e5e7eb;
+  transition: background-color 0.3s ease;
+}
+
+.password-strength-meter__bar.weak {
+  background-color: #dc2626;
+}
+
+.password-strength-meter__bar.fair {
+  background-color: #f59e0b;
+}
+
+.password-strength-meter__bar.good {
+  background-color: #3b82f6;
+}
+
+.password-strength-meter__bar.strong {
+  background-color: #16a34a;
+}
+
+.password-strength-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.375rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.password-strength-text.weak {
+  color: #dc2626;
+}
+
+.password-strength-text.fair {
+  color: #f59e0b;
+}
+
+.password-strength-text.good {
+  color: #3b82f6;
+}
+
+.password-strength-text.strong {
+  color: #16a34a;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Character Counter (for textarea/input with maxlength)
+────────────────────────────────────────────────────────── */
+
+.char-counter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.char-counter__remaining {
+  font-weight: 600;
+}
+
+.char-counter__remaining.warning {
+  color: #f59e0b;
+}
+
+.char-counter__remaining.danger {
+  color: #dc2626;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Form Submit Button States
+────────────────────────────────────────────────────────── */
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.btn.is-loading {
+  pointer-events: none;
+  position: relative;
+}
+
+.btn.is-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  right: 12px;
+  margin-top: -8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ──────────────────────────────────────────────────────────
+   Inline Validation Feedback for Specific Fields
+────────────────────────────────────────────────────────── */
+
+.email-validation-icon,
+.password-validation-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.email-validation-icon.valid,
+.password-validation-icon.valid {
+  color: #16a34a;
+}
+
+.email-validation-icon.invalid,
+.password-validation-icon.invalid {
+  color: #dc2626;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Tooltip Validation Messages
+────────────────────────────────────────────────────────── */
+
+.tooltip-validation {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-validation .tooltip-text {
+  visibility: hidden;
+  background-color: #1f2937;
+  color: #fff;
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 1000;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+  width: 120px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 0.75rem;
+  white-space: normal;
+}
+
+.tooltip-validation:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip-validation .tooltip-text::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #1f2937 transparent transparent transparent;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Dark Mode Support
+────────────────────────────────────────────────────────── */
+
+@media (prefers-color-scheme: dark) {
+  .form-text {
+    color: #cbd5e1;
+  }
+
+  .tooltip-validation .tooltip-text {
+    background-color: #f1f5f9;
+    color: #1f2937;
+  }
+
+  .tooltip-validation .tooltip-text::after {
+    border-color: #f1f5f9 transparent transparent transparent;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────
+   Responsive Design
+────────────────────────────────────────────────────────── */
+
+@media (max-width: 576px) {
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .invalid-feedback,
+  .valid-feedback,
+  .form-text {
+    font-size: 0.8125em;
+  }
+
+  .tooltip-validation .tooltip-text {
+    width: 100px;
+    margin-left: -50px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Usage Classes:
+   - .form-control.is-invalid: Invalid field styling (red border + error icon)
+   - .form-control.is-valid: Valid field styling (green border + check icon)
+   - .invalid-feedback: Error message text (display: block)
+   - .valid-feedback: Success message text
+   - .form-text: Helper/hint text
+   - .form-group.has-error: Form group with error state
+   - .form-group.has-success: Form group with success state
+   - .form-group.is-validating: Form group while validation is in progress
+   - .password-strength-meter: Visual password strength indicator
+   - .char-counter: Character count display for textarea
+═════════════════════════════════════════════════════════════ */

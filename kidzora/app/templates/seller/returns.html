@@ -1,0 +1,122 @@
+{% extends "seller/base.html" %}
+{% from 'macros.html' import render_pagination %}
+{% block title %}Returns & Refunds – KidZora Seller{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Returns & Refunds – KidZora Seller">
+{% endblock %}
+{% block page_title %}Returns & Refunds{% endblock %}
+
+{% block page_content %}
+
+<!-- Filter row -->
+<div class="d-flex flex-wrap gap-2 mb-3">
+  {% for f, label in [('','All'),('pending','Pending'),('seller_approved','Approved'),
+                       ('seller_rejected','Rejected'),('escalated','Escalated to Admin'),
+                       ('admin_approved','Admin Approved'),('admin_rejected','Admin Rejected')] %}
+  <a href="{{ url_for('seller.returns', status=f) }}"
+     class="btn btn-sm {{ 'btn-primary' if selected_status == f else 'btn-outline-primary' }}">
+    {{ label }}
+    {% if f == 'pending' and pending_count %}
+      <span class="badge bg-danger ms-1">{{ pending_count }}</span>
+    {% endif %}
+  </a>
+  {% endfor %}
+</div>
+
+{# ── Auto-approve notice ── #}
+<div class="alert alert-warning d-flex align-items-start gap-2 mb-4 py-2">
+  <i class="fas fa-clock mt-1"></i>
+  <span>
+    <strong>Auto-Approval Timer:</strong>
+    Pending return requests that you haven't responded to within
+    <strong>{{ auto_approve_days }} day{{ 's' if auto_approve_days != 1 else '' }}</strong>
+    will be automatically approved in favour of the buyer.
+    The timer is set by the platform admin.
+  </span>
+</div>
+
+<!-- Table -->
+<div class="seller-card">
+  {% if requests %}
+  <div class="table-responsive">
+    <table class="seller-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Order</th>
+          <th>Reason</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Auto-Approve</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rr in requests %}
+        {% set s = rr.status %}
+        {% set scol = {
+          'pending':          'warning',
+          'seller_approved':  'success',
+          'seller_rejected':  'secondary',
+          'escalated':        'info',
+          'admin_approved':   'success',
+          'admin_rejected':   'secondary',
+        }.get(s, 'secondary') %}
+        <tr class="{{ 'table-warning' if s == 'pending' }}">
+          <td class="text-muted small">{{ rr.created_at[:10] if rr.created_at else '—' }}</td>
+          <td>
+            <a href="{{ url_for('seller.order_detail', order_id=rr.order_id) }}"
+               class="text-primary fw-semibold text-decoration-none small">
+              #{{ rr.order_id[:8]|upper }}
+            </a>
+          </td>
+          <td class="small">{{ reason_labels.get(rr.reason, rr.reason|replace('_',' ')|title) }}</td>
+          <td>
+            <span class="badge {{ 'bg-primary' if rr.refund_type == 'return_and_refund' else 'bg-secondary' }}">
+              {{ 'Return &amp; Refund' if rr.refund_type == 'return_and_refund' else 'Refund Only' }}
+            </span>
+          </td>
+          <td><span class="status-pill status-{{ s }}">{{ s|replace('_',' ')|title }}</span></td>
+          <td>
+            {% if s == 'pending' and rr._days_remaining is not none %}
+              {% if rr._days_remaining == 0 %}
+                <span class="badge bg-danger">
+                  <i class="fas fa-exclamation-triangle me-1"></i>Auto-approving soon!
+                </span>
+              {% elif rr._days_remaining <= 1 %}
+                <span class="badge bg-warning text-dark">
+                  <i class="fas fa-clock me-1"></i>{{ rr._hours_remaining }}h left
+                </span>
+              {% else %}
+                <span class="badge bg-secondary">
+                  <i class="fas fa-clock me-1"></i>{{ rr._days_remaining }}d left
+                </span>
+              {% endif %}
+            {% else %}
+              <span class="text-muted small">—</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            <a href="{{ url_for('seller.return_detail', rr_id=rr.id) }}"
+               class="btn btn-outline-primary" style="padding:3px 8px;font-size:.75rem;">
+              <i class="fas fa-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted seller-card-body">
+    <i class="fas fa-undo-alt fa-4x mb-3 opacity-25"></i>
+    <h6>No return requests</h6>
+    <p class="small">Return requests from buyers will appear here.</p>
+  </div>
+  {% endif %}
+</div>
+
+{{ render_pagination(pagination) }}
+
+{% endblock %}

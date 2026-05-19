@@ -1,0 +1,43 @@
+/* ============================================================
+   KidZora – Rider Panel / Cards & Stat Tiles
+   ============================================================ */
+
+/* ── Generic content card ────────────────────────────────── */
+.rider-card {
+  background: rgba(255, 255, 255, 0.86);
+  border-radius: 20px;
+  box-shadow: 0 18px 34px rgba(126, 138, 184, 0.12);
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+
+.rider-card-header {
+  padding: .75rem 1.1rem;
+  background: rgba(230, 245, 255, 0.58);
+  border-bottom: 1px solid #e9edf5;
+  font-weight: 600;
+  font-size: .9rem;
+}
+
+.rider-card-body { padding: 1.1rem; }
+
+/* ── Stat tile ───────────────────────────────────────────── */
+.rider-stat {
+  background: rgba(255, 255, 255, 0.86);
+  border-radius: 20px;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 18px 34px rgba(126, 138, 184, 0.12);
+  border-left: 4px solid var(--rider-accent);
+}
+
+.rider-stat .stat-val {
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.rider-stat .stat-lbl {
+  font-size: .75rem;
+  color: #77839d;
+  margin-top: .2rem;
+}

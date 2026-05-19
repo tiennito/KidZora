@@ -1,0 +1,16 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2 style="color:#16a34a;margin:0 0 8px;">✅ Admin Approved Your Refund</h2>
+<p style="color:#374151;margin:0 0 16px;">
+    After reviewing your dispute for order <strong>{{ order_ref }}</strong>,
+    the admin has decided in <strong>your favour</strong>.
+</p>
+<div style="background:#f0fdf4;border-left:4px solid #16a34a;padding:16px;border-radius:6px;margin:0 0 16px;">
+    <strong>Admin's note:</strong><br>
+    <span style="color:#374151;">{{ admin_response }}</span>
+</div>
+<p style="color:#6b7280;font-size:.85rem;">
+    A refund will be processed according to our refund policy.
+</p>
+{% endblock %}

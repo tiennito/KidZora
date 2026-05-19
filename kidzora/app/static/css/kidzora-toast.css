@@ -1,0 +1,714 @@
+/* ============================================================
+   KidZora Toast — Sileo-inspired pill toasts for Flask/Jinja2
+   Frosted glass · Colored glow · Spring physics
+   ============================================================ */
+
+:root {
+  /* Spring easing — exact Sileo curve */
+  --kz-spring: linear(
+    0,
+    0.002 0.6%,
+    0.007 1.2%,
+    0.015 1.8%,
+    0.026 2.4%,
+    0.041 3.1%,
+    0.06  3.8%,
+    0.108 5.3%,
+    0.157 6.6%,
+    0.214 8%,
+    0.467 13.7%,
+    0.577 16.3%,
+    0.631 17.7%,
+    0.682 19.1%,
+    0.73  20.5%,
+    0.771 21.8%,
+    0.808 23.1%,
+    0.844 24.5%,
+    0.874 25.8%,
+    0.903 27.2%,
+    0.928 28.6%,
+    0.952 30.1%,
+    0.972 31.6%,
+    0.988 33.1%,
+    1.01  35.7%,
+    1.025 38.5%,
+    1.034 41.6%,
+    1.038 45%,
+    1.035 50.1%,
+    1.012 64.2%,
+    1.003 73%,
+    0.999 83.7%,
+    1
+  );
+
+  --kz-dur:    600ms;
+  --kz-w:      340px;
+  --kz-radius: 14px;
+
+  /* State colours */
+  --kz-success: oklch(0.723 0.219 142.136);
+  --kz-error:   oklch(0.637 0.237 25.331);
+  --kz-warning: oklch(0.795 0.184 86.047);
+  --kz-info:    oklch(0.685 0.169 237.323);
+}
+
+/* ── Viewport ────────────────────────────────────────────── */
+#kz-viewport {
+  position: fixed;
+  top: 5rem;
+  right: 1.25rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: flex-end;
+  pointer-events: none;
+  max-width: calc(100vw - 2.5rem);
+}
+
+/* ── Toast shell ─────────────────────────────────────────── */
+.kz-toast {
+  position: relative;
+  pointer-events: auto;
+  cursor: pointer;
+  width: var(--kz-w);
+  min-height: var(--kz-h);
+  border: 0;
+  padding: 0;
+  border-radius: var(--kz-radius);
+  /* Glass background */
+  background: rgba(15, 15, 20, 0.82);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  /* Outer glow */
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 4px 24px rgba(0,0,0,0.45),
+    0 0 20px color-mix(in oklch, var(--kz-col, transparent) 18%, transparent);
+  /* Entry: slide from top-right */
+  opacity: 0;
+  transform: translateY(-10px) scale(0.93);
+  transform-origin: top right;
+  transition:
+    transform  calc(var(--kz-dur) * .66) var(--kz-spring),
+    opacity    calc(var(--kz-dur) * .45) ease,
+    min-height var(--kz-dur)             var(--kz-spring),
+    box-shadow 250ms ease;
+}
+
+.kz-toast.kz-ready {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.kz-toast:hover {
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.10),
+    0 8px 32px rgba(0,0,0,0.55),
+    0 0 28px color-mix(in oklch, var(--kz-col, transparent) 28%, transparent);
+}
+
+.kz-toast.kz-exit {
+  opacity: 0 !important;
+  transform: translateY(-10px) scale(0.93) !important;
+  pointer-events: none !important;
+  transition:
+    transform calc(var(--kz-dur) * .35) ease,
+    opacity   calc(var(--kz-dur) * .35) ease !important;
+}
+
+/* ── Remove now-unnecessary SVG gooey layer ──────────────── */
+.kz-shapes { display: none; }
+
+/* ── Header row (pill chip in top-right) ────────────────── */
+.kz-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.65rem 0.65rem 0.3rem;
+}
+
+/* ── Head pill chip ──────────────────────────────────────── */
+.kz-head-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px;
+  padding: 0.28rem 0.75rem 0.28rem 0.32rem;
+  max-width: 92%;
+  min-width: 0;
+}
+
+/* ── Badge / icon circle ─────────────────────────────────── */
+.kz-badge {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--kz-col, #aaa) 22%, rgba(0,0,0,0.3));
+  border: 1.5px solid color-mix(in oklch, var(--kz-col, #aaa) 40%, transparent);
+  color: var(--kz-col, #f0f0f0);
+}
+
+.kz-badge svg {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+}
+
+/* ── Title ───────────────────────────────────────────────── */
+.kz-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--kz-col, #f0f0f0);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* ── Description (always visible) ───────────────────────── */
+.kz-desc {
+  padding: 0.05rem 0.9rem 0.9rem;
+  font-size: 0.83rem;
+  line-height: 1.55;
+  color: rgba(200, 200, 215, 0.65);
+}
+
+/* ── Dismiss button (hidden — click-to-dismiss on toast) ── */
+.kz-close { display: none; }
+
+/* ── Action button ───────────────────────────────────────── */
+.kz-actions {
+  padding: 0 0.65rem 0.7rem;
+}
+
+.kz-action-btn {
+  display: block;
+  width: 100%;
+  padding: 0.58rem 1rem;
+  background: color-mix(in oklch, var(--kz-col, #3b82f6) 20%, rgba(0,0,0,0.5));
+  border: 1px solid color-mix(in oklch, var(--kz-col, #3b82f6) 35%, transparent);
+  border-radius: 10px;
+  color: var(--kz-col, #e2e8f0);
+  font-size: 0.84rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+/* Anchor variant — strip default link decoration */
+a.kz-action-link {
+  text-decoration: none;
+}
+.kz-action-btn:hover {
+  background: color-mix(in oklch, var(--kz-col, #3b82f6) 32%, rgba(0,0,0,0.4));
+  border-color: color-mix(in oklch, var(--kz-col, #3b82f6) 55%, transparent);
+  color: #fff;
+  text-decoration: none;
+}
+
+@media (max-width: 400px) {
+  :root { --kz-w: calc(100vw - 2.5rem); }
+}
+
+/* ── State colours ───────────────────────────────────────── */
+.kz-toast[data-state="success"] { --kz-col: var(--kz-success); }
+.kz-toast[data-state="error"]   { --kz-col: var(--kz-error); }
+.kz-toast[data-state="warning"] { --kz-col: var(--kz-warning); }
+.kz-toast[data-state="info"]    { --kz-col: var(--kz-info); }
+
+/* ── Progress bar ────────────────────────────────────────── */
+.kz-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  border-radius: 0 0 var(--kz-radius) var(--kz-radius);
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--kz-col, #888) 80%, transparent),
+    var(--kz-col, #888)
+  );
+  opacity: 0.5;
+  z-index: 25;
+  transform-origin: left;
+  animation: kz-drain var(--kz-timeout, 6s) linear forwards;
+}
+
+@keyframes kz-drain {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+/* ── Reduced motion ──────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .kz-toast, .kz-toast *, .kz-toast *::before, .kz-toast *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Typography ─────────────────────────────────────────── */
+#kz-viewport, #kz-viewport * {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   Notification Bell Panel
+   ============================================================ */
+
+/* Bell button in navbar */
+#kz-bell-btn {
+  position: relative;
+  background: transparent;
+  border: 0;
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+  line-height: 1;
+  color: rgba(255,255,255,0.85);
+  transition: color 150ms ease;
+}
+#kz-bell-btn:hover { color: #fff; }
+
+/* Unread counter badge */
+#kz-bell-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 9999px;
+  background: #e53e3e;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  display: none;
+  pointer-events: none;
+}
+#kz-bell-badge.kz-visible { display: block; }
+
+/* Dropdown panel */
+#kz-panel {
+  position: fixed;
+  top: 4.2rem;
+  right: 1rem;
+  width: min(360px, calc(100vw - 1.5rem));
+  max-height: min(480px, calc(100vh - 5rem));
+  display: flex;
+  flex-direction: column;
+  background: rgba(13, 13, 18, 0.92);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3);
+  z-index: 10000;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-8px) scale(0.97);
+  transform-origin: top right;
+  pointer-events: none;
+  transition:
+    opacity   220ms ease,
+    transform 240ms var(--kz-spring),
+    max-height 250ms ease;
+}
+/* When detail is open, lift the height cap so content fits */
+#kz-panel.kz-panel-detail-mode {
+  max-height: calc(100vh - 5rem);
+}
+#kz-panel.kz-panel-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* Panel header */
+#kz-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem 0.65rem;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+#kz-panel-header h6 {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(240,240,250,0.6);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+#kz-panel-clear {
+  background: transparent;
+  border: 0;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.28);
+  cursor: pointer;
+  padding: 0;
+  transition: color 140ms ease;
+}
+#kz-panel-clear:hover { color: rgba(255,255,255,0.65); }
+
+/* Scrollable list */
+#kz-panel-list {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.4rem 0;
+}
+#kz-panel-list::-webkit-scrollbar { width: 4px; }
+#kz-panel-list::-webkit-scrollbar-track { background: transparent; }
+#kz-panel-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 9px; }
+
+/* Empty state */
+#kz-panel-empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: rgba(255,255,255,0.25);
+  font-size: 0.82rem;
+}
+
+/* Notification row */
+.kz-notif-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  margin: 0 0.35rem;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.kz-notif-row:hover { background: rgba(255,255,255,0.08); }
+.kz-notif-row.kz-unread { background: rgba(255,255,255,0.025); }
+.kz-notif-row:hover .kz-notif-title { color: #fff; }
+
+.kz-notif-dot {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--kz-col, #888) 18%, rgba(0,0,0,0.4));
+  border: 1.5px solid color-mix(in oklch, var(--kz-col, #888) 35%, transparent);
+  color: var(--kz-col, #888);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.kz-notif-dot svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.kz-notif-body { flex: 1; min-width: 0; }
+.kz-notif-title {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #e8e8f0;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kz-notif-time {
+  font-size: 0.69rem;
+  color: rgba(255,255,255,0.27);
+  margin-top: 2px;
+}
+
+/* Chevron — indicates tappable detail */
+.kz-notif-chevron {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: rgba(255,255,255,0.2);
+  transition: color 120ms ease;
+  margin-left: auto;
+  padding-left: 0.25rem;
+}
+.kz-notif-row:hover .kz-notif-chevron { color: rgba(255,255,255,0.55); }
+
+/* Unread dot */
+.kz-notif-unread-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: #60a5fa;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+.kz-notif-row.kz-unread .kz-notif-unread-dot { opacity: 1; }
+
+/* State colours on rows */
+.kz-notif-row[data-state="success"] { --kz-col: var(--kz-success); }
+.kz-notif-row[data-state="error"]   { --kz-col: var(--kz-error); }
+.kz-notif-row[data-state="warning"] { --kz-col: var(--kz-warning); }
+.kz-notif-row[data-state="info"]    { --kz-col: var(--kz-info); }
+
+/* ── Detail slide-in panel ───────────────────────────────── */
+#kz-panel-detail {
+  /* Slide in from the right on top of the list */
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 13, 18, 0.97);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(110%);
+  transition: transform 230ms cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 16px;
+  overflow: hidden;
+  pointer-events: none;
+}
+#kz-panel-detail.kz-detail-open {
+  transform: translateX(0);
+  pointer-events: auto;
+}
+/* When detail is open: switch detail to normal flow so it sets the panel height */
+.kz-panel-detail-mode #kz-panel-header,
+.kz-panel-detail-mode #kz-panel-list,
+.kz-panel-detail-mode #kz-panel-empty {
+  display: none;
+}
+.kz-panel-detail-mode #kz-panel-detail {
+  position: relative;
+  inset: auto;
+  transform: none;
+  max-height: none;
+  overflow: visible;
+}
+.kz-panel-detail-mode {
+  max-height: none !important;
+  overflow: visible !important;
+}
+#kz-panel-detail-header {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem 0.55rem;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+#kz-panel-back {
+  background: transparent;
+  border: 0;
+  color: rgba(255,255,255,0.45);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+  transition: color 130ms ease;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+#kz-panel-back:hover { color: #fff; }
+#kz-panel-detail-body {
+  overflow: visible;
+  padding: 0.85rem 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+#kz-panel-detail-body::-webkit-scrollbar { display: none; }
+
+/* Icon + title on one compact row */
+.kz-detail-header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-shrink: 0;
+}
+.kz-detail-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--kz-col, #888) 18%, rgba(0,0,0,0.4));
+  border: 1.5px solid color-mix(in oklch, var(--kz-col, #888) 35%, transparent);
+  color: var(--kz-col, #888);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.kz-detail-icon svg {
+  width: 12px; height: 12px;
+  stroke: currentColor; stroke-width: 2.4;
+  fill: none; stroke-linecap: round; stroke-linejoin: round;
+}
+.kz-detail-icon[data-state="success"] { --kz-col: var(--kz-success); }
+.kz-detail-icon[data-state="error"]   { --kz-col: var(--kz-error); }
+.kz-detail-icon[data-state="warning"] { --kz-col: var(--kz-warning); }
+.kz-detail-icon[data-state="info"]    { --kz-col: var(--kz-info); }
+.kz-detail-title {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #f0f0f8;
+  line-height: 1.3;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+.kz-detail-desc {
+  font-size: 0.82rem;
+  color: rgba(200,200,215,0.85);
+  line-height: 1.65;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  width: 100%;
+  word-break: break-word;
+  white-space: pre-wrap;
+  flex-shrink: 0;
+}
+.kz-detail-no-desc {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.2);
+  font-style: italic;
+}
+.kz-detail-time {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.22);
+  flex-shrink: 0;
+}
+.kz-detail-action {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 7px 16px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 20px;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  align-self: flex-start;
+}
+.kz-detail-action:hover {
+  background: rgba(255,255,255,0.22);
+  border-color: rgba(255,255,255,0.35);
+  color: #fff;
+  text-decoration: none;
+}
+
+/* Panel font */
+#kz-panel, #kz-panel * {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   Messenger-style message toast
+   ============================================================ */
+
+/* Overall toast shell — slightly wider, no coloured glow */
+.kz-toast--msg {
+  --kz-col: var(--kz-info);
+  cursor: pointer;
+}
+
+/* Row: avatar + text */
+.kz-msg-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 0.9rem 0.45rem;
+}
+
+/* Circular avatar wrapper (contains either .kz-msg-av or .kz-msg-av-img) */
+.kz-msg-av-wrap {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  overflow: hidden;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.12), 0 2px 8px rgba(0,0,0,0.35);
+}
+
+/* Circular avatar with initial letter */
+.kz-msg-av {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  letter-spacing: 0;
+}
+
+/* Photo avatar */
+.kz-msg-av-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* Text block */
+.kz-msg-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Sender name */
+.kz-msg-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #f5f5ff;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Message preview */
+.kz-msg-text {
+  font-size: 0.81rem;
+  color: rgba(210, 210, 228, 0.68);
+  line-height: 1.45;
+  margin-top: 0.18rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Action button — more compact inside message toast */
+.kz-toast--msg .kz-actions {
+  padding: 0 0.9rem 0.8rem;
+}
+.kz-toast--msg .kz-action-btn {
+  padding: 0.48rem 1rem;
+  font-size: 0.81rem;
+  border-radius: 8px;
+}

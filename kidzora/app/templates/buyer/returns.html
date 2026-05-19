@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}My Returns & Refunds – KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="View and manage your return and refund requests on KidZora.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="My Returns & Refunds – KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+{% from 'macros.html' import render_pagination %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/buyer/returns.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <h4 class="fw-bold mb-0"><i class="fas fa-undo-alt me-2 text-primary"></i>My Returns & Refunds</h4>
+    <a href="{{ url_for('buyer.orders') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-arrow-left me-1"></i>Back to Orders
+    </a>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} alert-dismissible fade show">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if requests %}
+  <div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Request Date</th>
+            <th>Order</th>
+            <th>Type</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rr in requests %}
+          {% set s = rr.status %}
+          {% set scol = {
+            'pending':          'warning',
+            'seller_approved':  'success',
+            'seller_rejected':  'danger',
+            'escalated':        'info',
+            'admin_approved':   'success',
+            'admin_rejected':   'secondary',
+          }.get(s, 'secondary') %}
+          {% set slabel = {
+            'pending':          'Pending Review',
+            'seller_approved':  'Approved by Seller',
+            'seller_rejected':  'Rejected — can escalate',
+            'escalated':        'Escalated to Admin',
+            'admin_approved':   'Admin: Approved',
+            'admin_rejected':   'Admin: Rejected',
+          }.get(s, s|replace('_',' ')|title) %}
+          <tr>
+            <td class="text-muted small">{{ rr.created_at[:10] if rr.created_at else '—' }}</td>
+            <td>
+              {% set o = rr.orders or {} %}
+              <a href="{{ url_for('buyer.order_detail', order_id=rr.order_id) }}"
+                 class="text-primary text-decoration-none fw-semibold small">
+                #{{ rr.order_id[:8]|upper }}
+              </a>
+              <br>
+              <span class="text-muted return-order-amount">₱{{ o.total_amount|float|currency if o.total_amount else '—' }}</span>
+            </td>
+            <td>
+              <span class="badge {{ 'bg-primary' if rr.refund_type == 'return_and_refund' else 'bg-secondary' }}">
+                {{ 'Return & Refund' if rr.refund_type == 'return_and_refund' else 'Refund Only' }}
+              </span>
+            </td>
+            <td class="small text-muted">{{ rr.reason|replace('_',' ')|title }}</td>
+            <td><span class="badge bg-{{ scol }}">{{ slabel }}</span></td>
+            <td class="text-center">
+              <a href="{{ url_for('buyer.return_detail', rr_id=rr.id) }}"
+                 class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-eye me-1"></i>Details
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="fas fa-undo-alt fa-4x mb-3 opacity-25"></i>
+    <h6>No return requests yet</h6>
+    <p class="small">If you have an issue with a delivered order, open the order and click "Return / Refund".</p>
+  </div>
+  {% endif %}
+
+  {{ render_pagination(pagination) }}
+
+</div>
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/kidzora-utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/buyer/returns.js') }}"></script>
+{% endblock %}
+{% endblock %}

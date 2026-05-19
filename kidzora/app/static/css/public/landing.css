@@ -1,0 +1,432 @@
+/* ──────────────────────────────────────────────────────────────
+   KidZora Public Landing Page
+   ────────────────────────────────────────────────────────────── */
+
+:root {
+  --kzp-primary:   #8f9bff;
+  --kzp-primary-h: #7f8cff;
+  --kzp-coral:     #ff8ea8;
+  --kzp-aqua:      #73d7d0;
+  --kzp-ink:       #31405f;
+  --kzp-muted:     #77839d;
+  --kzp-light:     #fbfdff;
+  --kzp-alt:       rgba(230, 245, 255, 0.45);
+  --kzp-border:    #e9edf5;
+}
+
+/* ── Body ── */
+body { font-family: 'Inter', system-ui, -apple-system, sans-serif; color: var(--kzp-ink); }
+
+/* ── Navbar ── */
+.kzp-nav {
+  background: #fff;
+  border-bottom: 1px solid var(--kzp-border);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.kzp-logo {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--kzp-primary);
+  text-decoration: none;
+  letter-spacing: -.3px;
+}
+.kzp-logo:hover { color: var(--kzp-primary-h); }
+
+/* ── Hero ── */
+.kzp-hero {
+  background:
+    radial-gradient(circle at 10% 20%, rgba(223, 248, 235, 0.68), transparent 18rem),
+    radial-gradient(circle at 82% 12%, rgba(255, 221, 235, 0.68), transparent 18rem),
+    linear-gradient(135deg, #e9ddff 4%, #d9f0ff 42%, #fff6fb 100%);
+  padding: 5rem 0 4rem;
+}
+
+.kzp-hero-inner {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+.kzp-hero-text { flex: 1; }
+
+.kzp-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--kzp-primary);
+  font-size: .78rem;
+  font-weight: 700;
+  padding: .35rem .9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  margin-bottom: 1rem;
+  letter-spacing: .3px;
+}
+
+.kzp-hero-text h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: 0;
+  margin-bottom: .9rem;
+}
+
+.kzp-accent { color: var(--kzp-primary); }
+
+.kzp-lead {
+  font-size: 1.05rem;
+  color: var(--kzp-muted);
+  max-width: 520px;
+  line-height: 1.65;
+}
+
+.kzp-hero-visual {
+  flex: 0 0 330px;
+  align-items: center;
+  justify-content: center;
+}
+
+.kzp-ad-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .85rem;
+  width: min(100%, 330px);
+}
+
+.kzp-ad-slot {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 18px 34px rgba(126, 138, 184, 0.16);
+  transition: transform .18s, box-shadow .18s;
+}
+
+.kzp-ad-slot:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(31,41,55,.16);
+}
+
+.kzp-ad-slot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.kzp-ad-slot--main {
+  grid-column: 1 / -1;
+  aspect-ratio: 16 / 7;
+}
+
+/* ── Stats bar ── */
+.kzp-stats {
+  background: linear-gradient(90deg, var(--kzp-primary), var(--kzp-coral), var(--kzp-aqua));
+  padding: 1.4rem 0;
+}
+
+.kzp-stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.kzp-stat-item { text-align: center; color: #fff; }
+
+.kzp-stat-num {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.kzp-stat-lbl {
+  font-size: .78rem;
+  opacity: .8;
+  margin-top: .2rem;
+}
+
+/* ── Generic section ── */
+.kzp-section        { padding: 4rem 0; }
+.kzp-section--alt   { background: var(--kzp-alt); }
+
+.kzp-section-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 2rem;
+  letter-spacing: -.3px;
+}
+
+/* ── Categories ── */
+.kzp-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.kzp-cat-card {
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid var(--kzp-border);
+  border-radius: 20px;
+  padding: 1.3rem 1rem;
+  text-align: center;
+  transition: transform .18s, box-shadow .18s, border-color .18s;
+}
+.kzp-cat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 34px rgba(126, 138, 184, 0.14);
+  border-color: rgba(143, 155, 255, 0.28);
+}
+
+.kzp-cat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin: 0 auto .7rem;
+  overflow: hidden;
+}
+
+.kzp-cat-icon img {
+  display: block;
+  width: 34px;
+  height: 34px;
+  max-width: 34px;
+  max-height: 34px;
+  object-fit: contain;
+}
+
+.kzp-cat-name {
+  font-weight: 700;
+  font-size: .9rem;
+  color: #111827;
+  margin-bottom: .2rem;
+}
+
+.kzp-cat-desc {
+  font-size: .73rem;
+  color: #6b7280;
+}
+
+/* ── Product cards ── */
+.kzp-prod-card {
+  border-radius: 20px !important;
+  overflow: hidden;
+  transition: transform .18s, box-shadow .18s;
+}
+.kzp-prod-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 34px rgba(126, 138, 184, 0.14) !important;
+}
+
+.kzp-line-clamp {
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── How it works steps ── */
+.kzp-step {
+  background: rgba(255, 255, 255, 0.84);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  border: 1px solid var(--kzp-border);
+  position: relative;
+}
+
+.kzp-step-num {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, var(--kzp-primary), var(--kzp-coral));
+  color: #fff;
+  font-weight: 800;
+  font-size: .85rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kzp-step-icon {
+  width: 64px;
+  height: 64px;
+  background: #f0ebff;
+  color: var(--kzp-primary);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin: 0 auto;
+}
+
+/* ── Trust row ── */
+.kzp-trust-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.kzp-trust-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  max-width: 220px;
+}
+
+.kzp-trust-item > i {
+  font-size: 1.6rem;
+  color: var(--kzp-primary);
+  flex-shrink: 0;
+  margin-top: .1rem;
+}
+
+/* ── CTA strip ── */
+.kzp-cta { background: linear-gradient(90deg, var(--kzp-primary), var(--kzp-coral), var(--kzp-aqua)); }
+
+/* ── Footer ── */
+.kzp-footer {
+  background: #fff;
+  border-top: 1px solid var(--kzp-border);
+}
+
+/* ── Category icon colours ── */
+.kzp-cat-icon-toys        { background:#f59e0b22; color:#f59e0b; }
+.kzp-cat-icon-clothing    { background:#ec489922; color:#ec4899; }
+.kzp-cat-icon-books       { background:#3b82f622; color:#3b82f6; }
+.kzp-cat-icon-educational { background:#10b98122; color:#10b981; }
+.kzp-cat-icon-safety      { background:#ef444422; color:#ef4444; }
+.kzp-cat-icon-accessories { background:#8b5cf622; color:#8b5cf6; }
+
+/* ── Responsive ── */
+@media (max-width: 576px) {
+  .kzp-hero { padding: 3rem 0 2.5rem; }
+  .kzp-hero-inner { flex-direction: column; }
+  .kzp-cat-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ── Search bar (in hero) ── */
+.kzp-search-bar { max-width: 480px; }
+.kzp-search-bar .form-control {
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 18px 0 0 18px;
+  font-size: .97rem;
+}
+.kzp-search-bar .btn {
+  border-radius: 0 18px 18px 0;
+  background: linear-gradient(90deg, var(--kzp-primary), var(--kzp-coral));
+  border-color: transparent;
+  color: #fff;
+  font-weight: 600;
+}
+.kzp-search-bar .btn:hover {
+  background: var(--kzp-primary-h);
+  border-color: var(--kzp-primary-h);
+}
+
+/* ── Category pills (in hero) ── */
+.kzp-cat-pill {
+  display: inline-block;
+  background: #fff;
+  color: #374151;
+  border: 1px solid #c7d2fe;
+  border-radius: 999px;
+  font-size: .82rem;
+  font-weight: 600;
+  padding: .3rem .85rem;
+  text-decoration: none;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.kzp-cat-pill:hover {
+  background: #ede9fe;
+  border-color: #a5b4fc;
+  color: var(--kzp-primary);
+}
+
+/* ── Store cards ── */
+.kzp-store-card {
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid var(--kzp-border);
+  border-radius: 20px;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: transform .18s, box-shadow .18s, border-color .18s;
+  padding: 1.2rem .8rem;
+  text-align: center;
+}
+.kzp-store-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 34px rgba(126, 138, 184, 0.14);
+  border-color: rgba(143, 155, 255, 0.28);
+  color: inherit;
+}
+.kzp-store-avatar {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto .65rem;
+}
+
+/* ── Stats bar clickable items ── */
+.kzp-stat-item { text-decoration: none; }
+.kzp-stat-item:hover .kzp-stat-num { opacity: .85; }
+
+/* ── Utility: coloured text / buttons (avoids inline var() in templates) ── */
+.kzp-text-primary { color: var(--kzp-primary); }
+.kzp-price        { color: var(--kzp-primary); font-weight: 700; font-size: .875rem; }
+.kzp-see-all      { color: var(--kzp-primary); text-decoration: none; font-weight: 600; font-size: .875rem; }
+.kzp-see-all:hover { color: var(--kzp-primary-h); }
+.kzp-icon-primary { color: var(--kzp-primary); }
+
+.kzp-btn-filled {
+  background: linear-gradient(90deg, var(--kzp-primary), var(--kzp-coral), var(--kzp-aqua)) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+  border-radius: 18px;
+}
+.kzp-btn-filled:hover {
+  background: var(--kzp-primary-h) !important;
+  border-color: var(--kzp-primary-h) !important;
+}
+
+.kzp-btn-outline-white {
+  background: #fff;
+  color: var(--kzp-primary);
+  border: 1.5px solid #c7d2fe;
+  border-radius: 18px;
+  font-weight: 700;
+}
+.kzp-btn-outline-white:hover {
+  background: var(--kzp-primary);
+  color: #fff;
+  border-color: var(--kzp-primary);
+}
+
+.kzp-btn-cart {
+  background: linear-gradient(90deg, var(--kzp-primary), var(--kzp-coral)) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+}
+.kzp-btn-cart:hover {
+  background: var(--kzp-primary-h) !important;
+  border-color: var(--kzp-primary-h) !important;
+}

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Account Suspended - KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="Your KidZora account has been suspended. Contact support for assistance.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Account Suspended - KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-7 col-lg-6">
+
+    <!-- Ban notice -->
+    <div class="card border-danger shadow-sm mb-4">
+      <div class="card-header bg-danger text-white text-center py-3">
+        <i class="fas fa-ban fa-2x mb-2 d-block"></i>
+        <h4 class="mb-0">Your Account Has Been Suspended</h4>
+      </div>
+      <div class="card-body p-4">
+        <p class="mb-1">Hi <strong>{{ user_name }}</strong>,</p>
+        <p class="text-muted mb-3">Your KidZora account has been suspended by the admin team.</p>
+
+        {% if ban_reason %}
+        <div class="alert alert-danger border-start border-danger border-4 rounded-0 py-2">
+          <strong><i class="fas fa-exclamation-circle me-1"></i>Reason:</strong><br>
+          {{ ban_reason }}
+        </div>
+        {% endif %}
+
+        <p class="mb-0 text-muted small">
+          If you believe this is a mistake or have resolved the issue, you can submit an appeal below.
+          Please attach any supporting documents that address the reason for suspension.
+        </p>
+      </div>
+    </div>
+
+    <!-- Appeal form -->
+    {% if has_pending %}
+    <div class="card border-warning shadow-sm">
+      <div class="card-body text-center p-4">
+        <i class="fas fa-clock fa-2x text-warning mb-3 d-block"></i>
+        <h5>Appeal Already Submitted</h5>
+        <p class="text-muted mb-3">
+          Your appeal is currently under review. We will notify you by email once a decision is made.
+        </p>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary">
+          <i class="fas fa-arrow-left me-1"></i>Back to Login
+        </a>
+      </div>
+    </div>
+    {% else %}
+    <div class="card shadow-sm">
+      <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Submit an Appeal</h5>
+      </div>
+      <div class="card-body p-4">
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+          <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+          {% endfor %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('auth.submit_appeal') }}" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Explanation <span class="text-danger">*</span></label>
+            <textarea name="message" class="form-control" rows="5" required
+              placeholder="Explain why your account should be reinstated. Be specific about how you have resolved the issue..."></textarea>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Supporting Document <span class="text-muted fw-normal">(optional)</span></label>
+            <input type="file" name="document" class="form-control"
+                   accept=".jpg,.jpeg,.png,.gif,.pdf">
+            <div class="form-text">Upload any document that supports your appeal (ID, permit, proof, etc.). Max formats: JPG, PNG, PDF.</div>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="fas fa-paper-plane me-2"></i>Submit Appeal
+            </button>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-1"></i>Back to Login
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

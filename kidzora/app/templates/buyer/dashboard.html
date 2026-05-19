@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}My Account – KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="Your KidZora account dashboard. Manage orders, wishlist, followed stores, and account settings.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="My Account – KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/buyer/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper py-4">
+  <div class="container-fluid">
+    <div class="row g-3">
+      
+      <!-- SIDEBAR (Sticky on Desktop) -->
+      <div class="col-lg-3">
+        <div class="sidebar">
+          
+          <!-- Profile Card -->
+          <div class="card profile-card mb-4 rounded-3">
+            <div class="card-body text-center p-4">
+              <div class="mb-3">
+                <div class="rounded-circle profile-avatar text-white d-flex align-items-center justify-content-center mx-auto">
+                  {{ current_user.first_name[0] | upper }}
+                </div>
+              </div>
+              <h6 class="fw-bold mb-1" style="font-size: 0.95rem;">{{ current_user.first_name }} {{ current_user.last_name or '' }}</h6>
+              <small class="text-muted d-block mb-3 text-truncate">{{ current_user.email }}</small>
+              <a href="{{ url_for('buyer.dashboard', tab='account') }}" class="btn btn-sm btn-danger w-100">
+                <i class="fas fa-edit me-1"></i>Edit Profile
+              </a>
+            </div>
+          </div>
+
+          <!-- Sidebar Menu -->
+          <nav class="menu-list" role="tablist">
+            <button type="button" class="menu-item list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 {% if active_tab == 'account' %}active{% endif %}" id="tab-account-btn" data-bs-toggle="tab" data-bs-target="#tab-account" role="tab" aria-controls="tab-account" aria-selected="{% if active_tab == 'account' %}true{% else %}false{% endif %}">
+              <i class="fas fa-user" style="width: 18px; font-size: 1rem;"></i>
+              <span>My Account</span>
+            </button>
+            
+            <!-- My Purchase Dropdown -->
+            <div class="dropdown">
+              <button class="menu-item list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 dropdown-toggle {% if active_tab == 'purchases' %}active{% endif %}" id="purchaseDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-shopping-bag" style="width: 18px; font-size: 1rem;"></i>
+                <span>My Purchase</span>
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="purchaseDropdown">
+                <li><a href="{{ url_for('buyer.dashboard', tab='purchases') }}" class="dropdown-item">
+                  <i class="fas fa-list me-2"></i>Order Tracking
+                </a></li>
+                <li><a href="{{ url_for('buyer.orders') }}" class="dropdown-item">
+                  <i class="fas fa-boxes me-2"></i>View All Orders
+                </a></li>
+              </ul>
+            </div>
+            <button type="button" class="menu-item list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 {% if active_tab == 'notifications' %}active{% endif %}" id="tab-notifications-btn" data-bs-toggle="tab" data-bs-target="#tab-notifications" role="tab" aria-controls="tab-notifications" aria-selected="{% if active_tab == 'notifications' %}true{% else %}false{% endif %}">
+              <i class="fas fa-bell" style="width: 18px; font-size: 1rem;"></i>
+              <span>Notifications</span>
+            </button>
+            <button type="button" class="menu-item list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 {% if active_tab == 'favorites' %}active{% endif %}" id="tab-favorites-btn" data-bs-toggle="tab" data-bs-target="#tab-favorites" role="tab" aria-controls="tab-favorites" aria-selected="{% if active_tab == 'favorites' %}true{% else %}false{% endif %}">
+              <i class="fas fa-heart" style="width: 18px; font-size: 1rem;"></i>
+              <span>My Favorites</span>
+            </button>
+            <button type="button" class="menu-item list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 {% if active_tab == 'vouchers' %}active{% endif %}" id="tab-vouchers-btn" data-bs-toggle="tab" data-bs-target="#tab-vouchers" role="tab" aria-controls="tab-vouchers" aria-selected="{% if active_tab == 'vouchers' %}true{% else %}false{% endif %}">
+              <i class="fas fa-ticket-alt" style="width: 18px; font-size: 1rem;"></i>
+              <span>My Vouchers</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT TABS -->
+      <div class="col-lg-9">
+        <div class="tab-content" role="tabpanel">
+          
+          <!-- My Account Tab -->
+          <div class="tab-pane fade {% if active_tab == 'account' %}show active{% endif %}" id="tab-account" role="tabpanel" aria-labelledby="tab-account-btn">
+            <div class="card border-0 shadow-sm rounded-3">
+              {% include 'buyer/sections/account.html' %}
+            </div>
+          </div>
+
+          <!-- My Purchases Tab -->
+          <div class="tab-pane fade {% if active_tab == 'purchases' %}show active{% endif %}" id="tab-purchases" role="tabpanel" aria-labelledby="tab-purchases-btn">
+            <div class="card border-0 shadow-sm rounded-3">
+              <!-- DEBUG: orders_by_status.all count = {{ orders_by_status.all|length }} -->
+              {% include 'buyer/sections/purchases.html' %}
+            </div>
+          </div>
+
+          <!-- Notifications Tab -->
+          <div class="tab-pane fade {% if active_tab == 'notifications' %}show active{% endif %}" id="tab-notifications" role="tabpanel" aria-labelledby="tab-notifications-btn">
+            <div class="card border-0 shadow-sm rounded-3">
+              {% include 'buyer/sections/notifications.html' %}
+            </div>
+          </div>
+
+          <!-- My Favorites Tab -->
+          <div class="tab-pane fade {% if active_tab == 'favorites' %}show active{% endif %}" id="tab-favorites" role="tabpanel" aria-labelledby="tab-favorites-btn">
+            <div class="card border-0 shadow-sm rounded-3">
+              {% include 'buyer/sections/favorites.html' %}
+            </div>
+          </div>
+
+          <!-- My Vouchers Tab -->
+          <div class="tab-pane fade {% if active_tab == 'vouchers' %}show active{% endif %}" id="tab-vouchers" role="tabpanel" aria-labelledby="tab-vouchers-btn">
+            <div class="card border-0 shadow-sm rounded-3">
+              {% include 'buyer/sections/vouchers.html' %}
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/buyer/dashboard.js') }}"></script>
+
+{% endblock %}

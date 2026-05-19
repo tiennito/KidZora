@@ -1,0 +1,237 @@
+{% extends "admin/base.html" %}
+{% block title %}Audit Logs - Admin - KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Audit Logs – KidZora Admin">
+{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+  <div class="col-12 d-flex justify-content-between align-items-center">
+    <div>
+      <h1><i class="fas fa-clipboard-list me-2"></i>Audit Logs</h1>
+      <p class="text-muted mb-0">Track admin actions with full audit trail.</p>
+    </div>
+    {% if total > 0 %}
+    <a href="{{ url_for('admin.export_audit_logs', action=action_filter, actor_id=actor_filter, target_user_id=target_filter, entity_id=entity_id_filter, date_from=date_from, date_to=date_to) }}" class="btn btn-outline-success">
+      <i class="fas fa-download me-1"></i>Export CSV
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Statistics Cards -->
+{% if stats %}
+<div class="row mb-3">
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm bg-light">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <small class="text-muted d-block mb-2">Most Active Admins (Recent 500 logs)</small>
+            <div style="font-size: 0.9rem;">
+              {% for admin_id, count in stats.top_admins %}
+                {% set admin = profile_map.get(admin_id, {}) %}
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="fw-semibold">{{ admin.get('first_name', 'Admin')[:15] }}</span>
+                  <span class="badge bg-primary">{{ count }}</span>
+                </div>
+              {% if not loop.first %}<div style="border-top: 1px solid rgba(0,0,0,0.1);"></div>{% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm bg-light">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <small class="text-muted d-block mb-2">Top Actions (Recent 500 logs)</small>
+            <div style="font-size: 0.85rem;">
+              {% for action, count in stats.top_actions %}
+                <div class="d-flex justify-content-between mb-1">
+                  <span>{{ action[:30] }}</span>
+                  <span class="badge bg-secondary">{{ count }}</span>
+                </div>
+              {% if not loop.first %}<div style="border-top: 1px solid rgba(0,0,0,0.1);"></div>{% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card mb-3 shadow-sm">
+  <div class="card-header bg-light">
+    <h6 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Filter Logs</h6>
+  </div>
+  <div class="card-body">
+    <form method="GET" class="row g-3 align-items-end">
+      <!-- Action Dropdown -->
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Action Type</label>
+        <select name="action" class="form-select form-select-sm">
+          <option value="">— All —</option>
+          <option value="ban_user" {% if action_filter == 'ban_user' %}selected{% endif %}>🚫 Ban User</option>
+          <option value="unban_user" {% if action_filter == 'unban_user' %}selected{% endif %}>✅ Unban User</option>
+          <option value="approve_user" {% if action_filter == 'approve_user' %}selected{% endif %}>✔ Approve User</option>
+          <option value="reject_user" {% if action_filter == 'reject_user' %}selected{% endif %}>❌ Reject User</option>
+          <option value="approve_payout" {% if action_filter == 'approve_payout' %}selected{% endif %}>💰 Approve Payout</option>
+          <option value="reject_payout" {% if action_filter == 'reject_payout' %}selected{% endif %}>💸 Reject Payout</option>
+        </select>
+      </div>
+
+      <!-- Date From -->
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">From Date</label>
+        <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+      </div>
+
+      <!-- Date To -->
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">To Date</label>
+        <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+      </div>
+
+      <!-- Entity ID Search -->
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Entity ID (Order/Product/etc)</label>
+        <input type="text" name="entity_id" class="form-control form-control-sm" value="{{ entity_id_filter }}" placeholder="Search entity ID">
+      </div>
+
+      <!-- Filter Button -->
+      <div class="col-md-2">
+        <div class="d-flex gap-1">
+          <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+            <i class="fas fa-filter me-1"></i>Filter
+          </button>
+          {% if action_filter or date_from or date_to or entity_id_filter or actor_filter or target_filter %}
+          <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-times"></i>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Advanced Filters (Hidden by default, expandable) -->
+      <div class="col-12">
+        <details class="small">
+          <summary class="text-muted cursor-pointer"><i class="fas fa-plus-circle me-1"></i>Advanced: Admin/User UUID Filter</summary>
+          <div class="row g-2 mt-2">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Admin Who Did It (UUID)</label>
+              <input type="text" name="actor_id" class="form-control form-control-sm" value="{{ actor_filter }}" placeholder="Admin UUID">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">User Affected (UUID)</label>
+              <input type="text" name="target_user_id" class="form-control form-control-sm" value="{{ target_filter }}" placeholder="User UUID">
+            </div>
+          </div>
+        </details>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Events</h5>
+    <span class="badge bg-secondary">{{ total }} found</span>
+  </div>
+  <div class="card-body p-0">
+    {% if logs %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle small">
+        <thead class="table-light">
+          <tr>
+            <th style="min-width:130px;"><i class="fas fa-clock me-1"></i>When</th>
+            <th style="min-width:120px;"><i class="fas fa-bolt me-1"></i>Action</th>
+            <th style="min-width:160px;"><i class="fas fa-user-tie me-1"></i>Admin</th>
+            <th style="min-width:160px;"><i class="fas fa-user me-1"></i>Affected</th>
+            <th style="min-width:100px;"><i class="fas fa-tag me-1"></i>Type</th>
+            <th><i class="fas fa-info-circle me-1"></i>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          {% set a = log.get('actor_profile') or {} %}
+          {% set t = log.get('target_profile') or {} %}
+          {% set action = log.get('action') %}
+          {% set action_color = 'danger' if 'ban' in action or 'reject' in action else 'success' if 'approve' in action or 'unban' in action else 'warning' %}
+          <tr>
+            <td class="text-muted text-nowrap">{{ (log.get('created_at') or '')[:19].replace('T', ' ') }}</td>
+            <td>
+              <span class="badge bg-{{ action_color }}">
+                {% if 'ban' in action %}🚫{% elif 'unban' in action %}✅{% elif 'approve' in action %}✔{% elif 'reject' in action %}❌{% else %}⚙️{% endif %}
+                {{ action }}
+              </span>
+            </td>
+            <td>
+              <div class="fw-semibold">{{ ((a.get('first_name') or '') ~ ' ' ~ (a.get('last_name') or ''))|trim or '👤 Unknown' }}</div>
+              <div class="text-muted" style="font-size: 0.8rem;">{{ a.get('email') or (log.get('actor_id', '')[:8] ~ '...') if log.get('actor_id') else '—' }}</div>
+            </td>
+            <td>
+              {% if log.get('target_user_id') %}
+              <div class="fw-semibold">{{ ((t.get('first_name') or '') ~ ' ' ~ (t.get('last_name') or ''))|trim or '👤 User' }}</div>
+              <div class="text-muted" style="font-size: 0.8rem;">{{ t.get('email') or (log.get('target_user_id', '')[:8] ~ '...') }}</div>
+              {% else %}
+              <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td class="text-muted">{{ log.get('entity_type') or '—' }}</td>
+            <td style="font-size: 0.8rem;">
+              {% set details = log.get('details') or {} %}
+              {% if details %}
+                <details class="cursor-pointer">
+                  <summary class="text-primary">View</summary>
+                  <div class="mt-2 p-2 bg-light rounded">
+                    {% for key, value in details.items() %}
+                      <div><strong>{{ key|replace('_', ' ')|title }}:</strong> {{ value }}</div>
+                    {% endfor %}
+                  </div>
+                </details>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <nav class="mt-3 p-3 border-top">
+      <ul class="pagination mb-0 justify-content-center">
+        <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('admin.audit_logs', page=page-1, action=action_filter, actor_id=actor_filter, target_user_id=target_filter, entity_id=entity_id_filter, date_from=date_from, date_to=date_to) }}">← Previous</a>
+        </li>
+        <li class="page-item disabled">
+          <span class="page-link">
+            Page {{ page }} / {{ total_pages }}
+            <span class="text-muted" style="margin-left: 10px;">({{ (page - 1) * per_page + 1 }}-{{ [page * per_page, total]|min }} of {{ total }})</span>
+          </span>
+        </li>
+        <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('admin.audit_logs', page=page+1, action=action_filter, actor_id=actor_filter, target_user_id=target_filter, entity_id=entity_id_filter, date_from=date_from, date_to=date_to) }}">Next →</a>
+        </li>
+      </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-5">
+      <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+      <p class="text-muted mb-0">No audit logs found matching your filters.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

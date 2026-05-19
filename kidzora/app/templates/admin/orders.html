@@ -1,0 +1,188 @@
+{% extends "admin/base.html" %}
+{% from 'macros.html' import render_pagination %}
+{% block title %}All Orders – KidZora Admin{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="All Orders – KidZora Admin">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <!-- Page header -->
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <h4 class="fw-bold mb-0"><i class="fas fa-shopping-bag me-2 text-primary"></i>All Orders</h4>
+    {% if cancel_count > 0 %}
+    <a href="{{ url_for('admin.orders', cancel='pending') }}"
+       class="btn btn-warning btn-sm">
+      <i class="fas fa-exclamation-triangle me-1"></i>
+      {{ cancel_count }} Pending Cancel Request{{ 's' if cancel_count != 1 }}
+    </a>
+    {% endif %}
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} alert-dismissible fade show">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- Filter row -->
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{{ url_for('admin.orders') }}"
+       class="btn btn-sm {{ 'btn-primary' if not selected_status and cancel_filter != 'pending' else 'btn-outline-secondary' }}">
+      All Orders
+    </a>
+    <a href="{{ url_for('admin.orders', cancel='pending') }}"
+       class="btn btn-sm {{ 'btn-warning' if cancel_filter == 'pending' else 'btn-outline-warning' }}">
+      <i class="fas fa-ban me-1"></i>Cancel Requests
+      {% if cancel_count %}<span class="badge bg-dark ms-1">{{ cancel_count }}</span>{% endif %}
+    </a>
+    <span class="vr"></span>
+    {% for s in all_statuses %}
+    <a href="{{ url_for('admin.orders', status=s) }}"
+       class="btn btn-sm {{ 'btn-primary' if selected_status == s else 'btn-outline-primary' }}">
+      {{ s|replace('_',' ')|title }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Orders table -->
+  <div class="card border-0 shadow-sm">
+    {% if orders %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Order ID</th>
+            <th>Date</th>
+            <th>Seller</th>
+            <th>Buyer</th>
+            <th>Amount</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Cancellation</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in orders %}
+          <tr class="{{ 'table-warning' if o.cancel_requested and o.cancel_status == 'pending_review' }}">
+            <td>
+              <a href="{{ url_for('admin.order_detail', order_id=o.id) }}"
+                 class="fw-semibold text-primary text-decoration-none">
+                #{{ o.id[:8]|upper }}
+              </a>
+            </td>
+            <td class="text-muted small">{{ o.created_at[:10] if o.created_at else '—' }}</td>
+            <td class="text-muted small">
+              {% if o.seller_id %}
+                {% set sname = seller_shops.get(o.seller_id, '') %}
+                {% if sname %}
+                  {% if sname|length > 18 %}
+                    <span title="{{ sname }}" data-bs-toggle="tooltip"
+                          class="fw-semibold d-inline-block text-truncate" style="max-width:130px">
+                      {{ sname[:16] }}…
+                    </span>
+                  {% else %}
+                    <span class="fw-semibold">{{ sname }}</span>
+                  {% endif %}
+                {% else %}
+                  <code class="text-muted">{{ o.seller_id[:8] }}</code>
+                {% endif %}
+              {% else %}—{% endif %}
+            </td>
+            <td class="text-muted small"><code>{{ o.buyer_id[:8] if o.buyer_id else '—' }}</code></td>
+            <td class="fw-semibold">₱{{ o.total_amount|float|currency if o.total_amount else '0.00' }}</td>
+            <td>
+              {% set ps = (o.payment_status or 'pending')|lower %}
+              <span class="badge {{ 'bg-success' if ps == 'paid' else ('bg-danger' if ps == 'refunded' else 'bg-secondary') }}">
+                {{ ps|title }}
+              </span>
+            </td>
+            <td>
+              {% set sc = o.status or 'pending' %}
+              {% set scol = {'pending':'warning','confirmed':'info','preparing':'info',
+                             'ready_for_pickup':'info','out_for_delivery':'primary',
+                             'delivered':'success','completed':'success',
+                             'cancelled':'danger'}.get(sc,'secondary') %}
+              <span class="badge bg-{{ scol }}">{{ sc|replace('_',' ')|title }}</span>
+            </td>
+            <td>
+              {% if o.cancel_requested %}
+                {% if o.cancel_status == 'pending_review' %}
+                  <div class="d-flex flex-column gap-1">
+                    <span class="badge bg-warning text-dark"
+                          {% if o.cancel_reason %}title="{{ o.cancel_reason }}" data-bs-toggle="tooltip"{% endif %}>
+                      <i class="fas fa-hourglass-half me-1"></i>Pending Review
+                    </span>
+                    <div class="d-flex gap-1">
+                      <form method="post"
+                            action="{{ url_for('admin.cancel_review', order_id=o.id) }}"
+                            onsubmit="return confirm('Approve this cancellation?')">
+                        <input type="hidden" name="action" value="approve">
+                        <input type="hidden" name="back_url" value="{{ request.url }}">
+                        <button class="btn btn-success btn-sm py-0 px-2" title="Approve">
+                          <i class="fas fa-check"></i>
+                        </button>
+                      </form>
+                      <form method="post"
+                            action="{{ url_for('admin.cancel_review', order_id=o.id) }}"
+                            onsubmit="return confirm('Reject this cancellation?')">
+                        <input type="hidden" name="action" value="reject">
+                        <input type="hidden" name="back_url" value="{{ request.url }}">
+                        <button class="btn btn-outline-secondary btn-sm py-0 px-2" title="Reject">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                {% elif o.cancel_status == 'approved' %}
+                  <span class="badge bg-success"
+                        {% if o.cancel_reason %}title="{{ o.cancel_reason }}" data-bs-toggle="tooltip"{% endif %}>
+                    <i class="fas fa-check me-1"></i>Approved
+                  </span>
+                {% elif o.cancel_status == 'rejected' %}
+                  <span class="badge bg-secondary"
+                        {% if o.cancel_reason %}title="{{ o.cancel_reason }}" data-bs-toggle="tooltip"{% endif %}>
+                    <i class="fas fa-times me-1"></i>Rejected
+                  </span>
+                {% endif %}
+              {% else %}
+                <span class="text-muted small">—</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <a href="{{ url_for('admin.order_detail', order_id=o.id) }}"
+                 class="btn btn-outline-primary btn-sm" title="View">
+                <i class="fas fa-eye"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="fas fa-shopping-bag fa-4x mb-3 opacity-25"></i>
+      <h6>No orders found</h6>
+      <p class="small">Try adjusting your filters.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  {{ render_pagination(pagination) }}
+
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/orders.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin/orders.js') }}"></script>
+{% endblock %}

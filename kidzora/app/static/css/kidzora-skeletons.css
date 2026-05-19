@@ -1,0 +1,306 @@
+/* ══════════════════════════════════════════════════════════════
+   kidzora-skeletons.css
+   Loading skeleton screens with shimmer animation
+   Used for: charts, tables, cards, lists while data loads
+══════════════════════════════════════════════════════════════ */
+
+/* ──────────────────────────────────────────────────────────
+   Skeleton Shimmer Animation
+────────────────────────────────────────────────────────── */
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: calc(1000px + 100%) 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e8e8e8 50%,
+    #f0f0f0 75%
+  );
+  background-size: 1000px 100%;
+  animation: skeleton-shimmer 2.5s infinite;
+  border-radius: 4px;
+}
+
+.skeleton.rounded {
+  border-radius: 50%;
+}
+
+.skeleton.rounded-lg {
+  border-radius: 8px;
+}
+
+.skeleton.rounded-xl {
+  border-radius: 12px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Skeleton Chart & Canvas
+────────────────────────────────────────────────────────── */
+
+.skeleton-chart {
+  width: 100%;
+  height: 300px;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e8e8e8 50%,
+    #f0f0f0 75%
+  );
+  background-size: 1000px 100%;
+  animation: skeleton-shimmer 2.5s infinite;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Skeleton Card / Stat Box
+────────────────────────────────────────────────────────── */
+
+.skeleton-stat-box {
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: white;
+}
+
+.skeleton-stat-title {
+  height: 12px;
+  width: 60%;
+  margin-bottom: 0.75rem;
+}
+
+.skeleton-stat-value {
+  height: 32px;
+  width: 80%;
+  margin-bottom: 0.5rem;
+  border-radius: 6px;
+}
+
+.skeleton-stat-subtitle {
+  height: 10px;
+  width: 40%;
+  border-radius: 4px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Skeleton List Item
+────────────────────────────────────────────────────────── */
+
+.skeleton-list-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  border-radius: 8px;
+  background: white;
+}
+
+.skeleton-list-item-avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.skeleton-list-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skeleton-list-item-title {
+  height: 14px;
+  width: 70%;
+  border-radius: 4px;
+}
+
+.skeleton-list-item-subtitle {
+  height: 11px;
+  width: 45%;
+  border-radius: 4px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Skeleton Table Row
+────────────────────────────────────────────────────────── */
+
+.skeleton-table-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  background: white;
+}
+
+.skeleton-table-cell {
+  height: 18px;
+  border-radius: 4px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Skeleton Product Card
+────────────────────────────────────────────────────────── */
+
+.skeleton-product-card {
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.skeleton-product-image {
+  width: 100%;
+  height: 180px;
+  border-radius: 8px 8px 0 0;
+}
+
+.skeleton-product-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skeleton-product-title {
+  height: 16px;
+  width: 90%;
+  border-radius: 4px;
+}
+
+.skeleton-product-price {
+  height: 18px;
+  width: 50%;
+  border-radius: 4px;
+}
+
+.skeleton-product-action {
+  height: 36px;
+  width: 100%;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Skeleton Modal / Dialog Content
+────────────────────────────────────────────────────────── */
+
+.skeleton-modal-header {
+  height: 24px;
+  width: 40%;
+  margin-bottom: 2rem;
+  border-radius: 4px;
+}
+
+.skeleton-modal-field {
+  margin-bottom: 1.5rem;
+}
+
+.skeleton-modal-label {
+  height: 12px;
+  width: 30%;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+}
+
+.skeleton-modal-input {
+  height: 40px;
+  width: 100%;
+  border-radius: 6px;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Skeleton Button
+────────────────────────────────────────────────────────── */
+
+.skeleton-button {
+  height: 36px;
+  width: 120px;
+  border-radius: 6px;
+}
+
+.skeleton-button.full-width {
+  width: 100%;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Skeleton Grid Layout
+────────────────────────────────────────────────────────── */
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Skeleton States (show/hide)
+────────────────────────────────────────────────────────── */
+
+.skeleton-visible {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease;
+}
+
+.skeleton-hidden {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+}
+
+/* Content is hidden while skeleton is shown */
+.skeleton-content.skeleton-hidden {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Dark Mode Support
+────────────────────────────────────────────────────────── */
+
+@media (prefers-color-scheme: dark) {
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      #2a2a2a 25%,
+      #333333 50%,
+      #2a2a2a 75%
+    );
+    background-size: 1000px 100%;
+  }
+
+  .skeleton-chart {
+    background: linear-gradient(
+      90deg,
+      #2a2a2a 25%,
+      #333333 50%,
+      #2a2a2a 75%
+    );
+    background-size: 1000px 100%;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Skeleton CSS Classes Summary:
+   - .skeleton: Basic skeleton block with shimmer
+   - .skeleton-chart: Full-width chart placeholder
+   - .skeleton-stat-box: KPI card skeleton structure
+   - .skeleton-list-item: List item with avatar
+   - .skeleton-table-row: Table row with multiple cells
+   - .skeleton-product-card: E-commerce product placeholder
+   - .skeleton-modal-*: Modal/dialog content placeholders
+   - .skeleton-button: Button placeholder
+   - .skeleton-grid: Multi-column grid layout
+
+   Use with .skeleton-visible and .skeleton-hidden for show/hide
+══════════════════════════════════════════════════════════════ */

@@ -1,0 +1,177 @@
+/* ============================================================
+   KidZora – Seller Panel / Layout & Sidebar
+   ============================================================ */
+
+/* ── Wrapper ─────────────────────────────────────────────── */
+.seller-wrapper {
+  display: flex;
+  min-height: calc(100vh - 60px);
+}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+.seller-sidebar {
+  width: 250px;
+  min-width: 250px;
+  background: linear-gradient(180deg, #31405f 0%, #465073 58%, #8f9bff 140%);
+  color: #e6f5ff;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  transition: width .25s ease;
+  z-index: 100;
+}
+
+.sidebar-brand {
+  padding: 20px 20px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.14);
+}
+
+.sidebar-brand h5 {
+  color: #fff;
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.sidebar-brand small {
+  font-size: .72rem;
+  color: #d9f0ff;
+}
+
+/* ── Nav ─────────────────────────────────────────────────── */
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 0;
+}
+
+.sidebar-section {
+  padding: 8px 16px 4px;
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #73d7d0;
+  font-weight: 700;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  color: rgba(255, 255, 255, 0.78);
+  text-decoration: none;
+  font-size: .875rem;
+  border-left: 3px solid transparent;
+  transition: all .15s;
+}
+
+.sidebar-link i {
+  width: 18px;
+  text-align: center;
+}
+
+.sidebar-link:hover {
+  background: rgba(255,255,255,.11);
+  color: #fff;
+  border-left-color: #73d7d0;
+}
+
+.sidebar-link.active {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border-left-color: #ff8ea8;
+  font-weight: 600;
+}
+
+.sidebar-badge {
+  margin-left: auto;
+  font-size: .65rem;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: #ef4444;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+.sidebar-footer {
+  padding: 12px 20px 16px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+.sidebar-footer a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.76);
+  text-decoration: none;
+  font-size: .85rem;
+  transition: color .15s;
+}
+
+.sidebar-footer a:hover { color: #fff; }
+
+/* ── Sidebar overlay backdrop ─────────────────────────────── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .45);
+  z-index: 1049;
+  cursor: pointer;
+  /* Fade in */
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* ── Mobile: off-canvas drawer ────────────────────────────── */
+@media (max-width: 767.98px) {
+  /* Sidebar becomes a fixed drawer, out of flex flow */
+  .seller-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 270px;
+    min-width: 270px;
+    transform: translateX(-100%);
+    transition: transform .27s cubic-bezier(.4, 0, .2, 1);
+    z-index: 1050;
+    /* Keep scrollable */
+    overflow-y: auto;
+    /* Reset sticky behaviour */
+    top: 0;
+  }
+
+  .seller-sidebar.open {
+    transform: translateX(0);
+    /* Do not change width — avoids layout reflow */
+    width: 270px;
+    min-width: 270px;
+  }
+
+  /* Main content takes full width on mobile at all times */
+  .seller-main {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .seller-content { padding: 16px; }
+}
+
+/* ── Tablet (md): keep sidebar in-flow but 220px wide ──────── */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .seller-sidebar {
+    width: 220px;
+    min-width: 220px;
+  }
+  .sidebar-link { font-size: .82rem; padding: 8px 14px; }
+  .sidebar-section { padding: 8px 12px 4px; font-size: .63rem; }
+}

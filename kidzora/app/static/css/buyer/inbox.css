@@ -1,0 +1,9 @@
+/* ══════════════════════════════════════════════
+   buyer/inbox.css
+   Buyer-specific inbox overrides for buyer/inbox.html
+   Base chat shell styles live in css/admin/inbox.css (shared)
+══════════════════════════════════════════════ */
+
+/* The buyer navbar is taller (~56 px) so the shell height is
+   already handled in admin/inbox.css via the :has() selector.
+   Add any buyer-specific inbox tweaks here. */

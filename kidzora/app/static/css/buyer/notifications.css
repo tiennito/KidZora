@@ -1,0 +1,29 @@
+/* ══════════════════════════════════════════════
+   buyer/notifications.css
+   Styles for buyer/notifications.html
+══════════════════════════════════════════════ */
+
+/* ── Page container ── */
+.notif-container { max-width: 740px; }
+
+/* ── Notification type background colours ── */
+.notif-bg-blue    { background: #eff6ff; }
+.notif-bg-sky     { background: #f0f9ff; }
+.notif-bg-yellow  { background: #fffbeb; }
+.notif-bg-green   { background: #f0fdf4; }
+.notif-bg-red     { background: #fef2f2; }
+.notif-bg-default { background: #f9fafb; }
+
+/* ── Icon circle ── */
+.notif-icon-wrap {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, .7);
+}
+
+/* ── Typography ── */
+.notif-title    { font-size: .92rem; }
+.notif-date     { font-size: .72rem; white-space: nowrap; }
+.notif-body     { font-size: .82rem; }
+.notif-view-btn { font-size: .75rem; }
+.notif-badge-new { font-size: .65rem; }

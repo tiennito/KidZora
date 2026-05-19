@@ -1,0 +1,89 @@
+/* ============================================================
+   KidZora – Rider Panel / Sidebar
+   ============================================================ */
+
+/* ── Sidebar shell ───────────────────────────────────────── */
+.rider-sidebar {
+  width: var(--sidebar-w);
+  background: linear-gradient(180deg, #31405f 0%, #465073 58%, #73d7d0 140%);
+  min-height: calc(100vh - 52px);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: transform .25s ease;
+  position: sticky;
+  top: 52px;
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+}
+
+/* ── Brand block ─────────────────────────────────────────── */
+.sidebar-brand {
+  padding: 1.25rem 1.1rem .75rem;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  color: #fff;
+}
+.sidebar-brand h5  { margin: 0; font-size: .95rem; font-weight: 700; }
+.sidebar-brand small { font-size: .72rem; color: rgba(255,255,255,.5); }
+
+/* ── Nav list ────────────────────────────────────────────── */
+.sidebar-nav {
+  padding: .5rem .6rem;
+  flex: 1;
+}
+
+.sidebar-section {
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.35);
+  padding: .8rem .5rem .3rem;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .52rem .8rem;
+  border-radius: 16px;
+  margin-bottom: 2px;
+  color: rgba(255,255,255,.72);
+  text-decoration: none;
+  font-size: .88rem;
+  transition: background .15s, color .15s;
+}
+.sidebar-link i        { width: 16px; text-align: center; flex-shrink: 0; }
+.sidebar-link:hover    { background: rgba(255,255,255,.11); color: #fff; }
+.sidebar-link.active   { background: rgba(255, 255, 255, 0.16); color: #fff; font-weight: 600; }
+
+/* ── Badge (unread count) ────────────────────────────────── */
+.sidebar-badge {
+  margin-left: auto;
+  background: #dc3545;
+  color: #fff;
+  font-size: .65rem;
+  padding: .2em .5em;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+.sidebar-footer {
+  padding: .75rem 1rem;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.sidebar-footer a       { color: rgba(255,255,255,.5); text-decoration: none; font-size: .82rem; }
+.sidebar-footer a:hover { color: #fff; }
+
+/* ── Mobile: slide-in overlay ────────────────────────────── */
+@media (max-width: 767px) {
+  .rider-sidebar {
+    position: fixed;
+    top: 52px;
+    left: 0;
+    z-index: 300;
+    transform: translateX(-100%);
+  }
+  .rider-sidebar.open { transform: translateX(0); }
+}

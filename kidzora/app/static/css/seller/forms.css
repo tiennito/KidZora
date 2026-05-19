@@ -1,0 +1,88 @@
+/* ============================================================
+   KidZora – Seller Panel / Forms & Image Upload
+   ============================================================ */
+
+/* ── Form section wrapper ────────────────────────────────── */
+.seller-form-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  margin-bottom: 20px;
+}
+
+.seller-form-section h6 {
+  font-weight: 700;
+  color: #1e293b;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 10px;
+  margin-bottom: 18px;
+}
+
+/* ── Image upload drop-zone ──────────────────────────────── */
+.upload-zone {
+  border: 2px dashed #c7d2fe;
+  border-radius: 10px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  background: #f5f3ff;
+  transition: border-color .15s, background .15s;
+}
+
+.upload-zone:hover,
+.upload-zone.dragover {
+  border-color: #6366f1;
+  background: #ede9fe;
+}
+
+.upload-zone input[type="file"] { display: none; }
+
+/* ── Image preview grid ──────────────────────────────────── */
+.image-preview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.image-preview-item {
+  position: relative;
+  width: 80px; height: 80px;
+}
+
+.image-preview-item img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.image-preview-item .remove-img {
+  position: absolute; top: -6px; right: -6px;
+  background: #ef4444; color: #fff;
+  border: none; border-radius: 50%;
+  width: 18px; height: 18px;
+  font-size: .65rem;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* ── Drag-and-drop reorder ───────────────────────────────── */
+.image-preview-item { cursor: grab; transition: opacity .15s, transform .15s; }
+.image-preview-item:active { cursor: grabbing; }
+.image-preview-item.kz-dragging { opacity: .3; transform: scale(.93); }
+.image-preview-item.kz-drag-over {
+  outline: 2px dashed #0d6efd;
+  outline-offset: 2px;
+}
+/* "Main" badge on the first image in any preview grid */
+.image-preview-grid .image-preview-item:first-child::after {
+  content: 'Main';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(13,110,253,.75);
+  color: #fff; font-size: .55rem; text-align: center;
+  border-bottom-left-radius: 7px; border-bottom-right-radius: 7px;
+  line-height: 1.7; pointer-events: none;
+}

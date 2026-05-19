@@ -1,0 +1,25 @@
+{% extends 'emails/base.html' %}
+
+{% block content %}
+<div style="font-size: 16px; line-height: 1.6; color: #333;">
+  <p style="margin: 20px 0;">Hi {{ recipient_name }},</p>
+
+  <p style="margin: 20px 0;">You have a new message from <strong>{{ sender_name }}</strong>:</p>
+
+  <div style="background: #f5f5f5; padding: 15px; border-left: 4px solid #3b82f6; margin: 20px 0; border-radius: 4px;">
+    <p style="margin: 0; font-style: italic; color: #555;">
+      {{ message_preview }}
+    </p>
+  </div>
+
+  <p style="margin: 20px 0;">
+    <a href="{{ chat_url }}" style="display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">
+      Open Chat
+    </a>
+  </p>
+
+  <p style="margin: 20px 0; font-size: 14px; color: #666;">
+    You can also log in to KidZora to reply to this message.
+  </p>
+</div>
+{% endblock %}

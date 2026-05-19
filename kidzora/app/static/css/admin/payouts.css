@@ -1,0 +1,14 @@
+/* =============================================================
+   KidZora – Admin / Payouts Page
+   ============================================================= */
+.adm-po-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.adm-po-lbl { font-size: .7rem; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; }
+.adm-po-val { font-size: 1.2rem; font-weight: 800; color: #111827; }

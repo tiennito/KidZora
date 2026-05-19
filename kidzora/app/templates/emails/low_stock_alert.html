@@ -1,0 +1,48 @@
+{% extends 'emails/base.html' %}
+
+{% block content %}
+<div style="font-size: 16px; line-height: 1.6; color: #333;">
+  <p style="margin: 20px 0;">Hi {{ seller_name }},</p>
+
+  <div style="background: #fef3c7; padding: 20px; border-left: 4px solid #f59e0b; margin: 20px 0; border-radius: 4px;">
+    <p style="margin: 0; font-size: 18px; font-weight: 600; color: #92400e;">
+      ⚠️ {% if is_out_of_stock %}Out of Stock{% else %}Low Stock Alert{% endif %}
+    </p>
+  </div>
+
+  {% if is_out_of_stock %}
+    <p style="margin: 20px 0;">
+      Your product <strong>{{ product_name }}{% if variant_name %} ({{ variant_name }}){% endif %}</strong> is now <strong>out of stock</strong>.
+    </p>
+    
+    <p style="margin: 20px 0;">
+      This item is no longer available for purchase. When you're ready to offer it again, update your inventory on your dashboard.
+    </p>
+  {% else %}
+    <p style="margin: 20px 0;">
+      Your product <strong>{{ product_name }}{% if variant_name %} ({{ variant_name }}){% endif %}</strong> has only <strong>{{ stock_left }} {% if stock_left == 1 %}unit{% else %}units{% endif %}</strong> remaining.
+    </p>
+    
+    <p style="margin: 20px 0;">
+      Restock soon to avoid missing out on potential sales. Your buyers are interested in this item!
+    </p>
+  {% endif %}
+
+  <div style="text-align: center; margin: 30px 0;">
+    <a href="{{ edit_product_url }}" style="display: inline-block; padding: 12px 28px; background-color: #f59e0b; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">
+      Update Inventory
+    </a>
+  </div>
+
+  <h3 style="color: #1f2937; margin-top: 30px; margin-bottom: 15px;">Quick Tips</h3>
+  <ul style="margin: 0 0 20px 0; padding-left: 20px;">
+    <li style="margin-bottom: 10px;">Upload new stock photos to show customers the product is available</li>
+    <li style="margin-bottom: 10px;">Create a limited-time promotion to move stock faster</li>
+    <li style="margin-bottom: 10px;">Monitor this product's performance in your analytics</li>
+  </ul>
+
+  <p style="margin: 20px 0; font-size: 14px; color: #666;">
+    Manage all your products and inventory at <strong>dashboard.kidzora.com/seller/products</strong>.
+  </p>
+</div>
+{% endblock %}

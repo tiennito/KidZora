@@ -1,0 +1,185 @@
+{% extends "seller/base.html" %}
+
+{% block title %}Dashboard – KidZora Seller{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Dashboard – KidZora Seller">
+{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('seller.product_add') }}" class="btn btn-primary btn-sm">
+    <i class="fas fa-plus me-1"></i>Add Product
+  </a>
+{% endblock %}
+
+{% block page_content %}
+
+{% if not current_user.is_approved %}
+<div class="pending-banner mb-4">
+  <i class="fas fa-clock fa-2x text-warning mt-1"></i>
+  <div>
+    <strong class="text-warning-emphasis">Your seller account is pending approval.</strong>
+    <p class="mb-0 small text-muted mt-1">Our admin team is reviewing your application.
+    You will receive an email once approved.</p>
+  </div>
+</div>
+{% endif %}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card indigo h-100">
+      <div class="d-flex align-items-center gap-3">
+        <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-box"></i></div>
+        <div><div class="fs-4 fw-bold">{{ total_products }}</div><div class="text-muted small">Products</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card green h-100">
+      <div class="d-flex align-items-center gap-3">
+        <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="fas fa-shopping-bag"></i></div>
+        <div><div class="fs-4 fw-bold">{{ total_orders }}</div><div class="text-muted small">Total Orders</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card orange h-100">
+      <div class="d-flex align-items-center gap-3">
+        <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-coins"></i></div>
+        <div><div class="fs-4 fw-bold">₱{{ total_revenue|float|currency }}</div><div class="text-muted small">Revenue</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card red h-100">
+      <div class="d-flex align-items-center gap-3">
+        <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="fas fa-clock"></i></div>
+        <div><div class="fs-4 fw-bold">{{ pending_orders }}</div><div class="text-muted small">Pending Orders</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- Left: Orders + Products -->
+  <div class="col-lg-8">
+
+    <div class="seller-card mb-4">
+      <div class="seller-card-header">
+        <h6><i class="fas fa-receipt me-2 text-primary"></i>Recent Orders</h6>
+        <a href="{{ url_for('seller.orders') }}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      {% if recent_orders %}
+      <div class="table-responsive">
+        <table class="seller-table">
+          <thead><tr><th>Order</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for o in recent_orders %}
+            <tr>
+              <td><a href="{{ url_for('seller.order_detail', order_id=o.id) }}" class="text-primary text-decoration-none fw-semibold">
+                #{{ o.id[:8]|upper }}</a></td>
+              <td class="text-muted small">{{ o.created_at[:10] if o.created_at else '—' }}</td>
+              <td>₱{{ o.total_amount|float|currency if o.total_amount else '0.00' }}</td>
+              <td>
+                <span class="status-pill status-{{ (o.status or 'pending')|lower|replace(' ','_') }}">
+                  {{ (o.status or 'pending')|replace('_',' ')|title }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5 text-muted seller-card-body">
+        <i class="fas fa-shopping-bag fa-3x mb-3 opacity-25"></i>
+        <p>No orders yet.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="seller-card">
+      <div class="seller-card-header">
+        <h6><i class="fas fa-box-open me-2 text-primary"></i>Your Products</h6>
+        <a href="{{ url_for('seller.products') }}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="seller-card-body">
+        {% if recent_products %}
+        <div class="row g-3">
+          {% for p in recent_products %}
+          <div class="col-sm-6">
+            <div class="d-flex align-items-center gap-3 p-2 border rounded-3">
+              {% if p.images and p.images|length > 0 %}
+                <img src="{{ p.images[0] }}" class="product-thumb" alt="{{ p.name }}">
+              {% else %}
+                <div class="product-thumb-placeholder"><i class="fas fa-image"></i></div>
+              {% endif %}
+              <div class="flex-grow-1 overflow-hidden">
+                <div class="fw-semibold text-truncate">{{ p.name or 'Unnamed' }}</div>
+                <div class="text-primary small fw-bold">₱{{ p.price|float|currency if p.price else '0.00' }}</div>
+                <div class="text-muted" style="font-size:.72rem;">Stock: {{ p.stock_quantity or 0 }}</div>
+              </div>
+              <a href="{{ url_for('seller.product_edit', product_id=p.id) }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-edit"></i>
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+          <i class="fas fa-box fa-3x mb-3 opacity-25"></i>
+          <p class="mb-2">No products yet.</p>
+          <a href="{{ url_for('seller.product_add') }}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus me-1"></i>Add First Product
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right: Quick actions + Store info -->
+  <div class="col-lg-4">
+    <div class="seller-card mb-4">
+      <div class="seller-card-header"><h6><i class="fas fa-bolt me-2 text-warning"></i>Quick Actions</h6></div>
+      <div class="seller-card-body d-grid gap-2">
+        <a href="{{ url_for('seller.product_add') }}" class="quick-action-card">
+          <div class="stat-icon bg-primary bg-opacity-10 text-primary" style="min-width:38px;width:38px;height:38px;"><i class="fas fa-plus"></i></div>
+          <div><div class="fw-semibold small">Add Product</div><div class="text-muted" style="font-size:.75rem;">List a new item</div></div>
+        </a>
+        <a href="{{ url_for('seller.orders') }}" class="quick-action-card">
+          <div class="stat-icon bg-success bg-opacity-10 text-success" style="min-width:38px;width:38px;height:38px;"><i class="fas fa-shopping-bag"></i></div>
+          <div><div class="fw-semibold small">Manage Orders</div><div class="text-muted" style="font-size:.75rem;">View & process orders</div></div>
+        </a>
+        <a href="{{ url_for('seller.profile') }}" class="quick-action-card">
+          <div class="stat-icon bg-info bg-opacity-10 text-info" style="min-width:38px;width:38px;height:38px;"><i class="fas fa-user-cog"></i></div>
+          <div><div class="fw-semibold small">Store Settings</div><div class="text-muted" style="font-size:.75rem;">Update your profile</div></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="seller-card">
+      <div class="seller-card-header"><h6><i class="fas fa-store me-2 text-primary"></i>Store Info</h6></div>
+      <div class="seller-card-body">
+        <table class="table table-sm mb-3">
+          <tr><th class="text-muted fw-normal small border-0">Business</th><td class="border-0 fw-semibold">{{ current_user.business_name or '—' }}</td></tr>
+          <tr><th class="text-muted fw-normal small">Type</th><td>{{ (current_user.business_type or '—')|replace('_',' ')|title }}</td></tr>
+          <tr><th class="text-muted fw-normal small">City</th><td>{{ current_user.city or '—' }}</td></tr>
+          <tr><th class="text-muted fw-normal small">Status</th>
+            <td>{% if current_user.is_approved %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-warning text-dark">Pending</span>{% endif %}</td>
+          </tr>
+        </table>
+        <a href="{{ url_for('seller.profile') }}" class="btn btn-sm btn-outline-primary w-100">
+          <i class="fas fa-edit me-1"></i>Edit Profile
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

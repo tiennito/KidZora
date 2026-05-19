@@ -1,0 +1,387 @@
+/* Unban Requests Page Styles */
+
+.unban-page {
+    padding-bottom: 2rem;
+}
+
+/* Page header */
+.unban-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.unban-header-title {
+    flex: 1;
+}
+
+.unban-header-title h1 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 2rem;
+}
+
+.unban-header-subtitle {
+    color: #6c757d;
+    marginTop: 0.25rem;
+}
+
+.unban-back-btn {
+    transition: all 0.2s ease;
+}
+
+.unban-back-btn:hover {
+    transform: translateX(-2px);
+}
+
+/* Alert messages */
+.unban-alert {
+    border-left: 4px solid;
+    margin-bottom: 1.5rem;
+    border-radius: 4px;
+}
+
+.unban-alert.danger {
+    border-left-color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.05);
+    color: #721c24;
+}
+
+.unban-alert.success {
+    border-left-color: #28a745;
+    background-color: rgba(40, 167, 69, 0.05);
+    color: #155724;
+}
+
+.unban-alert.warning {
+    border-left-color: #ffc107;
+    background-color: rgba(255, 193, 7, 0.05);
+    color: #856404;
+}
+
+.unban-close-btn {
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.unban-close-btn:hover {
+    opacity: 1;
+}
+
+/* Main card */
+.unban-card {
+    border: none;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+}
+
+.unban-card-header {
+    background-color: #fff;
+    border-bottom: 2px solid #dee2e6;
+    padding: 1.25rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.unban-badge {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 0.35rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-left: 0.75rem;
+}
+
+/* Unban table */
+.unban-table {
+    margin-bottom: 0;
+    overflow-x: auto;
+}
+
+.unban-table thead {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.unban-table thead th {
+    font-weight: 700;
+    color: #212529;
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+.unban-table tbody td {
+    vertical-align: middle;
+    padding: 1rem;
+}
+
+.unban-table-row {
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.unban-table-row:hover {
+    background-color: #f8f9fa;
+}
+
+/* User info */
+.unban-user-name {
+    font-weight: 700;
+    color: #212529;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.unban-user-email {
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+/* Role badge in table */
+.unban-role-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.unban-role-badge.seller {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.unban-role-badge.rider {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.unban-role-badge.buyer {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+/* Message box */
+.unban-message-box {
+    max-width: 300px;
+    max-height: 80px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    font-size: 0.9rem;
+    word-break: break-word;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+.unban-message-empty {
+    color: #6c757d;
+}
+
+/* Document link */
+.unban-document-btn {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+.unban-document-icon {
+    margin-right: 0.5rem;
+}
+
+/* Action buttons */
+.unban-action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.unban-approve-form {
+    display: inline;
+}
+
+.unban-action-btn {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    height: auto;
+    white-space: nowrap;
+}
+
+.unban-action-btn:hover {
+    transform: translateY(-2px);
+}
+
+.unban-approve-btn {
+    color: #fff;
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.unban-approve-btn:hover {
+    background-color: #218838;
+    border-color: #218838;
+}
+
+.unban-reject-btn {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.unban-reject-btn:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* Modal */
+.reject-modal {
+    z-index: 1050;
+}
+
+.reject-modal-content {
+    border-radius: 8px;
+    box-shadow: 0 5px 30px rgba(0, 0, 0, 0.15);
+}
+
+.reject-modal-header {
+    background-color: #dc3545;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    padding: 1.25rem;
+}
+
+.reject-modal-title {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.reject-modal-close {
+    opacity: 1;
+    filter: brightness(1.5);
+}
+
+.reject-modal-body {
+    padding: 1.5rem;
+}
+
+.reject-modal-textarea {
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.75rem;
+    resize: vertical;
+    min-height: 120px;
+}
+
+.reject-modal-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    padding: 1rem;
+    border-radius: 0 0 8px 8px;
+}
+
+/* Empty state */
+.unban-empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.unban-empty-icon {
+    font-size: 3rem;
+    color: #28a745;
+    margin-bottom: 1rem;
+}
+
+.unban-empty-text {
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 576px) {
+    .unban-header {
+        flex-direction: column;
+    }
+
+    .unban-header-title h1 {
+        font-size: 1.5rem;
+    }
+
+    .unban-back-btn {
+        width: 100%;
+    }
+
+    .unban-table thead {
+        display: none;
+    }
+
+    .unban-table tbody tr {
+        display: block;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    .unban-table tbody td {
+        display: block;
+        padding: 0.75rem;
+        border: none;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .unban-table tbody td:last-child {
+        border-bottom: none;
+    }
+
+    .unban-table tbody td::before {
+        content: attr(data-label);
+        display: block;
+        font-weight: 700;
+        color: #6c757d;
+        font-size: 0.85rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .unban-message-box {
+        max-width: 100%;
+    }
+
+    .unban-action-buttons {
+        width: 100%;
+        gap: 0.5rem;
+    }
+
+    .unban-action-btn {
+        flex: 1;
+        min-width: 60px;
+    }
+
+    .reject-modal-textarea {
+        min-height: 100px;
+    }
+}
+
+@media (max-width: 768px) {
+    .unban-table {
+        font-size: 0.9rem;
+    }
+
+    .unban-card-header {
+        flex-wrap: wrap;
+    }
+
+    .unban-badge {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+}

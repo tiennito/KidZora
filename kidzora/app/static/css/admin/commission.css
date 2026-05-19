@@ -1,0 +1,148 @@
+/* Commission Overview Page Styles */
+
+.commission-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.commission-page {
+    padding-bottom: 2rem;
+}
+
+/* Period buttons */
+.period-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.period-btn {
+    transition: all 0.2s ease;
+}
+
+.period-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Commission summary cards */
+.commission-summary-card {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.commission-summary-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.commission-card-icon {
+    font-size: 2rem;
+    opacity: 0.8;
+}
+
+/* Commission info banner */
+.commission-info-banner {
+    background-color: #f8f9fa;
+    border-left: 4px solid #0d6efd;
+}
+
+/* Table responsive wrapper */
+.commission-table-wrapper {
+    overflow-x: auto;
+}
+
+.commission-table {
+    margin-bottom: 0;
+}
+
+.commission-table thead {
+    background-color: #f8f9fa;
+}
+
+.commission-table-row {
+    transition: background-color 0.2s ease;
+}
+
+.commission-table-row:hover {
+    background-color: #f8f9fa;
+}
+
+/* Amount highlighting */
+.commission-amount {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.order-amount {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.seller-earnings {
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+/* Code/ID styling */
+.commission-id-code {
+    font-family: 'Courier New', monospace;
+    background-color: #f0f0f0;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+/* Tax breakdown section */
+.tax-breakdown {
+    background-color: #fffbef;
+    border-left: 4px solid #ffc107;
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .period-buttons {
+        gap: 0.25rem;
+    }
+
+    .period-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+
+    .commission-summary-card {
+        margin-bottom: 1rem;
+    }
+
+    .commission-table {
+        font-size: 0.9rem;
+    }
+
+    .commission-info-banner .row {
+        flex-direction: column;
+    }
+
+    .commission-info-banner .col-md-4 {
+        text-align: left !important;
+        margin-top: 1rem;
+    }
+
+    .commission-info-banner .col-md-4:first-child {
+        margin-top: 0;
+    }
+}
+
+/* Tablet responsiveness */
+@media (max-width: 992px) {
+    .commission-summary-card h4 {
+        font-size: 1.5rem;
+    }
+
+    .commission-card-icon {
+        font-size: 1.75rem;
+    }
+}

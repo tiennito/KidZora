@@ -1,0 +1,95 @@
+{% extends "seller/base.html" %}
+{% block title %}Notifications – KidZora Seller{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Notifications – KidZora Seller">
+{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/seller/notifications.css') }}">
+{% endblock %}
+
+{% block page_content %}
+<div class="container-fluid py-4" style="max-width:740px;">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="fw-bold mb-0">
+        <i class="fas fa-bell me-2 text-primary"></i>Notifications
+      </h4>
+      <p class="text-muted small mb-0">Your recent activity and store updates</p>
+    </div>
+    {% if unread_count %}
+    <span class="badge bg-danger rounded-pill fs-6">{{ unread_count }} new</span>
+    {% endif %}
+  </div>
+
+  {% if notifications %}
+    <div class="d-flex flex-column gap-2">
+    {% for n in notifications %}
+      {% set was_unread = not n.is_read %}
+      {% set ntype = n.type or '' %}
+      {% if 'order_placed' in ntype %}
+        {% set ic = 'fas fa-shopping-bag' %}{% set clr = 'text-primary' %}{% set bgcls = 'notif-bg-blue' %}
+      {% elif 'order_completed' in ntype or 'completed' in ntype %}
+        {% set ic = 'fas fa-star' %}{% set clr = 'text-success' %}{% set bgcls = 'notif-bg-green' %}
+      {% elif 'order_cancelled' in ntype or 'cancel' in ntype %}
+        {% set ic = 'fas fa-times-circle' %}{% set clr = 'text-danger' %}{% set bgcls = 'notif-bg-red' %}
+      {% elif 'return' in ntype %}
+        {% set ic = 'fas fa-undo-alt' %}{% set clr = 'text-warning' %}{% set bgcls = 'notif-bg-yellow' %}
+      {% elif 'message' in ntype %}
+        {% set ic = 'fas fa-comment-dots' %}{% set clr = 'text-primary' %}{% set bgcls = 'notif-bg-blue' %}
+      {% elif 'out_of_stock' in ntype %}
+        {% set ic = 'fas fa-exclamation-circle' %}{% set clr = 'text-danger' %}{% set bgcls = 'notif-bg-red' %}
+      {% elif 'low_stock' in ntype %}
+        {% set ic = 'fas fa-exclamation-triangle' %}{% set clr = 'text-warning' %}{% set bgcls = 'notif-bg-yellow' %}
+      {% elif 'unban' in ntype %}
+        {% set ic = 'fas fa-user-check' %}{% set clr = 'text-success' %}{% set bgcls = 'notif-bg-green' %}
+      {% elif 'ban' in ntype %}
+        {% set ic = 'fas fa-user-slash' %}{% set clr = 'text-danger' %}{% set bgcls = 'notif-bg-red' %}
+      {% else %}
+        {% set ic = 'fas fa-bell' %}{% set clr = 'text-secondary' %}{% set bgcls = 'notif-bg-default' %}
+      {% endif %}
+
+      {% set url = n._url or '' %}
+      <div class="card border-0 shadow-sm {{ bgcls }} {% if was_unread %}border-start border-primary border-3{% endif %}">
+        <div class="card-body py-3 px-3 d-flex align-items-start gap-3">
+          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+               style="width:40px;height:40px;background:rgba(255,255,255,.7);">
+            <i class="{{ ic }} {{ clr }}"></i>
+          </div>
+          <div class="flex-grow-1 min-width-0">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <p class="mb-0 fw-semibold" style="font-size:.92rem;">{{ n.title }}</p>
+              <span class="text-muted flex-shrink-0" style="font-size:.72rem;white-space:nowrap;">
+                {{ n.created_at[:10] if n.created_at else '' }}
+              </span>
+            </div>
+            {% if n.body %}
+            <p class="mb-0 text-muted mt-1" style="font-size:.82rem;">{{ n.body }}</p>
+            {% endif %}
+            {% if url %}
+            <a href="{{ url }}" class="btn btn-sm btn-outline-primary mt-2 py-0 px-2"
+               style="font-size:.75rem;">View details →</a>
+            {% endif %}
+          </div>
+          {% if was_unread %}
+          <span class="badge bg-primary rounded-pill align-self-center flex-shrink-0"
+                style="font-size:.65rem;">New</span>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="fas fa-bell-slash fa-3x mb-3 opacity-25"></i>
+      <p class="fw-semibold mb-1">No notifications yet</p>
+      <p class="small">Order updates, messages, and alerts will appear here.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,319 @@
+/* Users List, Users Pending & Unban Requests Styles */
+
+.users-page {
+    padding-bottom: 2rem;
+}
+
+/* Page header */
+.users-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.users-header h1 {
+    margin: 0;
+    font-weight: 700;
+}
+
+/* Filter section */
+.users-filter-section {
+    margin-bottom: 1.5rem;
+}
+
+.users-filter-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.users-filter-label {
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 0.5rem;
+}
+
+.users-search-group {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.users-search-input {
+    flex: 1;
+}
+
+.users-search-spinner {
+    display: none;
+    padding: 0.75rem;
+}
+
+/* Users table */
+.users-table {
+    margin-bottom: 0;
+}
+
+.users-table thead {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.users-table-row {
+    transition: background-color 0.2s ease;
+    vertical-align: middle;
+}
+
+.users-table-row:hover {
+    background-color: #f8f9fa;
+}
+
+/* Role badges */
+.role-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.role-badge.admin {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.role-badge.seller {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.role-badge.buyer {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.role-badge.rider {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+/* Status indicators */
+.status-active {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.status-banned {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+/* User name display */
+.user-full-name {
+    font-weight: 600;
+    color: #212529;
+}
+
+.user-email {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Action buttons */
+.user-action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.user-action-btn {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.85rem;
+    height: auto;
+    white-space: nowrap;
+}
+
+.user-action-btn i {
+    margin-right: 0.25rem;
+}
+
+/* Users pending section */
+.pending-section {
+    margin-bottom: 2rem;
+}
+
+.pending-section-card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.pending-section-header {
+    background-color: #fff;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+}
+
+.pending-section-header i {
+    color: #0d6efd;
+    margin-right: 0.5rem;
+}
+
+.pending-section-empty {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+/* Unban requests section */
+.unban-requests-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.unban-requests-badge {
+    background-color: #f8d7da;
+    color: #721c24;
+    font-size: 1rem;
+    padding: 0.35rem 0.75rem;
+}
+
+/* Unban table */
+.unban-table {
+    margin-bottom: 0;
+}
+
+.unban-table thead {
+    background-color: #f8f9fa;
+}
+
+.unban-table-row {
+    transition: background-color 0.2s ease;
+    vertical-align: middle;
+}
+
+.unban-table-row:hover {
+    background-color: #f8f9fa;
+}
+
+/* Unban user message box */
+.unban-message-box {
+    max-width: 300px;
+    max-height: 80px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    font-size: 0.9rem;
+    word-break: break-word;
+}
+
+/* Reject modal */
+.reject-modal-header {
+    background-color: #dc3545;
+    border: none;
+}
+
+.reject-modal-title {
+    color: #fff;
+    font-weight: 700;
+}
+
+.reject-modal-textarea {
+    border: 1px solid #dee2e6;
+}
+
+/* Export button */
+.users-export-btn {
+    transition: all 0.2s ease;
+}
+
+.users-export-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Empty state */
+.users-empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+}
+
+.users-empty-icon {
+    font-size: 3rem;
+    opacity: 0.25;
+    margin-bottom: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 576px) {
+    .users-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .users-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .users-filter-form {
+        grid-template-columns: 1fr;
+    }
+
+    .users-table {
+        font-size: 0.85rem;
+    }
+
+    .users-table thead {
+        display: none;
+    }
+
+    .users-table tbody tr {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        padding: 1rem 0;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .users-table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #6c757d;
+        display: block;
+        margin-bottom: 0.25rem;
+        font-size: 0.85rem;
+    }
+
+    .user-action-buttons {
+        gap: 0.5rem;
+    }
+
+    .user-action-btn {
+        flex: 1;
+        min-width: 50px;
+    }
+
+    .unban-message-box {
+        max-width: 100%;
+    }
+
+    .unban-requests-header {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+    .users-filter-form {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .users-filter-form {
+        grid-template-columns: 1fr;
+    }
+}

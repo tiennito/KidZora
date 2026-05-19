@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Messages – KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="Your private messages and conversations on KidZora.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Messages – KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/inbox.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/buyer/inbox.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include 'shared/_inbox_body.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin/inbox.js') }}"></script>
+{% endblock %}

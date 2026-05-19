@@ -1,0 +1,94 @@
+{# ─────────────────────────────────────────────────────────────
+   Shared reusable macros for KidZora templates
+   Usage:
+     {% from 'macros.html' import render_pagination %}
+     {{ render_pagination(pagination) }}
+   ──────────────────────────────────────────────────────────── #}
+
+{# render_pagination
+   Renders a Bootstrap 5 pagination bar.
+   - pag      : Pagination object from app.utils.pagination
+   - endpoint : url_for endpoint name (defaults to request.endpoint)
+#}
+{% macro render_pagination(pag, endpoint=None) %}
+{% if pag.pages > 1 %}
+{%   set ep = endpoint or request.endpoint %}
+{#   Build base query pairs from the current request, excluding 'page' #}
+{%   set ns = namespace(base_pairs=[]) %}
+{%   for k, v in request.args.items() %}
+{%     if k != 'page' %}
+{%       set ns.base_pairs = ns.base_pairs + [(k, v)] %}
+{%     endif %}
+{%   endfor %}
+<nav aria-label="Page navigation" class="mt-4">
+  <ul class="pagination pagination-sm justify-content-center flex-wrap gap-1 mb-0">
+
+    {# Previous #}
+    <li class="page-item {% if not pag.has_prev %}disabled{% endif %}">
+      <a class="page-link rounded"
+         href="{{ url_for(ep, **dict(ns.base_pairs + [('page', pag.prev_num)])) }}"
+         aria-label="Previous">
+        <i class="fas fa-chevron-left" style="font-size:.7rem"></i>
+      </a>
+    </li>
+
+    {# Page numbers #}
+    {% for num in pag.iter_pages() %}
+      {% if num is none %}
+        <li class="page-item disabled"><span class="page-link border-0 bg-transparent px-1">&hellip;</span></li>
+      {% else %}
+        <li class="page-item {% if num == pag.page %}active{% endif %}">
+          <a class="page-link rounded"
+             href="{{ url_for(ep, **dict(ns.base_pairs + [('page', num)])) }}">{{ num }}</a>
+        </li>
+      {% endif %}
+    {% endfor %}
+
+    {# Next #}
+    <li class="page-item {% if not pag.has_next %}disabled{% endif %}">
+      <a class="page-link rounded"
+         href="{{ url_for(ep, **dict(ns.base_pairs + [('page', pag.next_num)])) }}"
+         aria-label="Next">
+        <i class="fas fa-chevron-right" style="font-size:.7rem"></i>
+      </a>
+    </li>
+
+  </ul>
+  <p class="text-center text-muted small mt-2 mb-0">
+    Page {{ pag.page }} of {{ pag.pages }}
+    &nbsp;·&nbsp; {{ pag.total }} total
+  </p>
+</nav>
+{% endif %}
+{% endmacro %}
+
+{# ── Sale-aware price display ──────────────────────────────────────────────
+   Usage:
+     {{ render_price(product) }}           → standard card (text-primary / text-danger)
+     {{ render_price(product, kzp=true) }} → landing kzp-price cards
+     {{ render_price(product, inline=true) }} → no badge, just prices on one line
+#}
+{% macro render_price(p, kzp=false, inline=false) %}
+  {%- set ep      = p._effective_price if p._effective_price is defined else p.price|float -%}
+  {%- set base    = p.price|float -%}
+  {%- set on_sale = p._on_sale if p._on_sale is defined else false -%}
+  {% if on_sale %}
+    {% if kzp %}
+      <span class="kzp-price text-danger fw-bold">₱{{ ep|currency }}</span>
+      <span class="text-muted text-decoration-line-through" style="font-size:.75em;margin-left:.2em;">₱{{ base|currency }}</span>
+    {% elif inline %}
+      <span class="fw-bold text-danger">₱{{ ep|currency }}</span>
+      <span class="text-muted text-decoration-line-through small ms-1">₱{{ base|currency }}</span>
+    {% else %}
+      <span class="fw-bold text-danger">₱{{ ep|currency }}</span>
+      <span class="text-muted text-decoration-line-through small ms-1">₱{{ base|currency }}</span>
+      <span class="badge bg-danger ms-1" style="font-size:.6rem;vertical-align:middle;">SALE</span>
+    {% endif %}
+  {% else %}
+    {% if kzp %}
+      <span class="kzp-price">₱{{ base|currency }}</span>
+    {% else %}
+      <span class="fw-bold text-primary">₱{{ base|currency }}</span>
+    {% endif %}
+  {% endif %}
+{% endmacro %}

@@ -1,0 +1,227 @@
+{% extends "rider/base.html" %}
+{% block title %}My Profile – KidZora Rider{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="My Profile – KidZora Rider">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/rider/profile.css') }}">
+{% endblock %}
+
+{% block page_content %}
+<div class="mb-4">
+  <h4 class="fw-bold mb-0"><i class="fas fa-user-cog me-2 text-success"></i>My Profile</h4>
+  <p class="text-muted small mb-0">Update your personal and contact information</p>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="rider-card">
+      <div class="rider-card-header">Personal Information</div>
+      <div class="rider-card-body">
+        <form id="riderProfileForm" method="POST" enctype="multipart/form-data">
+
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold small">First Name</label>
+              <input type="text" name="first_name" class="form-control" value="{{ current_user.first_name or '' }}">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold small">Last Name</label>
+              <input type="text" name="last_name" class="form-control" value="{{ current_user.last_name or '' }}">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold small">Phone</label>
+              <input type="text" name="phone" class="form-control" value="{{ current_user.phone or '' }}">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold small">Region</label>
+              <input type="text" name="region" class="form-control" value="{{ current_user.region or '' }}">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold small">Province</label>
+              <input type="text" name="province" class="form-control" value="{{ current_user.province or '' }}">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold small">City / Municipality</label>
+              <input type="text" name="city" class="form-control" value="{{ current_user.city or '' }}">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold small">Barangay</label>
+              <input type="text" name="barangay" class="form-control" value="{{ current_user.barangay or '' }}">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold small">Street Name</label>
+              <input type="text" name="street_name" class="form-control" value="{{ current_user.street_name or '' }}">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold small">Building / House No.</label>
+              <input type="text" name="building_number" class="form-control" value="{{ current_user.building_number or '' }}">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold small">Postal Code</label>
+              <input type="text" name="postal_code" class="form-control" value="{{ current_user.postal_code or '' }}">
+            </div>
+          </div>
+
+          <hr class="my-4">
+          <h6 class="fw-bold mb-3">Change Password <span class="text-muted fw-normal small">(leave blank to keep current)</span></h6>
+
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold small">New Password</label>
+              <input type="password" name="new_password" class="form-control" minlength="8">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold small">Confirm Password</label>
+              <input type="password" name="confirm_password" class="form-control">
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <button type="submit" class="btn btn-success px-4">
+              <i class="fas fa-save me-1"></i>Save Changes
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="rider-card">
+      <div class="rider-card-header">Profile Photo</div>
+      <div class="rider-card-body text-center py-4">
+        <div id="avatarPreviewWrap"
+             class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center mb-3 overflow-hidden rp-avatar-wrap">
+          {% if current_user.avatar_url %}
+            <img id="avatarPreview" src="{{ current_user.avatar_url }}" alt="Profile photo"
+                 class="rp-avatar-img">
+          {% else %}
+            <span id="avatarInitial">{{ (current_user.first_name or 'R')[0]|upper }}</span>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="btn btn-sm btn-outline-success mb-0">
+            <i class="fas fa-camera me-1"></i>Upload Photo
+            <input type="file" name="avatar" id="avatarInput" accept="image/*" class="rp-avatar-input-hidden" form="riderProfileForm">
+          </label>
+          <div class="text-muted mt-1 rp-avatar-help">PNG, JPG, WEBP · max 5 MB</div>
+        </div>
+
+        <hr>
+        <h5 class="fw-bold mb-0">{{ current_user.first_name }} {{ current_user.last_name }}</h5>
+        <p class="text-muted small mb-0">{{ current_user.email }}</p>
+        <span class="badge bg-success mt-2">Rider</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Documents section — visible to rejected OR pending-unapproved riders ── #}
+{% if not is_approved %}
+<div class="row g-4 mt-1">
+  <div class="col-12">
+    <div class="rider-card">
+
+      {% if rejection_reason %}
+      <div class="rider-card-header bg-danger text-white d-flex align-items-center gap-2">
+        <i class="fas fa-exclamation-triangle"></i> Documents Rejected – Re-Upload Required
+      </div>
+      <div class="rider-card-body">
+        <div class="alert alert-danger d-flex gap-2 mb-4">
+          <i class="fas fa-times-circle mt-1 flex-shrink-0"></i>
+          <div>
+            <strong>Reason for rejection:</strong> {{ rejection_reason }}<br>
+            <span class="small text-muted">Upload updated documents below, then click <em>Re-Submit Documents</em> to return to the review queue.</span>
+          </div>
+        </div>
+      {% else %}
+      <div class="rider-card-header d-flex align-items-center gap-2">
+        <i class="fas fa-file-alt"></i> Verification Documents
+      </div>
+      <div class="rider-card-body">
+        <div class="alert alert-info d-flex gap-2 mb-4">
+          <i class="fas fa-info-circle mt-1 flex-shrink-0"></i>
+          <div>Your account is <strong>under review</strong>. Documents already uploaded are shown below. You can replace any file before approval.</div>
+        </div>
+      {% endif %}
+
+        <form method="POST" action="{{ url_for('rider.resubmit_documents') }}" enctype="multipart/form-data">
+          <div class="row g-3">
+
+            {# ── Driver's License / Gov ID ───────────────────────────────── #}
+            <div class="col-md-4">
+              <label class="form-label fw-semibold small">Driver's License / Gov ID</label>
+              {% if rider_docs.licensed_id_url %}
+              <div class="mb-2">
+                <a href="{{ rider_docs.licensed_id_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary w-100">
+                  <i class="fas fa-eye me-1"></i>View Current File
+                </a>
+              </div>
+              {% endif %}
+              <input type="file" name="licensed_id" class="form-control form-control-sm"
+                     accept="image/*,.pdf"
+                     {% if not rider_docs.licensed_id_url %}required{% endif %}>
+              <div class="form-text rp-doc-help">JPG, PNG, or PDF · max 10 MB</div>
+            </div>
+
+            {# ── Original Receipt of Vehicle ─────────────────────────────── #}
+            <div class="col-md-4">
+              <label class="form-label fw-semibold small">Original Receipt of Vehicle</label>
+              {% if rider_docs.original_receipt_url %}
+              <div class="mb-2">
+                <a href="{{ rider_docs.original_receipt_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary w-100">
+                  <i class="fas fa-eye me-1"></i>View Current File
+                </a>
+              </div>
+              {% endif %}
+              <input type="file" name="original_receipt" class="form-control form-control-sm"
+                     accept="image/*,.pdf"
+                     {% if not rider_docs.original_receipt_url %}required{% endif %}>
+              <div class="form-text rp-doc-help">JPG, PNG, or PDF · max 10 MB</div>
+            </div>
+
+            {# ── Certificate of Registration ──────────────────────────────── #}
+            <div class="col-md-4">
+              <label class="form-label fw-semibold small">Certificate of Registration</label>
+              {% if rider_docs.certificate_of_registration_url %}
+              <div class="mb-2">
+                <a href="{{ rider_docs.certificate_of_registration_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary w-100">
+                  <i class="fas fa-eye me-1"></i>View Current File
+                </a>
+              </div>
+              {% endif %}
+              <input type="file" name="certificate_of_registration" class="form-control form-control-sm"
+                     accept="image/*,.pdf"
+                     {% if not rider_docs.certificate_of_registration_url %}required{% endif %}>
+              <div class="form-text rp-doc-help">JPG, PNG, or PDF · max 10 MB</div>
+            </div>
+
+          </div>
+
+          <div class="mt-4 d-flex gap-2 align-items-center">
+            <button type="submit" class="btn {% if rejection_reason %}btn-danger{% else %}btn-outline-primary{% endif %} px-4">
+              <i class="fas fa-upload me-1"></i>
+              {% if rejection_reason %}Re-Submit Documents{% else %}Update Documents{% endif %}
+            </button>
+            {% if rejection_reason %}
+            <span class="text-muted small">Submitting will return you to the review queue.</span>
+            {% endif %}
+          </div>
+        </form>
+
+      </div>{# /card-body #}
+    </div>{# /rider-card #}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/rider/profile.js') }}"></script>
+{% endblock %}

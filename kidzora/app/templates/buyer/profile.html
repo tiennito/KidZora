@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+{% block title %}My Profile – KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="Manage your KidZora account details, saved addresses, avatar and password.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="My Profile – KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/buyer/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- ═════════════════════════════════════════════════════════════════════════
+       PROFILE HEADER & NAVIGATION
+  ═════════════════════════════════════════════════════════════════════════ -->
+  <div class="row mb-5">
+    <div class="col-12">
+      <h2 class="fw-bold mb-4"><i class="fas fa-user me-2 text-primary"></i>My Account</h2>
+      
+      <!-- Quick Navigation Bar -->
+      <div class="bg-primary text-white rounded-3 p-4 shadow-sm mb-4">
+        <div class="row g-2">
+          <div class="col-6 col-md-3 col-lg-2">
+            <a href="{{ url_for('buyer.browse_products') }}" class="btn btn-light btn-sm w-100 fw-semibold text-center">
+              <i class="fas fa-shopping-bag me-2"></i><span class="d-block d-md-inline">Shop</span>
+            </a>
+          </div>
+          <div class="col-6 col-md-3 col-lg-2">
+            <a href="{{ url_for('buyer.orders') }}" class="btn btn-light btn-sm w-100 fw-semibold text-center">
+              <i class="fas fa-list me-2"></i><span class="d-block d-md-inline">My Orders</span>
+            </a>
+          </div>
+          <div class="col-6 col-md-3 col-lg-2">
+            <a href="{{ url_for('buyer.returns') }}" class="btn btn-light btn-sm w-100 fw-semibold text-center">
+              <i class="fas fa-undo me-2"></i><span class="d-block d-md-inline">Returns</span>
+            </a>
+          </div>
+          <div class="col-6 col-md-3 col-lg-2">
+            <a href="{{ url_for('buyer.wishlist') }}" class="btn btn-light btn-sm w-100 fw-semibold text-center">
+              <i class="fas fa-heart me-2"></i><span class="d-block d-md-inline">Favorites</span>
+            </a>
+          </div>
+          <div class="col-6 col-md-3 col-lg-2">
+            <a href="{{ url_for('buyer.inbox') }}" class="btn btn-light btn-sm w-100 fw-semibold text-center">
+              <i class="fas fa-comments me-2"></i><span class="d-block d-md-inline">Messages</span>
+            </a>
+          </div>
+          <div class="col-6 col-md-3 col-lg-2">
+            <a href="{{ url_for('buyer.notifications') }}" class="btn btn-light btn-sm w-100 fw-semibold text-center">
+              <i class="fas fa-bell me-2"></i><span class="d-block d-md-inline">Notifications</span>
+            </a>
+          </div>
+          <div class="col-6 col-md-3 col-lg-2">
+            <a href="{{ url_for('buyer.support') }}" class="btn btn-light btn-sm w-100 fw-semibold text-center">
+              <i class="fas fa-question-circle me-2"></i><span class="d-block d-md-inline">Help</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} alert-dismissible fade show">
+            {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endwith %}
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════════════════════
+       PROFILE FORM
+  ═════════════════════════════════════════════════════════════════════════ -->
+  <h3 class="fw-bold mb-4"><i class="fas fa-gear me-2 text-secondary"></i>Profile Settings</h3>
+
+  <form method="POST" action="{{ url_for('buyer.profile') }}" enctype="multipart/form-data">
+    <div class="row g-4">
+
+      <!-- Personal Info -->
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white fw-semibold">
+            <i class="fas fa-user me-2 text-primary"></i>Personal Information
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">First Name</label>
+                <input type="text" name="first_name" class="form-control"
+                       value="{{ profile_data.get('first_name') or current_user.first_name or '' }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Last Name</label>
+                <input type="text" name="last_name" class="form-control"
+                       value="{{ profile_data.get('last_name') or current_user.last_name or '' }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" value="{{ current_user.email }}" disabled>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Phone</label>
+                <input type="tel" name="phone" class="form-control"
+                       value="{{ profile_data.get('phone') or current_user.phone or '' }}" placeholder="09xxxxxxxxx">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Address -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white fw-semibold">
+            <i class="fas fa-map-marker-alt me-2 text-primary"></i>Delivery Address
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Region</label>
+                <input type="text" name="region" class="form-control" value="{{ profile_data.get('region') or current_user.region or '' }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Province</label>
+                <input type="text" name="province" class="form-control" value="{{ profile_data.get('province') or current_user.province or '' }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">City / Municipality</label>
+                <input type="text" name="city" class="form-control" value="{{ profile_data.get('city') or current_user.city or '' }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Barangay</label>
+                <input type="text" name="barangay" class="form-control" value="{{ profile_data.get('barangay') or current_user.barangay or '' }}">
+              </div>
+              <div class="col-md-5">
+                <label class="form-label">Street Name</label>
+                <input type="text" name="street_name" class="form-control" value="{{ profile_data.get('street_name') or current_user.street_name or '' }}">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Building / Unit</label>
+                <input type="text" name="building_number" class="form-control" value="{{ profile_data.get('building_number') or current_user.building_number or '' }}">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Postal Code</label>
+                <input type="text" name="postal_code" class="form-control" value="{{ profile_data.get('postal_code') or current_user.postal_code or '' }}" maxlength="4">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white fw-semibold">
+            <i class="fas fa-lock me-2 text-primary"></i>Change Password
+            <small class="text-muted fw-normal ms-1">(leave blank to keep current)</small>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">New Password</label>
+                <input type="password" name="new_password" class="form-control" placeholder="Min 8 characters">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" name="confirm_password" class="form-control" placeholder="Repeat password">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save panel -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm profile-save-sticky">
+          <div class="card-body">
+
+            <!-- Avatar upload -->
+            <h6 class="fw-semibold mb-3"><i class="fas fa-camera me-2 text-primary"></i>Profile Photo</h6>
+            <div class="d-flex flex-column align-items-center gap-2 mb-3">
+              <div id="avatarPreviewWrap" class="profile-avatar-wrap">
+                {% if current_user.avatar_url %}
+                  <img id="avatarPreview" src="{{ current_user.avatar_url }}" alt="Profile photo"
+                       class="profile-avatar-img">
+                {% else %}
+                  <span>{{ (current_user.first_name or current_user.email or '?')[0]|upper }}</span>
+                {% endif %}
+              </div>
+              <label class="btn btn-sm btn-outline-primary mb-0">
+                <i class="fas fa-upload me-1"></i>Upload Photo
+                <input type="file" name="avatar" id="avatarInput" accept="image/*" style="display:none;">
+              </label>
+              <small class="text-muted text-center">Shown in chat notifications</small>
+            </div>
+            <hr>
+
+            <h6 class="fw-semibold mb-3">Save Changes</h6>
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i>Save Profile
+              </button>
+            </div>
+            <hr>
+            <table class="table table-sm mb-0">
+              <tr>
+                <th class="text-muted fw-normal small border-0">Member Since</th>
+                <td class="small border-0">{{ current_user.created_at[:10] if current_user.created_at else '—' }}</td>
+              </tr>
+              <tr>
+                <th class="text-muted fw-normal small">Role</th>
+                <td class="small"><span class="badge bg-primary">Buyer</span></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </form>
+
+  <!-- ── Saved Addresses ───────────────────────────────────────────────── -->
+  <div class="row mt-4">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+          <span><i class="fas fa-bookmark me-2 text-primary"></i>Saved Addresses</span>
+          <button class="btn btn-sm btn-outline-primary" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#addAddrForm" aria-expanded="false">
+            <i class="fas fa-plus me-1"></i>Add Address
+          </button>
+        </div>
+        <div class="card-body">
+
+          <!-- Add new address form -->
+          <div class="collapse mb-3" id="addAddrForm">
+            <div class="border rounded-3 p-3 bg-light">
+              <h6 class="fw-semibold mb-3 small">New Saved Address</h6>
+              <div class="row g-2">
+                <div class="col-md-6">
+                  <input type="text" class="form-control form-control-sm" id="na_label"
+                         placeholder="Label (e.g. Home, Office)" maxlength="30" value="Home">
+                </div>
+                <div class="col-md-6">
+                  <input type="text" class="form-control form-control-sm" id="na_full_name"
+                         placeholder="Full Name"
+                         value="{{ (current_user.first_name or '') ~ ' ' ~ (current_user.last_name or '') }}">
+                </div>
+                <div class="col-md-6">
+                  <input type="tel" class="form-control form-control-sm" id="na_phone"
+                         placeholder="Phone" value="{{ current_user.phone or '' }}">
+                </div>
+                <div class="col-md-6">
+                  <input type="text" class="form-control form-control-sm" id="na_region"
+                         placeholder="Region" value="{{ current_user.region or '' }}">
+                </div>
+                <div class="col-md-6">
+                  <input type="text" class="form-control form-control-sm" id="na_province"
+                         placeholder="Province" value="{{ current_user.province or '' }}">
+                </div>
+                <div class="col-md-6">
+                  <input type="text" class="form-control form-control-sm" id="na_city"
+                         placeholder="City / Municipality" value="{{ current_user.city or '' }}">
+                </div>
+                <div class="col-md-6">
+                  <input type="text" class="form-control form-control-sm" id="na_barangay"
+                         placeholder="Barangay" value="{{ current_user.barangay or '' }}">
+                </div>
+                <div class="col-md-6">
+                  <input type="text" class="form-control form-control-sm" id="na_street_name"
+                         placeholder="Street / Building" value="{{ current_user.street_name or '' }}">
+                </div>
+                <div class="col-md-4">
+                  <input type="text" class="form-control form-control-sm" id="na_postal_code"
+                         placeholder="Postal Code" maxlength="4"
+                         value="{{ current_user.postal_code or '' }}">
+                </div>
+                <div class="col-md-4 d-flex align-items-center">
+                  <div class="form-check ms-1">
+                    <input class="form-check-input" type="checkbox" id="na_is_default">
+                    <label class="form-check-label small" for="na_is_default">Set as default</label>
+                  </div>
+                </div>
+                <div class="col-12 d-flex gap-2 mt-1">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="saveNewAddress()">
+                    <i class="fas fa-save me-1"></i>Save Address
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm"
+                          data-bs-toggle="collapse" data-bs-target="#addAddrForm">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Saved address list -->
+          {% if addresses %}
+            {% for addr in addresses %}
+            <div class="d-flex align-items-start gap-3 border rounded-2 p-3 mb-2" id="addrCard_{{ addr.id }}">
+              <div class="flex-grow-1">
+                <div class="fw-semibold d-flex align-items-center gap-2 small">
+                  {{ addr.label or 'Address' }}
+                  {% if addr.is_default %}
+                  <span class="badge bg-primary addr-badge-default">Default</span>
+                  {% endif %}
+                </div>
+                <div class="small text-muted">
+                  {{ addr.full_name }}{% if addr.phone %} &middot; {{ addr.phone }}{% endif %}
+                </div>
+                <div class="small text-muted">
+                  {{ [addr.street_name, addr.barangay, addr.city, addr.province, addr.region]
+                     | select | join(', ') }}
+                </div>
+              </div>
+              <div class="d-flex flex-column gap-1 flex-shrink-0">
+                {% if not addr.is_default %}
+                <button type="button" class="btn btn-outline-primary addr-action-btn"
+                        onclick="setDefaultAddr('{{ addr.id }}')"> Set Default</button>
+                {% endif %}
+                <button type="button" class="btn btn-outline-danger addr-action-btn"
+                        onclick="deleteAddr('{{ addr.id }}')">Delete</button>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+          <div class="text-center text-muted py-4">
+            <i class="fas fa-map-marker-alt fa-2x mb-2 opacity-25 d-block"></i>
+            <p class="mb-0 small">No saved addresses yet. Click <strong>Add Address</strong> above.</p>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script id="kz-profile-data" type="application/json">
+{"addrAddUrl":{{ url_for('buyer.add_address')|tojson }},"addrDefaultUrl":{{ url_for('buyer.set_default_address', addr_id='_ID_')|tojson }},"addrDeleteUrl":{{ url_for('buyer.delete_address', addr_id='_ID_')|tojson }}}
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/buyer/profile.js') }}"></script>
+{% endblock %}

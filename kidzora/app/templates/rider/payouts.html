@@ -1,0 +1,294 @@
+{% extends "rider/base.html" %}
+{% block title %}Withdrawals – KidZora Rider{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Withdrawals – KidZora Rider">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Rider Payouts page ─────────────────────────────── */
+.rpo-wrap { padding: 1.25rem; }
+
+.rpo-header {
+  background: linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);
+  border-radius: 14px; padding: 1.4rem 1.6rem;
+  color: #fff; margin-bottom: 1.25rem;
+}
+.rpo-header h4 { font-size: 1.2rem; font-weight: 800; margin: 0 0 .15rem; }
+.rpo-header p  { font-size: .82rem; opacity: .85; margin: 0; }
+
+/* Balance cards */
+.rpo-bal {
+  background: #fff; border: 1px solid #e5e7eb;
+  border-radius: 14px; padding: 1rem 1.1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  height: 100%;
+}
+.rpo-bal-icon {
+  width: 42px; height: 42px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
+.rpo-bal-lbl { font-size: .7rem; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+.rpo-bal-val { font-size: 1.25rem; font-weight: 800; color: #111827; line-height: 1.1; }
+
+/* Request form card */
+.rpo-form-card {
+  background: #fff; border: 1px solid #e5e7eb;
+  border-radius: 14px; padding: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.rpo-form-card .form-label { font-size: .8rem; font-weight: 600; color: #374151; }
+.rpo-form-card .form-control,
+.rpo-form-card .form-select { font-size: .85rem; border-radius: 8px; }
+.rpo-section-title {
+  font-size: .88rem; font-weight: 700; color: #1f2937;
+  margin-bottom: .75rem; display: flex; align-items: center; gap: .5rem;
+}
+
+/* History table */
+.rpo-history-card {
+  background: #fff; border: 1px solid #e5e7eb;
+  border-radius: 14px; overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.rpo-history-card table { margin: 0; font-size: .83rem; }
+.rpo-history-card thead th {
+  background: #f9fafb; font-size: .73rem; font-weight: 700;
+  color: #6b7280; text-transform: uppercase; letter-spacing: .04em;
+  border-bottom: 1px solid #e5e7eb; padding: .65rem 1rem;
+}
+.rpo-history-card tbody td { padding: .7rem 1rem; vertical-align: middle; }
+.rpo-history-card tbody tr:hover { background: #f9fafb; }
+
+/* Status badges */
+.badge-pending  { background: #fef3c7; color: #92400e; font-size:.72rem; }
+.badge-approved { background: #dcfce7; color: #166534; font-size:.72rem; }
+.badge-rejected { background: #fee2e2; color: #991b1b; font-size:.72rem; }
+
+/* Method chip */
+.method-chip {
+  display: inline-flex; align-items: center; gap: .3rem;
+  background: #f0fdf4; color: #166534;
+  border-radius: 999px; padding: .15rem .55rem;
+  font-size: .72rem; font-weight: 600;
+}
+.method-chip.bank { background: #eff6ff; color: #1d4ed8; }
+
+/* Empty state */
+.rpo-empty { text-align: center; padding: 2rem 1rem; color: #9ca3af; }
+.rpo-empty i { font-size: 2rem; margin-bottom: .5rem; display: block; }
+</style>
+{% endblock %}
+
+{% block page_content %}
+<div class="rpo-wrap">
+
+  <!-- Header -->
+  <div class="rpo-header">
+    <h4><i class="fas fa-hand-holding-usd me-2"></i>Withdrawals</h4>
+    <p>Request a withdrawal of your delivery earnings. Minimum ₱{{ "%.0f"|format(min_payout) }}. Processed within 1–3 business days.</p>
+  </div>
+
+  <!-- Balance cards -->
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md-3">
+      <div class="rpo-bal">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="rpo-bal-icon" style="background:#dcfce7;">
+            <i class="fas fa-motorcycle" style="color:#16a34a;"></i>
+          </div>
+          <div class="rpo-bal-lbl">Total Earned</div>
+        </div>
+        <div class="rpo-bal-val">₱{{ "{:,.2f}".format(earnings.total_earned) }}</div>
+        <div style="font-size:.72rem;color:#9ca3af;margin-top:.2rem;">Delivery fees collected</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="rpo-bal">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="rpo-bal-icon" style="background:#dbeafe;">
+            <i class="fas fa-paper-plane" style="color:#1d4ed8;"></i>
+          </div>
+          <div class="rpo-bal-lbl">Total Paid Out</div>
+        </div>
+        <div class="rpo-bal-val">₱{{ "{:,.2f}".format(earnings.total_paid_out) }}</div>
+        <div style="font-size:.72rem;color:#9ca3af;margin-top:.2rem;">Approved withdrawals</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="rpo-bal">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="rpo-bal-icon" style="background:#fef3c7;">
+            <i class="fas fa-clock" style="color:#d97706;"></i>
+          </div>
+          <div class="rpo-bal-lbl">Pending Review</div>
+        </div>
+        <div class="rpo-bal-val">₱{{ "{:,.2f}".format(earnings.pending_lock) }}</div>
+        <div style="font-size:.72rem;color:#9ca3af;margin-top:.2rem;">Locked in open requests</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="rpo-bal" style="border-color:#3b82f6;">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="rpo-bal-icon" style="background:#dbeafe;">
+            <i class="fas fa-wallet" style="color:#2563eb;"></i>
+          </div>
+          <div class="rpo-bal-lbl">Available</div>
+        </div>
+        <div class="rpo-bal-val" style="color:#2563eb;">₱{{ "{:,.2f}".format(earnings.available) }}</div>
+        <div style="font-size:.72rem;color:#9ca3af;margin-top:.2rem;">Ready to withdraw</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+
+    <!-- LEFT: Request form -->
+    <div class="col-lg-5">
+      <div class="rpo-form-card">
+        <div class="rpo-section-title">
+          <i class="fas fa-hand-holding-usd" style="color:#2563eb;"></i>
+          Request Withdrawal
+        </div>
+
+        {% if has_pending %}
+        <div class="alert alert-warning py-2 px-3" style="border-radius:10px;font-size:.83rem;">
+          <i class="fas fa-clock me-1"></i>
+          You already have a pending withdrawal request. Please wait for it to be processed before submitting another.
+        </div>
+        {% elif earnings.available < min_payout %}
+        <div class="alert alert-info py-2 px-3" style="border-radius:10px;font-size:.83rem;">
+          <i class="fas fa-info-circle me-1"></i>
+          Your available balance (₱{{ "{:,.2f}".format(earnings.available) }}) is below the minimum withdrawal
+          amount of ₱{{ "%.0f"|format(min_payout) }}.
+          Complete more deliveries to unlock a withdrawal!
+        </div>
+        {% else %}
+        <form method="post" action="{{ url_for('rider.request_payout') }}">
+          <div class="mb-3">
+            <label class="form-label">Amount to Withdraw (₱)</label>
+            <input type="number" name="amount" class="form-control"
+                   min="{{ min_payout }}" max="{{ earnings.available }}"
+                   step="0.01"
+                   placeholder="e.g. 500.00"
+                   value="{{ earnings.available if earnings.available > 0 else '' }}"
+                   required>
+            <div class="form-text" style="font-size:.75rem;">
+              Max: ₱{{ "{:,.2f}".format(earnings.available) }}
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Payout Method</label>
+            <select name="method" id="rpoMethod" class="form-select" required onchange="toggleMethodFields()">
+              <option value="">— choose —</option>
+              <option value="gcash"         {% if rider_info.bank_name and 'gcash' in (rider_info.bank_name or '').lower() %}selected{% endif %}>GCash</option>
+              <option value="bank_transfer" {% if rider_info.bank_name and 'gcash' not in (rider_info.bank_name or '').lower() and rider_info.bank_name %}selected{% endif %}>Bank Transfer</option>
+            </select>
+          </div>
+          <div id="rpoMethodFields">
+            <div class="mb-3">
+              <label class="form-label">Account Name / GCash Name</label>
+              <input type="text" name="account_name" class="form-control"
+                     placeholder="Full name on account"
+                     value="{{ rider_info.bank_name or '' }}"
+                     required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Account Number / GCash Number</label>
+              <input type="text" name="account_number" class="form-control"
+                     placeholder="09XX-XXX-XXXX or account number"
+                     value="{{ rider_info.bank_account or '' }}"
+                     required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100" style="border-radius:10px;font-weight:600;">
+            <i class="fas fa-paper-plane me-2"></i>Submit Withdrawal Request
+          </button>
+        </form>
+        {% endif %}
+      </div>
+
+      <!-- Info box -->
+      <div class="rpo-form-card mt-3" style="background:#eff6ff;border-color:#93c5fd;">
+        <div class="rpo-section-title" style="color:#1d4ed8;">
+          <i class="fas fa-info-circle"></i> How withdrawals work
+        </div>
+        <ul style="font-size:.8rem;color:#374151;padding-left:1.1rem;margin:0;line-height:1.8;">
+          <li>Your earnings are the <strong>full delivery fee</strong> per completed order.</li>
+          <li>Submit a withdrawal request for any amount up to your available balance.</li>
+          <li>Admin reviews and approves within <strong>1–3 business days</strong>.</li>
+          <li>Funds are sent to your GCash or bank account.</li>
+          <li>Only one pending request at a time is allowed.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- RIGHT: History -->
+    <div class="col-lg-7">
+      <div class="rpo-section-title">
+        <i class="fas fa-history" style="color:#6b7280;"></i> Withdrawal History
+      </div>
+      <div class="rpo-history-card">
+        {% if history %}
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Method</th>
+              <th>Account</th>
+              <th>Status</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in history %}
+            <tr>
+              <td class="text-muted" style="white-space:nowrap;">
+                {{ p.created_at[:10] if p.created_at else '—' }}
+              </td>
+              <td><strong>₱{{ "{:,.2f}".format(p.amount) }}</strong></td>
+              <td>
+                <span class="method-chip {% if p.method == 'bank_transfer' %}bank{% endif %}">
+                  <i class="fas {% if p.method == 'gcash' %}fa-mobile-alt{% else %}fa-university{% endif %}"></i>
+                  {{ 'GCash' if p.method == 'gcash' else 'Bank Transfer' }}
+                </span>
+              </td>
+              <td style="font-size:.8rem;">
+                <div>{{ p.account_name or '—' }}</div>
+                <div class="text-muted">{{ p.account_number or '' }}</div>
+              </td>
+              <td>
+                <span class="badge rounded-pill badge-{{ p.status }}">
+                  {% if p.status == 'pending' %}<i class="fas fa-clock me-1"></i>{% endif %}
+                  {% if p.status == 'approved' %}<i class="fas fa-check me-1"></i>{% endif %}
+                  {% if p.status == 'rejected' %}<i class="fas fa-times me-1"></i>{% endif %}
+                  {{ p.status|capitalize }}
+                </span>
+              </td>
+              <td style="font-size:.78rem;color:#6b7280;max-width:140px;">
+                {{ p.admin_notes or '—' }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="rpo-empty">
+          <i class="fas fa-money-check-alt"></i>
+          <p class="mb-0" style="font-size:.85rem;">No withdrawal requests yet.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div><!-- /row -->
+</div><!-- /rpo-wrap -->
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/kidzora-utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/rider/payouts.js') }}"></script>
+{% endblock %}

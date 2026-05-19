@@ -1,0 +1,209 @@
+{% extends "seller/base.html" %}
+{% block title %}Return Request #{{ rr.id[:8]|upper }} – Seller{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Return Request – KidZora Seller">
+{% endblock %}
+{% block page_title %}Return Request #{{ rr.id[:8]|upper }}{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('seller.returns') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left me-1"></i>Back to Returns
+  </a>
+{% endblock %}
+
+{% block page_content %}
+
+{% set s = rr.status %}
+{% set scol = {
+  'pending':          'warning',
+  'seller_approved':  'success',
+  'seller_rejected':  'secondary',
+  'escalated':        'info',
+  'admin_approved':   'success',
+  'admin_rejected':   'secondary',
+}.get(s, 'secondary') %}
+
+<!-- Status alert -->
+<div class="alert alert-{{ scol }} mb-4 py-2 small">
+  <i class="fas fa-info-circle me-1"></i>
+  <strong>Status:</strong>
+  {% if s == 'pending' %}Buyer is waiting for your decision.
+  {% elif s == 'seller_approved' %}You approved this request.
+  {% elif s == 'seller_rejected' %}You rejected this request. Buyer may escalate to admin.
+  {% elif s == 'escalated' %}Buyer escalated this dispute to admin for review.
+  {% elif s == 'admin_approved' %}Admin approved the refund after escalation.
+  {% elif s == 'admin_rejected' %}Admin rejected the refund after escalation.
+  {% endif %}
+</div>
+
+<div class="row g-4">
+
+  <!-- Left: details -->
+  <div class="col-lg-7">
+
+    <div class="seller-card mb-4">
+      <div class="seller-card-header"><h6><i class="fas fa-file-alt me-2 text-primary"></i>Request Details</h6></div>
+      <div class="seller-card-body">
+        <table class="table table-sm mb-0">
+          <tr>
+            <th class="text-muted fw-normal small border-0" style="width:40%;">Request ID</th>
+            <td class="border-0"><code>#{{ rr.id[:8]|upper }}</code></td>
+          </tr>
+          <tr>
+            <th class="text-muted fw-normal small">Order</th>
+            <td>
+              <a href="{{ url_for('seller.order_detail', order_id=rr.order_id) }}"
+                 class="text-primary text-decoration-none fw-semibold">
+                #{{ rr.order_id[:8]|upper }}
+              </a>
+              {% set o = rr.orders or {} %}
+              <span class="text-muted small ms-2">₱{{ o.total_amount|float|currency if o.total_amount else '' }}</span>
+            </td>
+          </tr>
+          <tr>
+            <th class="text-muted fw-normal small">Request Type</th>
+            <td>{{ 'Return &amp; Refund' if rr.refund_type == 'return_and_refund' else 'Refund Only' }}</td>
+          </tr>
+          <tr>
+            <th class="text-muted fw-normal small">Reason</th>
+            <td>{{ reason_labels.get(rr.reason, rr.reason|replace('_',' ')|title) }}</td>
+          </tr>
+          <tr>
+            <th class="text-muted fw-normal small">Submitted</th>
+            <td>{{ rr.created_at[:10] if rr.created_at else '—' }}</td>
+          </tr>
+          {% if rr.details %}
+          <tr>
+            <th class="text-muted fw-normal small">Buyer's Details</th>
+            <td>{{ rr.details }}</td>
+          </tr>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+
+    {# Evidence Attachments #}
+    {% set evidence = rr.evidence_files if rr.evidence_files else [] %}
+    {% if evidence %}
+    <div class="seller-card mb-4">
+      <div class="seller-card-header">
+        <h6>
+          <i class="fas fa-paperclip me-2 text-primary"></i>Buyer's Evidence
+          <span class="badge bg-secondary ms-1">{{ evidence|length }}</span>
+        </h6>
+      </div>
+      <div class="seller-card-body">
+        <div class="row g-3">
+          {% for path in evidence %}
+            {% set ext = path.rsplit('.', 1)[-1].lower() %}
+            <div class="col-6 col-md-4">
+              {% if ext in ('mp4','mov','avi','webm','mkv') %}
+                <video src="{{ path }}" controls
+                       class="w-100 rounded"
+                       style="max-height:160px;object-fit:cover;background:#000;">
+                </video>
+                <p class="text-muted mt-1 mb-0" style="font-size:.72rem; word-break:break-all;">
+                  <i class="fas fa-film me-1"></i>{{ path.rsplit('/', 1)[-1] }}
+                </p>
+              {% else %}
+                <a href="{{ path }}" target="_blank">
+                  <img src="{{ path }}" alt="Evidence {{ loop.index }}"
+                       class="img-thumbnail w-100"
+                       style="height:130px;object-fit:cover;cursor:zoom-in;">
+                </a>
+                <p class="text-muted mt-1 mb-0" style="font-size:.72rem; word-break:break-all;">
+                  <i class="fas fa-image me-1"></i>{{ path.rsplit('/', 1)[-1] }}
+                </p>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if rr.seller_response %}
+    <div class="seller-card mb-4">
+      <div class="seller-card-header"><h6><i class="fas fa-reply me-2 text-primary"></i>Your Response</h6></div>
+      <div class="seller-card-body small">{{ rr.seller_response }}</div>
+    </div>
+    {% endif %}
+
+    {% if rr.admin_response %}
+    <div class="seller-card mb-4">
+      <div class="seller-card-header"><h6><i class="fas fa-shield-alt me-2 text-primary"></i>Admin Decision</h6></div>
+      <div class="seller-card-body small">{{ rr.admin_response }}</div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Right: action panel -->
+  <div class="col-lg-5">
+    {% if s == 'pending' %}
+    <div class="seller-card">
+      <div class="seller-card-header"><h6><i class="fas fa-gavel me-2 text-primary"></i>Your Decision</h6></div>
+      <div class="seller-card-body">
+
+        <!-- Approve -->
+        <form method="POST" action="{{ url_for('seller.return_approve', rr_id=rr.id) }}" class="mb-3">
+          <label class="form-label small fw-semibold">Note to buyer (optional)</label>
+          <textarea class="form-control form-control-sm mb-2" name="seller_response" rows="2"
+                    placeholder="e.g. We'll process your refund within 3-5 business days."></textarea>
+          <button type="submit" class="btn btn-success btn-sm w-100"
+                  onclick="return confirm('Approve this return/refund request?')">
+            <i class="fas fa-check me-1"></i>Approve Refund
+          </button>
+        </form>
+
+        <hr>
+
+        <!-- Reject -->
+        <button class="btn btn-outline-danger btn-sm w-100"
+                data-bs-toggle="modal" data-bs-target="#rejectModal">
+          <i class="fas fa-times me-1"></i>Reject Request
+        </button>
+
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Reject modal -->
+{% if s == 'pending' %}
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h6 class="modal-title fw-bold text-danger">
+          <i class="fas fa-times me-2"></i>Reject Return Request
+        </h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ url_for('seller.return_reject', rr_id=rr.id) }}">
+        <div class="modal-body">
+          <div class="alert alert-warning small py-2">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            The buyer will be notified and may escalate to admin if they disagree.
+          </div>
+          <label class="form-label small fw-semibold">Reason for rejection <span class="text-danger">*</span></label>
+          <textarea class="form-control form-control-sm" name="seller_response" rows="3"
+                    placeholder="e.g. The item was in good condition when shipped. Please see the attached photos."
+                    required></textarea>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger btn-sm">
+            <i class="fas fa-times me-1"></i>Confirm Rejection
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

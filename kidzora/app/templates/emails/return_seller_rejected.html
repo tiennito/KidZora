@@ -1,0 +1,19 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2 style="color:#dc2626;margin:0 0 8px;">❌ Refund Request Rejected by Seller</h2>
+<p style="color:#374151;margin:0 0 16px;">
+    The seller has rejected your Return/Refund request for order <strong>{{ order_ref }}</strong>.
+</p>
+<div style="background:#fef2f2;border-left:4px solid #dc2626;padding:16px;border-radius:6px;margin:0 0 16px;">
+    <strong>Seller's reason:</strong><br>
+    <span style="color:#374151;">{{ seller_response or 'No reason provided.' }}</span>
+</div>
+<div style="background:#f0f9ff;border-left:4px solid #2563eb;padding:16px;border-radius:6px;margin:0 0 16px;">
+    <strong>💡 You can still escalate this to admin.</strong><br>
+    <span style="color:#374151;font-size:.85rem;">
+        If you disagree with the seller's decision, log in to your account → Returns
+        and click <em>"Escalate to Admin"</em>. Admin will review both sides and make a final decision.
+    </span>
+</div>
+{% endblock %}

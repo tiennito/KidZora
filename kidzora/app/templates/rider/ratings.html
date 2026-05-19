@@ -1,0 +1,114 @@
+{% extends "rider/base.html" %}
+{% block title %}My Ratings – KidZora Rider{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="My Ratings – KidZora Rider">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/rider/ratings.css') }}">
+
+
+{% endblock %}
+
+{% block page_content %}
+<div class="rr-wrap">
+
+  <!-- Header -->
+  <div class="rr-header">
+    <h4><i class="fas fa-star me-2"></i>My Ratings</h4>
+    <p>See what buyers are saying about your deliveries.</p>
+  </div>
+
+  <div class="row g-3">
+
+    <!-- LEFT: summary / score -->
+    <div class="col-lg-4">
+      <div class="rr-score-card mb-3">
+        <div class="rr-score-big">{{ stats.avg }}</div>
+        <div class="rr-score-stars">
+          {% for i in range(1,6) %}
+            {% if i <= stats.avg|int %}<i class="fas fa-star"></i>
+            {% elif (stats.avg - i + 1) >= 0.5 %}<i class="fas fa-star-half-alt"></i>
+            {% else %}<i class="far fa-star" style="color:#d1d5db;"></i>{% endif %}
+          {% endfor %}
+        </div>
+        <div class="rr-score-sub">{{ stats.total }} rating{{ 's' if stats.total != 1 else '' }}</div>
+      </div>
+
+      <!-- Breakdown -->
+      <div class="card border-0 shadow-sm p-3">
+        {% set dist_items = [(5,'five'),(4,'four'),(3,'three'),(2,'two'),(1,'one')] %}
+        {% for star, key in dist_items %}
+        {% set cnt = stats[key] %}
+        {% set pct = (cnt / stats.total * 100)|int if stats.total > 0 else 0 %}
+        <div class="rr-bar-row">
+          <span style="width:14px;text-align:right;color:#f59e0b;font-size:.8rem;">{{ star }}</span>
+          <i class="fas fa-star" style="color:#f59e0b;font-size:.7rem;"></i>
+          <div class="rr-bar-wrap">
+            <div class="rr-bar-fill" data-pct="{{ pct }}"></div>
+          </div>
+          <span class="rr-bar-cnt">{{ cnt }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- RIGHT: list -->
+    <div class="col-lg-8">
+      {% if rating_list %}
+        {% for rv in rating_list %}
+        {% set buyer = rv.profiles or {} %}
+        {% set bname = ((buyer.first_name or '') + ' ' + (buyer.last_name or '')).strip() or 'Anonymous' %}
+        <div class="rr-card d-flex align-items-start gap-3">
+
+          <!-- Avatar -->
+          {% if buyer.avatar_url %}
+            <img src="{{ buyer.avatar_url }}" alt="{{ bname }}" class="rr-avatar">
+          {% else %}
+            <div class="rr-avatar-ph">{{ bname[0].upper() }}</div>
+          {% endif %}
+
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-1">
+              <strong style="font-size:.88rem;">{{ bname }}</strong>
+              <span class="text-muted" style="font-size:.75rem;">{{ rv.created_at[:10] if rv.created_at else '' }}</span>
+            </div>
+
+            <!-- Stars -->
+            <div class="rr-stars mt-1">
+              {% for i in range(1,6) %}
+                {% if i <= rv.rating %}<i class="fas fa-star"></i>
+                {% else %}<i class="far fa-star empty"></i>{% endif %}
+              {% endfor %}
+              <span class="ms-1 fw-semibold" style="font-size:.8rem;color:#374151;">
+                {{ {5:'Excellent',4:'Good',3:'Okay',2:'Poor',1:'Terrible'}.get(rv.rating,'') }}
+              </span>
+            </div>
+
+            {% if rv.feedback %}
+            <p class="mb-0 mt-1" style="font-size:.85rem;color:#374151;line-height:1.5;">
+              "{{ rv.feedback }}"
+            </p>
+            {% else %}
+            <p class="mb-0 mt-1 text-muted" style="font-size:.8rem;font-style:italic;">No written feedback.</p>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="rr-empty">
+        <i class="fas fa-star"></i>
+        <p class="mb-1 fw-semibold" style="color:#374151;">No ratings yet</p>
+        <p style="font-size:.85rem;">Buyers can rate you after each completed delivery.</p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/rider/ratings.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,253 @@
+{% extends "seller/base.html" %}
+{% from 'macros.html' import render_pagination %}
+
+{% block title %}Products – KidZora Seller{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Products – KidZora Seller">
+{% endblock %}
+{% block page_title %}Products{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('seller.product_add') }}" class="btn btn-primary btn-sm">
+    <i class="fas fa-plus me-1"></i>Add Product
+  </a>
+{% endblock %}
+
+{% block page_content %}
+
+<!-- Filters / Search -->
+<div class="seller-card mb-4">
+  <div class="seller-card-body">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-5">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+          <input type="text" class="form-control border-start-0" id="productSearch" placeholder="Search products…">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select form-select-sm" id="categoryFilter" onchange="filterByCategory(this.value)">
+          <option value="">All Categories</option>
+          <option value="toys">Toys</option>
+          <option value="clothing">Clothing</option>
+          <option value="books">Books</option>
+          <option value="education">Education</option>
+          <option value="outdoor">Outdoor</option>
+          <option value="electronics">Electronics</option>
+          <option value="accessories">Accessories</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select class="form-select form-select-sm" id="statusFilter" onchange="filterByStatus(this.value)">
+          <option value="" {% if not selected_status %}selected{% endif %}>All Status</option>
+          <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Active</option>
+          <option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Inactive</option>
+          <option value="archived" {% if selected_status == 'archived' %}selected{% endif %}>🗄 Archived{% if archived_count > 0 %} ({{ archived_count }}){% endif %}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select class="form-select form-select-sm" id="stockFilter" onchange="filterByStockStatus(this.value)">
+          <option value="" {% if not selected_stock_status %}selected{% endif %}>All Stock</option>
+          <option value="oos" {% if selected_stock_status == 'oos' %}selected{% endif %}>⛔ Out of Stock</option>
+          <option value="low" {% if selected_stock_status == 'low' %}selected{% endif %}>⚠ Low Stock</option>
+          <option value="alert" {% if selected_stock_status == 'alert' %}selected{% endif %}>🔔 Needs Restock</option>
+        </select>
+      </div>
+      <div class="col-md-1 text-end text-muted small">
+        {{ products|length }} item(s)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stock alert banner -->
+{% set _total_alerts = oos_count + low_count %}
+{% if selected_status != 'archived' and _total_alerts > 0 %}
+<div class="alert alert-warning border-0 d-flex align-items-center gap-3 mb-3 py-2 px-3" role="alert" style="font-size:.875rem;">
+  <i class="fas fa-exclamation-triangle fa-lg text-warning flex-shrink-0"></i>
+  <div class="flex-grow-1">
+    <strong>Inventory Alert:</strong>
+    {% if oos_count > 0 %}
+      <span class="badge bg-danger ms-1">{{ oos_count }} Out of Stock</span>
+    {% endif %}
+    {% if low_count > 0 %}
+      <span class="badge bg-warning text-dark ms-1">{{ low_count }} Low Stock</span>
+    {% endif %}
+    &nbsp;— review products below and restock as needed.
+  </div>
+  <a href="?stock_status=alert" class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size:.75rem;white-space:nowrap;">View All Alerts</a>
+</div>
+{% endif %}
+
+<!-- Products Table -->
+<div class="seller-card">
+  {% if products %}
+
+  <!-- Bulk action toolbar (hidden until rows are selected) -->
+  <div id="bulkToolbar" class="d-none align-items-center gap-2 px-3 py-2 border-bottom bg-light" style="flex-wrap:wrap;">
+    <span class="fw-semibold small me-1"><span id="bulkCount">0</span> selected</span>
+    <button class="btn btn-sm btn-outline-success" id="bulkActivate">
+      <i class="fas fa-eye me-1"></i>Activate
+    </button>
+    <button class="btn btn-sm btn-outline-secondary" id="bulkDeactivate">
+      <i class="fas fa-eye-slash me-1"></i>Deactivate
+    </button>
+    <button class="btn btn-sm btn-outline-warning" id="bulkArchive">
+      <i class="fas fa-archive me-1"></i>Archive
+    </button>
+    <button class="btn btn-sm btn-outline-success" id="bulkRestore">
+      <i class="fas fa-undo me-1"></i>Restore
+    </button>
+    <button class="btn btn-sm btn-outline-danger ms-auto" id="bulkClear">
+      <i class="fas fa-times me-1"></i>Clear
+    </button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="seller-table">
+      <thead>
+        <tr>
+          <th style="width:36px;">
+            <input type="checkbox" id="selectAllProducts" class="form-check-input" title="Select all">
+          </th>
+          <th style="width:60px;">Image</th>
+          <th>Product</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+        <tr class="product-row {% if p.is_deleted %}opacity-50{% endif %}"
+            id="product-row-{{ p.id }}" data-name="{{ p.name|lower }}"
+            data-category="{{ p.category|lower if p.category else '' }}"
+            data-active="{{ 'archived' if p.is_deleted else ('active' if p.is_active else 'inactive') }}"
+            data-stock-status="{{ p._stock_status }}">
+          <td style="width:36px;">
+            <input type="checkbox" class="form-check-input product-check"
+                   data-product-id="{{ p.id }}" aria-label="Select {{ p.name }}">
+          </td>
+          <td>
+            {% if p.images and p.images|length > 0 %}
+              <img src="{{ p.images[0] }}" class="product-thumb" alt="{{ p.name }}">
+            {% else %}
+              <div class="product-thumb-placeholder"><i class="fas fa-image"></i></div>
+            {% endif %}
+          </td>
+          <td>
+            <div class="fw-semibold d-flex align-items-center gap-1 flex-wrap">
+              {{ p.name }}
+              {% if p._on_sale %}
+                <span class="badge bg-danger" style="font-size:.6rem;">SALE</span>
+              {% endif %}
+              {% if p._stock_status == 'oos' %}
+                <span class="badge bg-danger" style="font-size:.6rem;">Out of Stock</span>
+              {% elif p._stock_status == 'low' %}
+                <span class="badge bg-warning text-dark" style="font-size:.6rem;">Low Stock</span>
+              {% endif %}
+            </div>
+            <div class="text-muted small text-truncate" style="max-width:200px;">{{ p.description or '' }}</div>
+          </td>
+          <td><span class="badge bg-light text-dark border">{{ (p.category or '—')|title }}</span></td>
+          <td class="fw-semibold">₱{{ p.price|float|currency if p.price else '0.00' }}</td>
+          <td>
+            {% set _qty = p.stock_quantity or 0 %}
+            {% if p._stock_status == 'oos' %}
+              <span class="text-danger fw-bold"><i class="fas fa-times-circle me-1"></i>0</span>
+            {% elif p._stock_status == 'low' %}
+              <span class="text-warning fw-bold"><i class="fas fa-exclamation-triangle me-1"></i>{{ _qty }}</span>
+            {% else %}
+              <span class="text-success fw-semibold">{{ _qty }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if p.is_deleted %}
+              <span class="badge" style="background:#e9ecef;color:#6c757d;font-size:.7rem;font-weight:600;">Archived</span>
+            {% else %}
+              <span class="status-pill {{ 'status-completed active-badge' if p.is_active else 'status-cancelled active-badge' }}">
+                {{ 'Active' if p.is_active else 'Inactive' }}
+              </span>
+            {% endif %}
+          </td>
+          <td>
+            {% if p.is_deleted %}
+              <form method="POST" action="{{ url_for('seller.product_restore', product_id=p.id) }}" class="d-inline">
+                <button class="btn btn-xs btn-outline-success" title="Restore product"
+                        style="padding:3px 8px;font-size:.75rem;">
+                  <i class="fas fa-undo me-1"></i>Restore
+                </button>
+              </form>
+            {% else %}
+            <div class="d-flex gap-1">
+              <a href="{{ url_for('seller.product_edit', product_id=p.id) }}"
+                 class="btn btn-xs btn-outline-primary" title="Edit" style="padding:3px 8px;font-size:.75rem;">
+                <i class="fas fa-edit"></i>
+              </a>
+              <button class="btn btn-xs btn-outline-secondary toggle-active"
+                      data-product-id="{{ p.id }}"
+                      data-active="{{ 'true' if p.is_active else 'false' }}"
+                      title="{{ 'Deactivate' if p.is_active else 'Activate' }}"
+                      style="padding:3px 8px;font-size:.75rem;">
+                <i class="fas {{ 'fa-eye-slash' if p.is_active else 'fa-eye' }}"></i>
+              </button>
+              <button class="btn btn-xs btn-outline-warning"
+                      data-bs-toggle="modal" data-bs-target="#deleteModal"
+                      data-product-id="{{ p.id }}" data-product-name="{{ p.name }}"
+                      title="Archive product" style="padding:3px 8px;font-size:.75rem;">
+                <i class="fas fa-archive"></i>
+              </button>
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted seller-card-body">
+    <i class="fas fa-box fa-4x mb-3 opacity-25"></i>
+    <h6>No products yet</h6>
+    <p class="small">Start by adding your first product.</p>
+    <a href="{{ url_for('seller.product_add') }}" class="btn btn-primary">
+      <i class="fas fa-plus me-1"></i>Add Product
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+{{ render_pagination(pagination) }}
+
+<!-- Delete Confirm Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title text-warning"><i class="fas fa-archive me-2"></i>Archive Product</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Archive <strong id="deleteProductName"></strong>?</p>
+        <p class="text-muted small">This product will be hidden from buyers. Your order history is fully preserved and nothing is permanently deleted. You can restore it at any time from the <strong>Archived</strong> filter.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <form id="deleteForm" method="POST">
+          <button type="submit" class="btn btn-warning btn-sm text-white">
+            <i class="fas fa-archive me-1"></i>Archive
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/seller/products.js') }}"></script>
+{% endblock %}

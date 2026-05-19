@@ -1,0 +1,115 @@
+{% extends "rider/base.html" %}
+{% block title %}Dashboard – KidZora Rider{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Dashboard – KidZora Rider">
+{% endblock %}
+
+{% block page_content %}
+<div class="mb-4">
+  <h4 class="fw-bold mb-0"><i class="fas fa-tachometer-alt me-2 text-success"></i>Dashboard</h4>
+  <p class="text-muted small mb-0">Welcome back, {{ current_user.first_name }}!</p>
+</div>
+
+<!-- Availability status banner -->
+{% if rider_is_available %}
+<div class="alert alert-success d-flex align-items-center gap-3 py-2 mb-4">
+  <i class="fas fa-circle fa-xs" style="color:#198754;"></i>
+  <div class="flex-grow-1">
+    <strong>You are Online</strong> — you can accept new deliveries.
+  </div>
+  <button id="kzDashAvailBtn" class="btn btn-sm btn-outline-secondary" data-available="true">
+    Go Offline
+  </button>
+</div>
+{% else %}
+<div class="alert alert-secondary d-flex align-items-center gap-3 py-2 mb-4">
+  <i class="fas fa-circle fa-xs" style="color:#6c757d;"></i>
+  <div class="flex-grow-1">
+    <strong>You are Offline</strong> — you won't appear for new delivery assignments.
+  </div>
+  <button id="kzDashAvailBtn" class="btn btn-sm btn-success" data-available="false">
+    Go Online
+  </button>
+</div>
+{% endif %}
+
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="rider-stat">
+      <div class="stat-val text-success">{{ available_count }}</div>
+      <div class="stat-lbl"><i class="fas fa-box-open me-1"></i>Available Pickups</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="rider-stat" style="border-left-color:#0d6efd;">
+      <div class="stat-val text-primary">{{ active_deliveries }}</div>
+      <div class="stat-lbl"><i class="fas fa-motorcycle me-1"></i>Active Deliveries</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="rider-stat" style="border-left-color:#6f42c1;">
+      <div class="stat-val text-purple" style="color:#6f42c1;">{{ completed_deliveries }}</div>
+      <div class="stat-lbl"><i class="fas fa-check-circle me-1"></i>Completed</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="rider-stat" style="border-left-color:#ffc107;">
+      <div class="stat-val" style="color:#856404;">₱{{ total_earnings|float|currency }}</div>
+      <div class="stat-lbl"><i class="fas fa-wallet me-1"></i>Total Earnings</div>
+    </div>
+  </div>
+</div>
+
+{% if available_count %}
+<div class="alert alert-success d-flex align-items-center gap-3 py-2 mb-4">
+  <i class="fas fa-bell fa-lg"></i>
+  <div>
+    <strong>{{ available_count }} order{{ 's' if available_count != 1 }} ready for pickup!</strong>
+    <a href="{{ url_for('rider.available') }}" class="ms-2 text-success fw-semibold">View now →</a>
+  </div>
+</div>
+{% endif %}
+
+<!-- Recent deliveries -->
+<div class="rider-card">
+  <div class="rider-card-header">
+    <i class="fas fa-history me-2 text-success"></i>Recent Deliveries
+  </div>
+  <div class="rider-card-body p-0">
+    {% if recent_deliveries %}
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Order</th><th>Date</th><th>Total</th><th>Status</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in recent_deliveries %}
+        {% set s = o.status or 'pending' %}
+        {% set color = {'out_for_delivery':'primary','delivered':'success','completed':'success','cancelled':'danger'}.get(s,'secondary') %}
+        <tr>
+          <td class="fw-semibold">#{{ o.id[:8]|upper }}</td>
+          <td class="text-muted small">{{ o.updated_at[:10] if o.updated_at else '—' }}</td>
+          <td>₱{{ o.total_amount|float|currency if o.total_amount else '0.00' }}</td>
+          <td><span class="badge bg-{{ color }}">{{ s|replace('_',' ')|title }}</span></td>
+          <td><a href="{{ url_for('rider.delivery_detail', order_id=o.id) }}" class="btn btn-sm btn-outline-success">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-4 text-muted">
+      <i class="fas fa-motorcycle fa-2x mb-2 d-block opacity-25"></i>
+      No deliveries yet. <a href="{{ url_for('rider.available') }}">Find available orders</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/kidzora-utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/rider/dashboard.js') }}"></script>
+{% endblock %}
+{% endblock %}

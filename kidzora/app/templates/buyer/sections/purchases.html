@@ -1,0 +1,336 @@
+<!-- Order Tracking Tabs -->
+<div class="card-header bg-white border-bottom rounded-top-3 p-0">
+  <ul class="nav nav-underline mb-0 p-3 order-status-tabs" role="tablist" style="overflow-x: auto;">
+    <li class="nav-item">
+      <button class="nav-link active fw-semibold text-danger" type="button" id="purchase-all-btn" data-bs-toggle="tab" data-bs-target="#purchase-all" role="tab" aria-controls="purchase-all" aria-selected="true">
+        All
+        {% if orders_by_status.all %}<span class="badge bg-danger ms-2">{{ orders_by_status.all|length }}</span>{% endif %}
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link fw-semibold text-muted" type="button" id="purchase-pending-btn" data-bs-toggle="tab" data-bs-target="#purchase-pending" role="tab" aria-controls="purchase-pending" aria-selected="false">
+        Order Placed
+        {% if orders_by_status.pending %}<span class="badge bg-warning ms-2">{{ orders_by_status.pending|length }}</span>{% endif %}
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link fw-semibold text-muted" type="button" id="purchase-confirmed-btn" data-bs-toggle="tab" data-bs-target="#purchase-confirmed" role="tab" aria-controls="purchase-confirmed" aria-selected="false">
+        Confirmed
+        {% if orders_by_status.confirmed %}<span class="badge bg-info ms-2">{{ orders_by_status.confirmed|length }}</span>{% endif %}
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link fw-semibold text-muted" type="button" id="purchase-preparing-btn" data-bs-toggle="tab" data-bs-target="#purchase-preparing" role="tab" aria-controls="purchase-preparing" aria-selected="false">
+        Preparing
+        {% if orders_by_status.preparing %}<span class="badge bg-info ms-2">{{ orders_by_status.preparing|length }}</span>{% endif %}
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link fw-semibold text-muted" type="button" id="purchase-pickup-btn" data-bs-toggle="tab" data-bs-target="#purchase-pickup" role="tab" aria-controls="purchase-pickup" aria-selected="false">
+        Ready for Pickup
+        {% if orders_by_status.ready_for_pickup %}<span class="badge bg-info ms-2">{{ orders_by_status.ready_for_pickup|length }}</span>{% endif %}
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link fw-semibold text-muted" type="button" id="purchase-delivery-btn" data-bs-toggle="tab" data-bs-target="#purchase-delivery" role="tab" aria-controls="purchase-delivery" aria-selected="false">
+        Out for Delivery
+        {% if orders_by_status.out_for_delivery %}<span class="badge bg-primary ms-2">{{ orders_by_status.out_for_delivery|length }}</span>{% endif %}
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link fw-semibold text-muted" type="button" id="purchase-delivered-btn" data-bs-toggle="tab" data-bs-target="#purchase-delivered" role="tab" aria-controls="purchase-delivered" aria-selected="false">
+        Delivered
+        {% if orders_by_status.delivered %}<span class="badge bg-success ms-2">{{ orders_by_status.delivered|length }}</span>{% endif %}
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link fw-semibold text-muted" type="button" id="purchase-completed-btn" data-bs-toggle="tab" data-bs-target="#purchase-completed" role="tab" aria-controls="purchase-completed" aria-selected="false">
+        Completed
+        {% if orders_by_status.completed %}<span class="badge bg-success ms-2">{{ orders_by_status.completed|length }}</span>{% endif %}
+      </button>
+    </li>
+  </ul>
+</div>
+
+<!-- Search Bar -->
+<div class="card-body border-bottom p-3">
+  <div class="input-group">
+    <span class="input-group-text bg-white border-end-0">
+      <i class="fas fa-search text-muted"></i>
+    </span>
+    <input type="text" class="form-control border-start-0" placeholder="Search by Order ID or Product name">
+  </div>
+</div>
+
+<!-- Tab Content -->
+<div class="tab-content p-0">
+  
+  <!-- All Orders Tab -->
+  <div class="tab-pane fade show active" id="purchase-all" role="tabpanel" aria-labelledby="purchase-all-btn">
+    {% if orders_by_status.all %}
+      {% for order in orders_by_status.all %}
+        <div class="order-card border-bottom p-4" style="border-bottom: 1px solid #e0e0e0;">
+          <div class="row align-items-center mb-3">
+            <div class="col-12 col-md-8 mb-2 mb-md-0">
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="badge bg-danger" style="font-size: 0.75rem;">Store</span>
+                <span class="fw-semibold" style="font-size: 0.95rem;">{{ order.shop_name or 'Unknown Store' }}</span>
+              </div>
+            </div>
+            <div class="col-12 col-md-4 d-flex gap-2 justify-content-md-end">
+              <button class="btn btn-sm btn-light border" style="font-size: 0.8rem; white-space: nowrap;">
+                <i class="fas fa-comment me-1"></i>Chat
+              </button>
+              <a href="#" class="btn btn-sm btn-light border" style="font-size: 0.8rem; white-space: nowrap;">
+                <i class="fas fa-store me-1"></i>View Shop
+              </a>
+            </div>
+          </div>
+          {% set preview = order._items or [] %}
+          {% if preview %}
+            <div class="d-flex gap-3 mb-3">
+              {% set first = preview[0] %}
+              {% set prod = first.products or {} %}
+              {% set imgs = prod.images if prod.images else [] %}
+              {% if imgs %}
+                <img src="{{ imgs[0] }}" alt="Product" class="rounded" style="width: 80px; height: 80px; object-fit: cover;">
+              {% else %}
+                <div class="rounded order-item-image bg-light d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                  <i class="fas fa-image text-muted"></i>
+                </div>
+              {% endif %}
+              <div class="flex-grow-1">
+                <h6 class="fw-semibold mb-1" style="font-size: 0.9rem;">{{ prod.name or 'Product' }}</h6>
+                {% if first.product_variants %}
+                  <small class="text-muted d-block">{{ first.product_variants.name }}</small>
+                {% endif %}
+                <small class="text-muted d-block">x{{ first.quantity }}</small>
+              </div>
+              <div class="text-end">
+                <p class="mb-0 fw-semibold text-danger">₱{{ "%.2f"|format(first.price) }}</p>
+              </div>
+            </div>
+            {% if preview|length > 1 %}
+              <div class="text-muted small mb-3">+{{ preview|length - 1 }} more item(s)</div>
+            {% endif %}
+          {% endif %}
+          <div class="row align-items-center">
+            <div class="col-12 col-md-6 mb-2 mb-md-0">
+              {% if order.status == 'pending' %}
+                <span class="badge bg-warning text-dark status-badge"><i class="fas fa-clock me-1"></i>Order Placed</span>
+              {% elif order.status == 'confirmed' %}
+                <span class="badge bg-info text-white status-badge"><i class="fas fa-check-circle me-1"></i>Confirmed</span>
+              {% elif order.status == 'preparing' %}
+                <span class="badge bg-info text-white status-badge"><i class="fas fa-box me-1"></i>Preparing</span>
+              {% elif order.status == 'ready_for_pickup' %}
+                <span class="badge bg-info text-white status-badge"><i class="fas fa-store me-1"></i>Ready for Pickup</span>
+              {% elif order.status == 'out_for_delivery' %}
+                <span class="badge bg-primary text-white status-badge"><i class="fas fa-motorcycle me-1"></i>Out for Delivery</span>
+              {% elif order.status == 'delivered' %}
+                <span class="badge bg-success text-white status-badge"><i class="fas fa-house-user me-1"></i>Delivered</span>
+              {% elif order.status == 'completed' %}
+                <span class="badge bg-success text-white status-badge"><i class="fas fa-star me-1"></i>Completed</span>
+              {% else %}
+                <span class="badge bg-secondary status-badge">{{ order.status }}</span>
+              {% endif %}
+            </div>
+            <div class="col-12 col-md-6 text-md-end">
+              <small class="text-muted d-block">Order Total:</small>
+              <span class="h6 text-danger fw-bold">₱{{ "%.2f"|format(order.total_amount) }}</span>
+            </div>
+          </div>
+          <div class="row mt-3">
+            <div class="col-12">
+              <div class="d-flex gap-2 justify-content-end flex-wrap">
+                {% if order.status == 'completed' %}
+                  <button class="btn btn-danger btn-sm" style="white-space: nowrap;"><i class="fas fa-star me-1"></i>Rate</button>
+                {% endif %}
+                <button class="btn btn-outline-danger btn-sm" style="white-space: nowrap;">Contact Seller</button>
+                {% if order.status == 'completed' %}
+                  <button class="btn btn-outline-danger btn-sm" style="white-space: nowrap;">Buy Again</button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="text-center py-5">
+        <i class="fas fa-inbox text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3 mb-3">You haven't placed any orders yet.</p>
+        <a href="{{ url_for('buyer.browse_products') }}" class="btn btn-danger btn-sm">
+          <i class="fas fa-shopping-bag me-1"></i>Start Shopping
+        </a>
+      </div>
+    {% endif %}
+  </div>
+  
+  <!-- Order Placed Tab -->
+  <div class="tab-pane fade" id="purchase-pending" role="tabpanel" aria-labelledby="purchase-pending-btn">
+    {% if orders_by_status.pending %}
+      {% for order in orders_by_status.pending %}
+        <div class="order-card border-bottom p-4" style="border-bottom: 1px solid #e0e0e0;">
+          <div class="row align-items-center mb-3">
+            <div class="col-12 col-md-8 mb-2 mb-md-0">
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="badge bg-danger" style="font-size: 0.75rem;">Store</span>
+                <span class="fw-semibold" style="font-size: 0.95rem;">{{ order.shop_name or 'Unknown Store' }}</span>
+              </div>
+            </div>
+            <div class="col-12 col-md-4 d-flex gap-2 justify-content-md-end">
+              <button class="btn btn-sm btn-light border" style="font-size: 0.8rem; white-space: nowrap;">
+                <i class="fas fa-comment me-1"></i>Chat
+              </button>
+              <a href="#" class="btn btn-sm btn-light border" style="font-size: 0.8rem; white-space: nowrap;">
+                <i class="fas fa-store me-1"></i>View Shop
+              </a>
+            </div>
+          </div>
+          {% set preview = order._items or [] %}
+          {% if preview %}
+            <div class="d-flex gap-3 mb-3">
+              {% set first = preview[0] %}
+              {% set prod = first.products or {} %}
+              {% set imgs = prod.images if prod.images else [] %}
+              {% if imgs %}
+                <img src="{{ imgs[0] }}" alt="Product" class="rounded" style="width: 80px; height: 80px; object-fit: cover;">
+              {% else %}
+                <div class="rounded order-item-image bg-light d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                  <i class="fas fa-image text-muted"></i>
+                </div>
+              {% endif %}
+              <div class="flex-grow-1">
+                <h6 class="fw-semibold mb-1" style="font-size: 0.9rem;">{{ prod.name or 'Product' }}</h6>
+                {% if first.product_variants %}
+                  <small class="text-muted d-block">{{ first.product_variants.name }}</small>
+                {% endif %}
+                <small class="text-muted d-block">x{{ first.quantity }}</small>
+              </div>
+              <div class="text-end">
+                <p class="mb-0 fw-semibold text-danger">₱{{ "%.2f"|format(first.price) }}</p>
+              </div>
+            </div>
+            {% if preview|length > 1 %}
+              <div class="text-muted small mb-3">+{{ preview|length - 1 }} more item(s)</div>
+            {% endif %}
+          {% endif %}
+          <div class="row align-items-center">
+            <div class="col-12 col-md-6 mb-2 mb-md-0">
+              <span class="badge bg-warning text-dark status-badge"><i class="fas fa-clock me-1"></i>Order Placed</span>
+            </div>
+            <div class="col-12 col-md-6 text-md-end">
+              <small class="text-muted d-block">Order Total:</small>
+              <span class="h6 text-danger fw-bold">₱{{ "%.2f"|format(order.total_amount) }}</span>
+            </div>
+          </div>
+          <div class="row mt-3">
+            <div class="col-12">
+              <div class="d-flex gap-2 justify-content-end flex-wrap">
+                <button class="btn btn-outline-danger btn-sm" style="white-space: nowrap;">Contact Seller</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="text-center py-5">
+        <i class="fas fa-inbox text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3 mb-3">No orders at this stage.</p>
+        <a href="{{ url_for('buyer.browse_products') }}" class="btn btn-danger btn-sm">
+          <i class="fas fa-shopping-bag me-1"></i>Start Shopping
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Confirmed Tab -->
+  <div class="tab-pane fade" id="purchase-confirmed" role="tabpanel" aria-labelledby="purchase-confirmed-btn">
+    {% if orders_by_status.confirmed %}
+      {% for order in orders_by_status.confirmed %}
+        <div class="order-card border-bottom p-4" style="border-bottom: 1px solid #e0e0e0;">
+          <div class="row align-items-center mb-3"><div class="col-12"><span class="badge bg-danger" style="font-size: 0.75rem;">Store</span> <span class="fw-semibold">{{ order.shop_name }}</span></div></div>
+          {% set preview = order._items or [] %}
+          {% if preview %}<div class="d-flex gap-3 mb-3">{% set first = preview[0] %}{% set prod = first.products or {} %}{% set imgs = prod.images if prod.images else [] %}{% if imgs %}<img src="{{ imgs[0] }}" alt="Product" class="rounded" style="width: 80px; height: 80px; object-fit: cover;">{% else %}<div class="rounded bg-light d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;"><i class="fas fa-image text-muted"></i></div>{% endif %}<div class="flex-grow-1"><h6 class="fw-semibold mb-1">{{ prod.name }}</h6><small class="text-muted d-block">x{{ first.quantity }}</small></div><div class="text-end"><p class="mb-0 fw-semibold text-danger">₱{{ "%.2f"|format(first.price) }}</p></div></div>{% endif %}
+          <span class="badge bg-info text-white status-badge"><i class="fas fa-check-circle me-1"></i>Confirmed</span>
+        </div>
+      {% endfor %}
+    {% else %}<div class="text-center py-5"><i class="fas fa-inbox text-muted" style="font-size: 3rem;"></i><p class="text-muted mt-3">No orders at this stage</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Preparing Tab -->
+  <div class="tab-pane fade" id="purchase-preparing" role="tabpanel" aria-labelledby="purchase-preparing-btn">
+    {% if orders_by_status.preparing %}
+      {% for order in orders_by_status.preparing %}
+        <div class="order-card border-bottom p-4" style="border-bottom: 1px solid #e0e0e0;">
+          <div class="row align-items-center mb-3"><div class="col-12"><span class="badge bg-danger" style="font-size: 0.75rem;">Store</span> <span class="fw-semibold">{{ order.shop_name }}</span></div></div>
+          {% set preview = order._items or [] %}
+          {% if preview %}<div class="d-flex gap-3 mb-3">{% set first = preview[0] %}{% set prod = first.products or {} %}{% set imgs = prod.images if prod.images else [] %}{% if imgs %}<img src="{{ imgs[0] }}" alt="Product" class="rounded" style="width: 80px; height: 80px; object-fit: cover;">{% else %}<div class="rounded bg-light d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;"><i class="fas fa-image text-muted"></i></div>{% endif %}<div class="flex-grow-1"><h6 class="fw-semibold mb-1">{{ prod.name }}</h6><small class="text-muted d-block">x{{ first.quantity }}</small></div><div class="text-end"><p class="mb-0 fw-semibold text-danger">₱{{ "%.2f"|format(first.price) }}</p></div></div>{% endif %}
+          <span class="badge bg-info text-white status-badge"><i class="fas fa-box me-1"></i>Preparing</span>
+        </div>
+      {% endfor %}
+    {% else %}<div class="text-center py-5"><i class="fas fa-box text-muted" style="font-size: 3rem;"></i><p class="text-muted mt-3">No orders at this stage</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Ready for Pickup Tab -->
+  <div class="tab-pane fade" id="purchase-pickup" role="tabpanel" aria-labelledby="purchase-pickup-btn">
+    {% if orders_by_status.ready_for_pickup %}
+      {% for order in orders_by_status.ready_for_pickup %}
+        <div class="order-card border-bottom p-4" style="border-bottom: 1px solid #e0e0e0;">
+          <div class="row align-items-center mb-3"><div class="col-12"><span class="badge bg-danger" style="font-size: 0.75rem;">Store</span> <span class="fw-semibold">{{ order.shop_name }}</span></div></div>
+          {% set preview = order._items or [] %}
+          {% if preview %}<div class="d-flex gap-3 mb-3">{% set first = preview[0] %}{% set prod = first.products or {} %}{% set imgs = prod.images if prod.images else [] %}{% if imgs %}<img src="{{ imgs[0] }}" alt="Product" class="rounded" style="width: 80px; height: 80px; object-fit: cover;">{% else %}<div class="rounded bg-light d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;"><i class="fas fa-image text-muted"></i></div>{% endif %}<div class="flex-grow-1"><h6 class="fw-semibold mb-1">{{ prod.name }}</h6><small class="text-muted d-block">x{{ first.quantity }}</small></div><div class="text-end"><p class="mb-0 fw-semibold text-danger">₱{{ "%.2f"|format(first.price) }}</p></div></div>{% endif %}
+          <span class="badge bg-info text-white status-badge"><i class="fas fa-store me-1"></i>Ready for Pickup</span>
+        </div>
+      {% endfor %}
+    {% else %}<div class="text-center py-5"><i class="fas fa-store text-muted" style="font-size: 3rem;"></i><p class="text-muted mt-3">No orders at this stage</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Out for Delivery Tab -->
+  <div class="tab-pane fade" id="purchase-delivery" role="tabpanel" aria-labelledby="purchase-delivery-btn">
+    {% if orders_by_status.out_for_delivery %}
+      {% for order in orders_by_status.out_for_delivery %}
+        <div class="order-card border-bottom p-4" style="border-bottom: 1px solid #e0e0e0;">
+          <div class="row align-items-center mb-3"><div class="col-12"><span class="badge bg-danger" style="font-size: 0.75rem;">Store</span> <span class="fw-semibold">{{ order.shop_name }}</span></div></div>
+          {% set preview = order._items or [] %}
+          {% if preview %}<div class="d-flex gap-3 mb-3">{% set first = preview[0] %}{% set prod = first.products or {} %}{% set imgs = prod.images if prod.images else [] %}{% if imgs %}<img src="{{ imgs[0] }}" alt="Product" class="rounded" style="width: 80px; height: 80px; object-fit: cover;">{% else %}<div class="rounded bg-light d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;"><i class="fas fa-image text-muted"></i></div>{% endif %}<div class="flex-grow-1"><h6 class="fw-semibold mb-1">{{ prod.name }}</h6><small class="text-muted d-block">x{{ first.quantity }}</small></div><div class="text-end"><p class="mb-0 fw-semibold text-danger">₱{{ "%.2f"|format(first.price) }}</p></div></div>{% endif %}
+          <span class="badge bg-primary text-white status-badge"><i class="fas fa-motorcycle me-1"></i>Out for Delivery</span>
+        </div>
+      {% endfor %}
+    {% else %}<div class="text-center py-5"><i class="fas fa-motorcycle text-muted" style="font-size: 3rem;"></i><p class="text-muted mt-3">No orders at this stage</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Delivered Tab -->
+  <div class="tab-pane fade" id="purchase-delivered" role="tabpanel" aria-labelledby="purchase-delivered-btn">
+    {% if orders_by_status.delivered %}
+      {% for order in orders_by_status.delivered %}
+        <div class="order-card border-bottom p-4" style="border-bottom: 1px solid #e0e0e0;">
+          <div class="row align-items-center mb-3"><div class="col-12"><span class="badge bg-danger" style="font-size: 0.75rem;">Store</span> <span class="fw-semibold">{{ order.shop_name }}</span></div></div>
+          {% set preview = order._items or [] %}
+          {% if preview %}<div class="d-flex gap-3 mb-3">{% set first = preview[0] %}{% set prod = first.products or {} %}{% set imgs = prod.images if prod.images else [] %}{% if imgs %}<img src="{{ imgs[0] }}" alt="Product" class="rounded" style="width: 80px; height: 80px; object-fit: cover;">{% else %}<div class="rounded bg-light d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;"><i class="fas fa-image text-muted"></i></div>{% endif %}<div class="flex-grow-1"><h6 class="fw-semibold mb-1">{{ prod.name }}</h6><small class="text-muted d-block">x{{ first.quantity }}</small></div><div class="text-end"><p class="mb-0 fw-semibold text-danger">₱{{ "%.2f"|format(first.price) }}</p></div></div>{% endif %}
+          <span class="badge bg-success text-white status-badge"><i class="fas fa-house-user me-1"></i>Delivered</span>
+        </div>
+      {% endfor %}
+    {% else %}<div class="text-center py-5"><i class="fas fa-house-user text-success" style="font-size: 3rem;"></i><p class="text-muted mt-3">No orders at this stage</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Completed Tab -->
+  <div class="tab-pane fade" id="purchase-completed" role="tabpanel" aria-labelledby="purchase-completed-btn">
+    {% if orders_by_status.completed %}
+      {% for order in orders_by_status.completed %}
+        <div class="order-card border-bottom p-4" style="border-bottom: 1px solid #e0e0e0;">
+          <div class="row align-items-center mb-3"><div class="col-12"><span class="badge bg-danger" style="font-size: 0.75rem;">Store</span> <span class="fw-semibold">{{ order.shop_name }}</span></div></div>
+          {% set preview = order._items or [] %}
+          {% if preview %}<div class="d-flex gap-3 mb-3">{% set first = preview[0] %}{% set prod = first.products or {} %}{% set imgs = prod.images if prod.images else [] %}{% if imgs %}<img src="{{ imgs[0] }}" alt="Product" class="rounded" style="width: 80px; height: 80px; object-fit: cover;">{% else %}<div class="rounded bg-light d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;"><i class="fas fa-image text-muted"></i></div>{% endif %}<div class="flex-grow-1"><h6 class="fw-semibold mb-1">{{ prod.name }}</h6><small class="text-muted d-block">x{{ first.quantity }}</small></div></div>{% endif %}
+          <div class="d-flex justify-content-between align-items-center"><span class="badge bg-success status-badge"><i class="fas fa-star me-1"></i>Completed</span><div class="d-flex gap-2"><button class="btn btn-danger btn-sm"><i class="fas fa-star me-1"></i>Rate</button><button class="btn btn-outline-danger btn-sm">Buy Again</button></div></div>
+        </div>
+      {% endfor %}
+    {% else %}<div class="text-center py-5"><i class="fas fa-star text-success" style="font-size: 3rem;"></i><p class="text-muted mt-3">No completed orders</p></div>
+    {% endif %}
+  </div>
+
+</div>

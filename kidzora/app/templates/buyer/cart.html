@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}My Cart – KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="View and manage the items in your KidZora shopping cart.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="My Cart – KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/buyer/cart.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fas fa-shopping-cart me-2 text-primary"></i>My Cart</h2>
+    <a href="{{ url_for('buyer.browse_products') }}" class="btn btn-outline-primary">
+      <i class="fas fa-arrow-left me-1"></i>Continue Shopping
+    </a>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} alert-dismissible fade show">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if items %}
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+          {% for item in items %}
+          <div class="d-flex align-items-center gap-3 p-3 {% if not loop.last %}border-bottom{% endif %}">
+            <!-- Image -->
+            {% if item.image_url %}
+              <img src="{{ item.image_url }}" alt="{{ item.name }}" class="cart-thumb">
+            {% else %}
+              <div class="cart-thumb-empty">
+                <i class="fas fa-image text-muted"></i>
+              </div>
+            {% endif %}
+
+            <!-- Name + price -->
+            <div class="flex-grow-1">
+              <a href="{{ url_for('buyer.product_detail', product_id=item.id) }}"
+                 class="fw-semibold text-dark text-decoration-none">{{ item.name }}</a>
+              {% if item.variant_name %}
+                <span class="badge bg-secondary ms-1">{{ item.variant_name }}</span>
+              {% endif %}
+              <div class="text-muted small">
+                {% if item._on_sale %}
+                  <span class="text-danger fw-semibold">&#8369;{{ item.price|float|currency }}</span>
+                  <span class="text-muted text-decoration-line-through ms-1" style="font-size:.75em;">&#8369;{{ item.original_price|float|currency }}</span>
+                  <span class="badge bg-danger ms-1" style="font-size:.55rem;">SALE</span>
+                {% else %}
+                  &#8369;{{ item.price|float|currency }} each
+                {% endif %}
+              </div>
+              {% if item.stock == 0 %}
+                <div class="text-danger small"><i class="fas fa-exclamation-circle me-1"></i>Out of stock — remove this item</div>
+              {% elif item.qty > item.stock %}
+                <div class="text-warning small"><i class="fas fa-exclamation-triangle me-1"></i>Only {{ item.stock }} available</div>
+              {% endif %}
+            </div>
+
+            <!-- Qty form -->
+            <form action="{{ url_for('buyer.cart_update', cart_key=item.cart_key) }}" method="POST"
+                  class="d-flex align-items-center gap-1">
+              <div class="input-group input-group-sm cart-qty-group">
+                <button type="button" class="btn btn-outline-secondary btn-sm">−</button>
+                <input type="number" name="qty" value="{{ item.qty }}" min="1" max="{{ item.stock }}"
+                       class="form-control form-control-sm text-center">
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        data-stock="{{ item.stock }}">+</button>
+              </div>
+              <button type="submit" class="btn btn-sm btn-outline-secondary ms-1" title="Update">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+            </form>
+
+            <!-- Subtotal -->
+            <div class="fw-bold text-primary cart-subtotal">
+              ₱{{ item.subtotal|float|currency }}
+            </div>
+
+            <!-- Remove -->
+            <form action="{{ url_for('buyer.cart_remove', cart_key=item.cart_key) }}" method="POST">
+              <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove">
+                <i class="fas fa-trash"></i>
+              </button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Clear cart -->
+      <form action="{{ url_for('buyer.cart_clear') }}" method="POST" class="mt-2 text-end">
+        <button type="submit" class="btn btn-sm btn-outline-danger">
+          <i class="fas fa-trash me-1"></i>Clear Cart
+        </button>
+      </form>
+    </div>
+
+    <!-- Summary -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-top cart-summary">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3">Order Summary</h5>
+          <table class="table table-sm mb-0">
+            {% for item in items %}
+            <tr>
+              <td class="text-muted small border-0 pb-1">
+                {{ item.name }}
+                {% if item.variant_name %}<span class="badge bg-secondary ms-1 fw-normal">{{ item.variant_name }}</span>{% endif %}
+                × {{ item.qty }}
+              </td>
+              <td class="text-end border-0 pb-1">₱{{ item.subtotal|float|currency }}</td>
+            </tr>
+            {% endfor %}
+            <tr class="border-top">
+              <td class="fw-bold pt-2">Total</td>
+              <td class="fw-bold text-primary text-end pt-2">₱{{ total|float|currency }}</td>
+            </tr>
+          </table>
+          <div class="d-grid mt-3">
+            <a href="{{ url_for('buyer.checkout') }}" class="btn btn-primary btn-lg">
+              <i class="fas fa-lock me-2"></i>Proceed to Checkout
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body cart-empty-state text-center">
+
+      <!-- Illustrated empty cart -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" width="200" height="180"
+           class="cart-empty-svg" aria-hidden="true" role="img">
+        <!-- Soft background blob -->
+        <ellipse cx="100" cy="100" rx="88" ry="76" fill="#eff6ff"/>
+        <!-- Cart handle -->
+        <polyline points="18,38 40,38 58,130"
+                  fill="none" stroke="#3b82f6" stroke-width="5"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Cart basket -->
+        <path d="M58,80 L175,80 L162,130 L71,130 Z"
+              fill="#dbeafe" stroke="#3b82f6" stroke-width="4" stroke-linejoin="round"/>
+        <!-- Empty dashed line inside basket -->
+        <line x1="65" y1="105" x2="168" y2="105"
+              stroke="#93c5fd" stroke-width="2.5" stroke-dasharray="7,5"/>
+        <!-- Left wheel -->
+        <circle cx="90"  cy="147" r="13" fill="#fff" stroke="#3b82f6" stroke-width="4"/>
+        <circle cx="90"  cy="147" r="5"  fill="#3b82f6"/>
+        <!-- Right wheel -->
+        <circle cx="148" cy="147" r="13" fill="#fff" stroke="#3b82f6" stroke-width="4"/>
+        <circle cx="148" cy="147" r="5"  fill="#3b82f6"/>
+        <!-- Empty "?" inside basket -->
+        <text x="116" y="122" font-family="system-ui,sans-serif" font-size="26"
+              text-anchor="middle" fill="#93c5fd" font-weight="700">?</text>
+        <!-- Gold star top-right -->
+        <polygon points="178,22 180,30 188,30 182,35 184,43 178,38 172,43 174,35 168,30 176,30"
+                 fill="#fbbf24" opacity="0.85"/>
+        <!-- Pink dot left -->
+        <circle cx="28" cy="95"  r="5" fill="#f9a8d4" opacity="0.7"/>
+        <circle cx="20" cy="115" r="3" fill="#c4b5fd" opacity="0.7"/>
+        <circle cx="38" cy="125" r="4" fill="#86efac" opacity="0.6"/>
+        <!-- Pink star top-left -->
+        <polygon points="42,18 44,24 50,24 45,28 47,34 42,30 37,34 39,28 34,24 40,24"
+                 fill="#f9a8d4" opacity="0.8"/>
+      </svg>
+
+      <h4 class="cart-empty-title mt-4 mb-2">Your cart is empty!</h4>
+      <p class="cart-empty-sub mb-4">
+        Looks like you haven't added anything yet.<br>
+        Discover great kids' products on KidZora!
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-2">
+        <a href="{{ url_for('buyer.browse_products') }}" class="btn btn-primary px-4">
+          <i class="fas fa-shopping-bag me-2"></i>Browse Products
+        </a>
+        <a href="{{ url_for('buyer.wishlist') }}" class="btn btn-outline-danger px-4">
+          <i class="fas fa-heart me-2"></i>My Favourites
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/buyer/cart.js') }}"></script>
+{% endblock %}
+{% endblock %}

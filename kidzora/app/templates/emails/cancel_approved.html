@@ -1,0 +1,12 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2 style="color:#16a34a;margin:0 0 8px;">✅ Cancellation Approved</h2>
+<p style="color:#374151;margin:0 0 16px;">
+    Your cancellation request for order <strong>{{ order_ref }}</strong> has been approved.
+    The order has been cancelled.
+</p>
+<p style="color:#6b7280;font-size:.85rem;">
+    If a payment was made, a refund will be processed according to our refund policy.
+</p>
+{% endblock %}

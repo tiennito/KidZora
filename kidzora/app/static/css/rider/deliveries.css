@@ -1,0 +1,236 @@
+/* ============================================================
+   KidZora – Rider Panel / Deliveries List
+   (order card, product thumbnail, status pill)
+   ============================================================ */
+
+/* ── Delivery / order card ───────────────────────────────── */
+.delivery-card {
+  position: relative;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbf9 100%);
+  border: 1px solid rgba(20, 108, 67, .12);
+  border-radius: 18px;
+  box-shadow: 0 10px 26px rgba(20, 108, 67, .08);
+  margin-bottom: .85rem;
+  overflow: hidden;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.delivery-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: linear-gradient(180deg, #146c43 0%, #25a56a 100%);
+}
+
+.delivery-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(20, 108, 67, .22);
+  box-shadow: 0 14px 34px rgba(20, 108, 67, .12);
+}
+
+.delivery-card-body {
+  padding: 1rem 1.1rem 1.05rem 1.25rem;
+}
+
+.delivery-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.delivery-card-title {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+
+.delivery-card-order {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #153527;
+}
+
+.delivery-card-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  color: #5f6f68;
+  font-size: .79rem;
+}
+
+.delivery-card-meta i {
+  color: #198754;
+}
+
+.delivery-preview {
+  display: flex;
+  align-items: flex-start;
+  gap: .8rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  padding: .95rem 0 1rem;
+  border-top: 1px solid rgba(20, 108, 67, .08);
+  border-bottom: 1px solid rgba(20, 108, 67, .08);
+}
+
+.delivery-preview-item {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  min-width: 0;
+  padding: .5rem .65rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .82);
+  border: 1px solid rgba(20, 108, 67, .08);
+}
+
+.delivery-product-name {
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.delivery-product-qty {
+  font-size: .75rem;
+  color: #6c757d;
+}
+
+.delivery-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+.delivery-info-card {
+  padding: .85rem .95rem;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #163e31 0%, #0f2f24 100%);
+  color: #f7fbf8;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+
+.delivery-info-label {
+  margin-bottom: .32rem;
+  color: rgba(236, 247, 242, .72);
+  font-size: .72rem;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.delivery-info-value {
+  font-size: .9rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.delivery-address-pill {
+  margin-bottom: 1rem;
+  padding: .75rem .85rem;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f4faf6 0%, #edf7f0 100%);
+  border: 1px solid rgba(25, 135, 84, .12);
+  color: #284437;
+  font-size: .84rem;
+}
+
+.delivery-address-pill .text-muted {
+  color: #6c7e73 !important;
+}
+
+.delivery-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .85rem;
+  flex-wrap: wrap;
+  padding-top: .95rem;
+  border-top: 1px solid rgba(20, 108, 67, .08);
+}
+
+.delivery-total-label {
+  display: block;
+  font-size: .75rem;
+  color: #6c757d;
+  margin-bottom: .12rem;
+}
+
+.delivery-total-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #146c43;
+}
+
+.delivery-extra-meta {
+  font-size: .79rem;
+  color: #6c757d;
+}
+
+/* ── Product thumbnail ───────────────────────────────────── */
+.order-thumb {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1.5px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.order-thumb-ph {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #adb5bd;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* ── Status pill badge ───────────────────────────────────── */
+.status-pill {
+  font-size: .73rem;
+  padding: .45em .85em;
+  border-radius: 20px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  white-space: nowrap;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .08);
+}
+
+.status-pill.status-pill-warning {
+  background: linear-gradient(180deg, #ffd66b 0%, #ffbf1f 100%);
+  color: #4f3900;
+}
+
+@media (max-width: 767px) {
+  .delivery-card-body {
+    padding: .95rem .95rem 1rem 1.1rem;
+  }
+
+  .delivery-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .delivery-card-footer {
+    align-items: stretch;
+  }
+
+  .delivery-card-footer .btn,
+  .delivery-card-footer form {
+    width: 100%;
+  }
+
+  .delivery-card-footer .btn {
+    justify-content: center;
+  }
+}

@@ -1,0 +1,40 @@
+/* ============================================================
+   KidZora – Seller Panel / Topbar & Main Content Area
+   ============================================================ */
+
+/* ── Main content wrapper ───────────────────────────────── */
+.seller-main {
+  flex: 1;
+  min-width: 0;
+  background:
+    radial-gradient(circle at 88% 6%, rgba(255, 221, 235, 0.46), transparent 21rem),
+    linear-gradient(135deg, #fbfdff 0%, #fff6fb 52%, #f3fff9 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Sticky topbar ───────────────────────────────────────── */
+.seller-topbar {
+  background: rgba(255, 255, 255, 0.78);
+  border-bottom: 1px solid #e9edf5;
+  padding: 12px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+
+.seller-topbar .page-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #31405f;
+  margin: 0;
+}
+
+/* ── Page content area ───────────────────────────────────── */
+.seller-content {
+  padding: 28px;
+  flex: 1;
+}

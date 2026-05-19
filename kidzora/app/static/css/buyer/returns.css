@@ -1,0 +1,7 @@
+/* ══════════════════════════════════════════════
+   buyer/returns.css
+   Styles for buyer/returns.html
+══════════════════════════════════════════════ */
+
+/* ── Order amount in returns table ── */
+.return-order-amount { font-size: .75rem; }

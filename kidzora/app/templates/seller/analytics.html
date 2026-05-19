@@ -1,0 +1,208 @@
+{% extends "seller/base.html" %}
+{% block title %}Analytics – KidZora Seller{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Analytics – KidZora Seller">
+{% endblock %}
+{% block page_title %}Analytics{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/seller/analytics.css') }}">
+{% endblock %}
+
+{% block page_content %}
+<div class="slr-analytics-wrap">
+
+  <div id="slr-analytics-root"
+       data-api-url="{{ url_for('seller.analytics_data') }}"
+       data-commission-pct="{{ commission_pct }}"></div>
+  <div id="slrSpinner"><i class="fas fa-circle-notch fa-spin me-1"></i>Loading…</div>
+
+  <!-- Page header -->
+  <div class="slr-page-header d-flex justify-content-between align-items-start flex-wrap gap-3">
+    <div>
+      <h4><i class="fas fa-chart-line me-2"></i>Store Analytics</h4>
+      <p>Your sales, earnings, orders and top-performing products</p>
+    </div>
+    <a href="{{ url_for('seller.dashboard') }}" class="btn btn-sm"
+       style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35);">
+      <i class="fas fa-arrow-left me-1"></i>Dashboard
+    </a>
+  </div>
+
+  <!-- Period selector -->
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+    <div class="slr-period-tabs" id="slrPeriodTabs">
+      <button class="btn btn-primary btn-sm"           data-period="daily">   <i class="fas fa-sun me-1"></i>Daily</button>
+      <button class="btn btn-outline-secondary btn-sm" data-period="weekly">  <i class="fas fa-calendar-week me-1"></i>Weekly</button>
+      <button class="btn btn-outline-secondary btn-sm" data-period="monthly"> <i class="fas fa-calendar-alt me-1"></i>Monthly</button>
+      <button class="btn btn-outline-secondary btn-sm" data-period="yearly">  <i class="fas fa-calendar me-1"></i>Yearly</button>
+      <button class="btn btn-outline-secondary btn-sm" data-period="custom">  <i class="fas fa-sliders-h me-1"></i>Custom</button>
+    </div>
+    <span class="text-muted small" id="slrPeriodLabel">This week — Monday to Sunday</span>
+  </div>
+
+  <!-- Custom date row -->
+  <div id="slrCustomRow" class="align-items-center gap-2 mb-3" style="display:none;">
+    <input type="date" id="slrDateStart" class="form-control form-control-sm" style="width:160px;">
+    <span class="text-muted small">to</span>
+    <input type="date" id="slrDateEnd"   class="form-control form-control-sm" style="width:160px;">
+    <button id="slrApplyCustom" class="btn btn-primary btn-sm">
+      <i class="fas fa-check me-1"></i>Apply
+    </button>
+  </div>
+
+  <!-- KPI row -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-sm-4 col-xl-2">
+      <div class="slr-kpi-card">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="slr-kpi-icon" style="background:rgba(59,130,246,.12);">
+            <i class="fas fa-peso-sign text-primary"></i>
+          </div>
+          <div class="slr-kpi-lbl">Revenue</div>
+        </div>
+        <div class="slr-kpi-val" id="slrKpiRevenue">—</div>
+        <div class="slr-kpi-skel slr-shimmer-bg slr-sk-active" id="slrSkelKpiRevenue"></div>
+        <div class="text-muted mt-1" style="font-size:.68rem;">Total sales value</div>
+      </div>
+    </div>
+    <div class="col-6 col-sm-4 col-xl-2">
+      <div class="slr-kpi-card">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="slr-kpi-icon" style="background:rgba(34,197,94,.12);">
+            <i class="fas fa-wallet text-success"></i>
+          </div>
+          <div class="slr-kpi-lbl">Your Earnings</div>
+        </div>
+        <div class="slr-kpi-val" id="slrKpiEarnings">—</div>
+        <div class="slr-kpi-skel slr-shimmer-bg slr-sk-active" id="slrSkelKpiEarnings"></div>
+        <div class="text-muted mt-1" style="font-size:.68rem;">After {{ commission_pct }}% platform fee</div>
+      </div>
+    </div>
+    <div class="col-6 col-sm-4 col-xl-2">
+      <div class="slr-kpi-card">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="slr-kpi-icon" style="background:rgba(99,102,241,.12);">
+            <i class="fas fa-shopping-bag" style="color:#6366f1;"></i>
+          </div>
+          <div class="slr-kpi-lbl">Orders</div>
+        </div>
+        <div class="slr-kpi-val" id="slrKpiOrders">—</div>
+        <div class="slr-kpi-skel slr-shimmer-bg slr-sk-active" id="slrSkelKpiOrders"></div>
+        <div class="text-muted mt-1" style="font-size:.68rem;">All statuses</div>
+      </div>
+    </div>
+    <div class="col-6 col-sm-4 col-xl-2">
+      <div class="slr-kpi-card">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="slr-kpi-icon" style="background:rgba(34,197,94,.12);">
+            <i class="fas fa-check-circle text-success"></i>
+          </div>
+          <div class="slr-kpi-lbl">Completed</div>
+        </div>
+        <div class="slr-kpi-val" id="slrKpiCompleted">—</div>
+        <div class="slr-kpi-skel slr-shimmer-bg slr-sk-active" id="slrSkelKpiCompleted"></div>
+        <div class="text-muted mt-1" style="font-size:.68rem;">Fully delivered</div>
+      </div>
+    </div>
+    <div class="col-6 col-sm-4 col-xl-2">
+      <div class="slr-kpi-card">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="slr-kpi-icon" style="background:rgba(239,68,68,.12);">
+            <i class="fas fa-times-circle text-danger"></i>
+          </div>
+          <div class="slr-kpi-lbl">Cancelled</div>
+        </div>
+        <div class="slr-kpi-val" id="slrKpiCancelled">—</div>
+        <div class="slr-kpi-skel slr-shimmer-bg slr-sk-active" id="slrSkelKpiCancelled"></div>
+        <div class="text-muted mt-1" style="font-size:.68rem;">Cancelled orders</div>
+      </div>
+    </div>
+    <div class="col-6 col-sm-4 col-xl-2">
+      <div class="slr-kpi-card">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="slr-kpi-icon" style="background:rgba(245,158,11,.12);">
+            <i class="fas fa-box-open text-warning"></i>
+          </div>
+          <div class="slr-kpi-lbl">Active Products</div>
+        </div>
+        <div class="slr-kpi-val" id="slrKpiProducts">—</div>
+        <div class="slr-kpi-skel slr-shimmer-bg slr-sk-active" id="slrSkelKpiProducts"></div>
+        <div class="text-muted mt-1" style="font-size:.68rem;">Listed &amp; active</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart row 1: Revenue + Earnings (full width) -->
+  <div class="row g-3 mb-3">
+    <div class="col-12">
+      <div class="slr-chart-card">
+        <div class="slr-chart-title">
+          <i class="fas fa-chart-area text-success"></i>
+          Revenue vs Your Earnings
+          <span class="text-muted fw-normal small">(completed orders only)</span>
+        </div>
+        <div class="slr-chart-skeleton slr-sk-active" id="slrSkelRevenue">
+          <div class="slr-skel-chart-body h-rev slr-shimmer-bg"></div>
+          <div class="slr-skel-xaxis slr-shimmer-bg"></div>
+        </div>
+        <canvas id="slrChartRevenue" height="70" style="display:none"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart row 2: Orders + Status -->
+  <div class="row g-3 mb-3">
+    <div class="col-lg-7">
+      <div class="slr-chart-card">
+        <div class="slr-chart-title">
+          <i class="fas fa-shopping-cart text-primary"></i>
+          Orders Volume
+        </div>
+        <div class="slr-chart-skeleton slr-sk-active" id="slrSkelOrders">
+          <div class="slr-skel-chart-body h-ord slr-shimmer-bg"></div>
+          <div class="slr-skel-xaxis slr-shimmer-bg"></div>
+        </div>
+        <canvas id="slrChartOrders" height="130" style="display:none"></canvas>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="slr-chart-card">
+        <div class="slr-chart-title">
+          <i class="fas fa-chart-pie text-warning"></i>
+          Order Status Breakdown
+        </div>
+        <div class="slr-chart-skeleton slr-sk-active" id="slrSkelStatus">
+          <div class="slr-skel-chart-body h-sts slr-shimmer-bg"></div>
+        </div>
+        <canvas id="slrChartStatus" height="185" style="display:none"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart row 3: Top products -->
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <div class="slr-chart-card">
+        <div class="slr-chart-title">
+          <i class="fas fa-medal text-danger"></i>
+          Top 5 Products by Revenue
+          <span class="text-muted fw-normal small">(from orders in selected period)</span>
+        </div>
+        <div class="slr-chart-skeleton slr-sk-active" id="slrSkelTopProducts">
+          <div class="slr-skel-chart-body h-top slr-shimmer-bg"></div>
+          <div class="slr-skel-xaxis slr-shimmer-bg"></div>
+        </div>
+        <canvas id="slrChartTopProducts" height="55" style="display:none"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/seller/analytics.js') }}"></script>
+{% endblock %}

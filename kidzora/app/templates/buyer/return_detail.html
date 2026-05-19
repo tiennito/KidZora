@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}Return Request – KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="Track the status of your return or refund request on KidZora.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Return Request – KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:700px;">
+
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('buyer.orders') }}">My Orders</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('buyer.returns') }}">Returns</a></li>
+      <li class="breadcrumb-item active">Request #{{ rr.id[:8]|upper }}</li>
+    </ol>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} alert-dismissible fade show">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  {% set s = rr.status %}
+  {% set scol = {
+    'pending':          'warning',
+    'seller_approved':  'success',
+    'seller_rejected':  'danger',
+    'escalated':        'info',
+    'admin_approved':   'success',
+    'admin_rejected':   'secondary',
+  }.get(s, 'secondary') %}
+
+  <!-- Status banner -->
+  <div class="alert alert-{{ scol }} d-flex align-items-center gap-3 mb-4 py-3">
+    <i class="fas {{ {
+      'pending':         'fa-hourglass-half',
+      'seller_approved': 'fa-check-circle',
+      'seller_rejected': 'fa-times-circle',
+      'escalated':       'fa-exclamation-triangle',
+      'admin_approved':  'fa-check-double',
+      'admin_rejected':  'fa-ban',
+    }.get(s, 'fa-info-circle') }} fa-lg"></i>
+    <div>
+      <p class="mb-0 fw-semibold">
+        {% if s == 'pending' %}Waiting for seller to review your request.
+        {% elif s == 'seller_approved' %}Seller approved your return/refund request. A refund will be processed.
+        {% elif s == 'seller_rejected' %}Seller rejected your request. You may escalate to admin.
+        {% elif s == 'escalated' %}Your request has been escalated to admin. We'll review it shortly.
+        {% elif s == 'admin_approved' %}Admin approved your request. A refund will be processed.
+        {% elif s == 'admin_rejected' %}Admin reviewed and rejected this request.
+        {% endif %}
+      </p>
+    </div>
+  </div>
+
+  {# Auto-approve countdown for pending requests #}
+  {% if s == 'pending' and auto_approve_deadline %}
+  <div class="alert alert-info d-flex align-items-start gap-2 mb-4 py-2">
+    <i class="fas fa-clock mt-1"></i>
+    <span>
+      If the seller doesn't respond, your request will be
+      <strong>automatically approved</strong> by
+      <strong>{{ auto_approve_deadline[:10] }}</strong>
+      ({{ auto_approve_days }}-day platform policy).
+    </span>
+  </div>
+  {% endif %}
+
+  <!-- Request details -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-semibold py-3">
+      <i class="fas fa-file-alt me-2 text-primary"></i>Request Details
+    </div>
+    <div class="card-body">
+      <dl class="row mb-0 small">
+        <dt class="col-5 text-muted">Request ID</dt>
+        <dd class="col-7 fw-semibold">#{{ rr.id[:8]|upper }}</dd>
+
+        <dt class="col-5 text-muted">Order</dt>
+        <dd class="col-7">
+          <a href="{{ url_for('buyer.order_detail', order_id=rr.order_id) }}"
+             class="text-primary text-decoration-none fw-semibold">
+            #{{ rr.order_id[:8]|upper }}
+          </a>
+        </dd>
+
+        <dt class="col-5 text-muted">Request Type</dt>
+        <dd class="col-7">
+          {{ 'Return &amp; Refund' if rr.refund_type == 'return_and_refund' else 'Refund Only' }}
+        </dd>
+
+        <dt class="col-5 text-muted">Reason</dt>
+        <dd class="col-7">{{ reasons.get(rr.reason, rr.reason|replace('_',' ')|title) }}</dd>
+
+        <dt class="col-5 text-muted">Submitted</dt>
+        <dd class="col-7">{{ rr.created_at[:10] if rr.created_at else '—' }}</dd>
+
+        {% if rr.details %}
+        <dt class="col-5 text-muted">Details</dt>
+        <dd class="col-7">{{ rr.details }}</dd>
+        {% endif %}
+      </dl>
+    </div>
+  </div>
+
+  <!-- Evidence Attachments -->
+  {% set evidence = rr.evidence_files if rr.evidence_files else [] %}
+  {% if evidence %}
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-semibold py-3">
+      <i class="fas fa-paperclip me-2 text-primary"></i>Evidence Attachments
+      <span class="badge bg-secondary ms-2">{{ evidence|length }}</span>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for path in evidence %}
+          {% set ext = path.rsplit('.', 1)[-1].lower() %}
+          <div class="col-6 col-md-4 col-lg-3">
+            {% if ext in ('mp4','mov','avi','webm','mkv') %}
+              <video src="{{ path }}" controls
+                     class="w-100 rounded shadow-sm"
+                     style="max-height:160px;object-fit:cover;background:#000;">
+              </video>
+              <p class="text-muted mt-1 mb-0" style="font-size:.72rem; word-break:break-all;">
+                <i class="fas fa-film me-1"></i>{{ path.rsplit('/', 1)[-1] }}
+              </p>
+            {% else %}
+              <a href="{{ path }}" target="_blank"
+                 data-lightbox="evidence-{{ rr.id }}"
+                 data-title="Evidence {{ loop.index }}">
+                <img src="{{ path }}" alt="Evidence {{ loop.index }}"
+                     class="img-thumbnail w-100 shadow-sm"
+                     style="height:130px;object-fit:cover;cursor:zoom-in;">
+              </a>
+              <p class="text-muted mt-1 mb-0" style="font-size:.72rem; word-break:break-all;">
+                <i class="fas fa-image me-1"></i>{{ path.rsplit('/', 1)[-1] }}
+              </p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Seller response -->
+  {% if rr.seller_response %}
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-semibold py-3">
+      <i class="fas fa-store me-2 text-primary"></i>Seller's Response
+    </div>
+    <div class="card-body">
+      <p class="mb-0 small">{{ rr.seller_response }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Admin response -->
+  {% if rr.admin_response %}
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-semibold py-3">
+      <i class="fas fa-shield-alt me-2 text-primary"></i>Admin's Decision
+    </div>
+    <div class="card-body">
+      <p class="mb-0 small">{{ rr.admin_response }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Escalate to admin (appears only when seller rejected) -->
+  {% if s == 'seller_rejected' %}
+  <div class="card border-0 shadow-sm border-warning mb-4">
+    <div class="card-body">
+      <h6 class="fw-bold mb-1"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Disagree with the seller?</h6>
+      <p class="small text-muted mb-3">
+        You can escalate this request to KidZora admin for an independent review.
+        Admin will examine both sides and make a final decision.
+      </p>
+      <form method="POST" action="{{ url_for('buyer.escalate_return', rr_id=rr.id) }}"
+            onsubmit="return confirm('Escalate this request to admin?')">
+        <button type="submit" class="btn btn-warning btn-sm">
+          <i class="fas fa-level-up-alt me-1"></i>Escalate to Admin
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

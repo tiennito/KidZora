@@ -1,0 +1,253 @@
+{% extends "admin/base.html" %}
+{% block title %}Order #{{ order.id[:8]|upper }} – Admin{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Order – KidZora Admin">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+  <!-- Page Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="fw-bold mb-1">
+        <i class="fas fa-shopping-bag me-2 text-primary"></i>Order #{{ order.id[:8]|upper }}
+      </h4>
+      <p class="text-muted small mb-0">Order Details & Management</p>
+    </div>
+    <a href="{{ url_for('admin.orders') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-arrow-left me-1"></i>Back to Orders
+    </a>
+  </div>
+
+  <!-- Breadcrumb - removed since we have header -->
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} alert-dismissible fade show">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="row g-4">
+
+    <!-- Left: Items -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-light fw-semibold py-3 border-bottom">
+          <i class="fas fa-boxes me-2 text-primary"></i>Order Items ({{ items|length }})
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light border-bottom">
+              <tr>
+                <th class="fw-semibold text-muted">Product</th>
+                <th class="text-center fw-semibold text-muted">Qty</th>
+                <th class="text-end fw-semibold text-muted">Unit Price</th>
+                <th class="text-end fw-semibold text-muted">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if items %}
+                {% for item in items %}
+                {% set prod = item.products or {} %}
+                {% set imgs = prod.images if prod.images else [] %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-3">
+                      {% if imgs %}
+                        <img src="{{ imgs[0] }}" class="rounded" style="width:48px;height:48px;object-fit:cover;" alt="">
+                      {% else %}
+                        <div class="rounded bg-light d-flex align-items-center justify-content-center border"
+                             style="width:48px;height:48px;">
+                          <i class="fas fa-image text-muted fa-sm"></i>
+                        </div>
+                      {% endif %}
+                      <div>
+                        <div class="fw-semibold small">{{ prod.name or 'Product' }}</div>
+                        {% if item.product_variants %}
+                          <span class="badge bg-light text-dark fw-normal" style="font-size:.65rem;">{{ item.product_variants.name }}</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-center"><span class="badge bg-light text-dark">{{ item.quantity or 1 }}</span></td>
+                  <td class="text-end">₱{{ item.price|float|currency if item.price else '0.00' }}</td>
+                  <td class="text-end fw-semibold text-primary">₱{{ (item.price|float * (item.quantity or 1))|currency if item.price else '0.00' }}</td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-4">No item details.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+            <tfoot class="bg-light border-top">
+              <tr>
+                <td colspan="3" class="text-end fw-bold py-3">Total Amount</td>
+                <td class="text-end fw-bold text-primary py-3">₱{{ order.total_amount|float|currency if order.total_amount else '0.00' }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Cancellation detail card -->
+      {% if order.cancel_requested %}
+      <div class="card border-0 shadow-sm mb-4 border-start border-4 border-{{ 'warning' if order.cancel_status == 'pending_review' else ('success' if order.cancel_status == 'approved' else 'secondary') }}">
+        <div class="card-header bg-light fw-semibold py-3 border-bottom">
+          <i class="fas fa-ban me-2 text-warning"></i>Cancellation Request
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0 small">
+            <dt class="col-4 text-muted fw-semibold">Status</dt>
+            <dd class="col-8">
+              {% if order.cancel_status == 'pending_review' %}
+                <span class="badge bg-warning text-dark">Pending Review</span>
+              {% elif order.cancel_status == 'approved' %}
+                <span class="badge bg-success">Approved</span>
+              {% elif order.cancel_status == 'rejected' %}
+                <span class="badge bg-secondary">Rejected</span>
+              {% endif %}
+            </dd>
+            {% if order.cancel_reason %}
+            <dt class="col-4 text-muted fw-semibold">Buyer's Reason</dt>
+            <dd class="col-8">{{ order.cancel_reason }}</dd>
+            {% endif %}
+            {% if order.cancel_response %}
+            <dt class="col-4 text-muted fw-semibold">Seller's Response</dt>
+            <dd class="col-8">{{ order.cancel_response }}</dd>
+            {% endif %}
+          </dl>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Right: Summary + admin actions -->
+    <div class="col-lg-4">
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-light fw-semibold py-3 border-bottom">
+          <i class="fas fa-info-circle me-2 text-primary"></i>Order Summary
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0 small">
+            <dt class="col-5 text-muted fw-semibold">Order ID</dt>
+            <dd class="col-7 fw-semibold">#{{ order.id[:8]|upper }}</dd>
+
+            <dt class="col-5 text-muted fw-semibold">Date</dt>
+            <dd class="col-7">{{ order.created_at[:10] if order.created_at else '—' }}</dd>
+
+            <dt class="col-5 text-muted fw-semibold">Seller</dt>
+            <dd class="col-7">
+              {% if seller_info and seller_info.shop_name %}
+                <div class="fw-bold mb-1">
+                  <i class="fas fa-store me-1 text-primary"></i>{{ seller_info.shop_name }}
+                </div>
+              {% else %}
+                <code class="text-muted">ID: {{ order.seller_id[:8] if order.seller_id else '—' }}</code>
+              {% endif %}
+            </dd>
+
+            <dt class="col-5 text-muted fw-semibold">Buyer</dt>
+            <dd class="col-7">
+              {% if buyer_info and buyer_info.first_name %}
+                <div class="fw-bold mb-1">{{ buyer_info.first_name }} {{ buyer_info.last_name or '' }}</div>
+                <small class="text-muted">{{ buyer_info.email or '—' }}</small>
+              {% else %}
+                <code class="text-muted">ID: {{ order.buyer_id[:8] if order.buyer_id else '—' }}</code>
+              {% endif %}
+            </dd>
+
+            <dt class="col-5 text-muted fw-semibold">Status</dt>
+            <dd class="col-7">
+              {% set s = order.status or 'pending' %}
+              {% set c = {'pending':'warning','confirmed':'info','preparing':'info',
+                          'ready_for_pickup':'info','out_for_delivery':'primary',
+                          'delivered':'success','completed':'success',
+                          'cancelled':'danger'}.get(s,'secondary') %}
+              <span class="badge bg-{{ c }}">{{ s|replace('_',' ')|title }}</span>
+            </dd>
+
+            <dt class="col-5 text-muted">Payment</dt>
+            <dd class="col-7">
+              {% set ps = (order.payment_status or 'pending')|lower %}
+              <span class="badge {{ 'bg-success' if ps == 'paid' else 'bg-secondary' }}">{{ ps|title }}</span>
+            </dd>
+
+            <dt class="col-5 text-muted">Total</dt>
+            <dd class="col-7 fw-bold text-primary">₱{{ order.total_amount|float|currency if order.total_amount else '0.00' }}</dd>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Admin Actions -->
+      {% if order.status != 'cancelled' %}
+      <div class="card border-0 shadow-sm border-start border-4 border-danger">
+        <div class="card-header bg-light fw-semibold py-3 border-bottom">
+          <i class="fas fa-shield-alt me-2 text-danger"></i>Admin Actions
+        </div>
+        <div class="card-body">
+          <p class="small text-muted mb-3">Force-cancel this order regardless of its current status.</p>
+          <button class="btn btn-outline-danger btn-sm w-100"
+                  data-bs-toggle="modal" data-bs-target="#forceCancelModal">
+            <i class="fas fa-ban me-1"></i>Force Cancel Order
+          </button>
+        </div>
+      </div>
+      {% else %}
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-4 text-muted small">
+          <i class="fas fa-check-circle text-success fa-2x mb-2"></i><br>
+          This order has already been cancelled.
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Force Cancel Modal -->
+{% if order.status != 'cancelled' %}
+<div class="modal fade" id="forceCancelModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h6 class="modal-title fw-bold text-danger">
+          <i class="fas fa-ban me-2"></i>Force Cancel Order
+        </h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ url_for('admin.force_cancel_order', order_id=order.id) }}">
+        <div class="modal-body">
+          <div class="alert alert-warning small py-2">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            This will immediately cancel the order and cannot be undone.
+          </div>
+          <div class="mb-0">
+            <label class="form-label small fw-semibold">Reason</label>
+            <textarea class="form-control form-control-sm" name="reason" rows="3"
+                      placeholder="Provide a reason for the force cancellationâ€¦" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger btn-sm">
+            <i class="fas fa-ban me-1"></i>Confirm Force Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/orders.css') }}">
+{% endblock %}

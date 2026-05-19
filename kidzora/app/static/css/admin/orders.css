@@ -1,0 +1,319 @@
+/* Orders & Order Details Page Styles */
+
+.orders-page {
+    padding-bottom: 2rem;
+}
+
+/* Page header */
+.orders-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.orders-header h4 {
+    margin: 0;
+    font-weight: 700;
+}
+
+/* Filter buttons */
+.orders-filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    align-items: center;
+}
+
+.orders-filter-btn {
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    padding: 0.4rem 0.8rem;
+}
+
+.orders-filter-btn:hover {
+    transform: translateY(-2px);
+}
+
+.orders-filter-divider {
+    width: 1px;
+    height: 30px;
+    background-color: #dee2e6;
+    margin: 0 0.5rem;
+}
+
+/* Orders table */
+.orders-table {
+    margin-bottom: 0;
+}
+
+.orders-table thead {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.orders-table-row {
+    transition: background-color 0.2s ease;
+    vertical-align: middle;
+}
+
+.orders-table-row:hover {
+    background-color: #f8f9fa;
+}
+
+.orders-table-row.pending-cancel {
+    background-color: rgba(255, 193, 7, 0.05);
+    border-left: 4px solid #ffc107;
+}
+
+/* Order ID styling */
+.order-id-link {
+    font-weight: 600;
+    color: #0d6efd;
+    text-decoration: none;
+}
+
+.order-id-link:hover {
+    text-decoration: underline;
+}
+
+.order-id-code {
+    font-family: 'Courier New', monospace;
+    background-color: #f0f0f0;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.85rem;
+}
+
+/* Merchant/Buyer ID */
+.merchant-id {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.merchant-name {
+    font-weight: 600;
+    color: #212529;
+}
+
+.merchant-name-tooltip {
+    max-width: 130px;
+    display: inline-block;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* Status badges */
+.status-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Cancellation status */
+.cancel-pending-badge {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.cancel-action-buttons {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
+.cancel-action-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    height: auto;
+}
+
+/* Empty state */
+.orders-empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.orders-empty-icon {
+    font-size: 3rem;
+    opacity: 0.25;
+    margin-bottom: 1rem;
+}
+
+/* Order detail page */
+.order-detail-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1rem 0;
+}
+
+.order-detail-breadcrumb {
+    margin-bottom: 1.5rem;
+}
+
+/* Items table */
+.order-items-table {
+    margin-bottom: 0;
+}
+
+.order-items-table thead {
+    background-color: #f8f9fa;
+}
+
+.order-item-image {
+    width: 42px;
+    height: 42px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.order-item-no-image {
+    width: 42px;
+    height: 42px;
+    background-color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.order-item-name {
+    font-weight: 600;
+    color: #212529;
+}
+
+.order-item-variant {
+    background-color: #e7f1ff;
+    color: #0d6efd;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 0.25rem;
+}
+
+/* Order summary card */
+.order-summary-card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.order-summary-dt {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.order-summary-dd {
+    font-weight: 600;
+    color: #212529;
+}
+
+.order-total {
+    color: #0d6efd;
+    font-size: 1.2rem;
+}
+
+/* Cancellation detail card */
+.cancel-detail-card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.cancel-detail-card.warning-border {
+    border-left: 4px solid #ffc107;
+    background-color: rgba(255, 193, 7, 0.02);
+}
+
+.cancel-detail-card.success-border {
+    border-left: 4px solid #28a745;
+    background-color: rgba(40, 167, 69, 0.02);
+}
+
+.cancel-detail-card.secondary-border {
+    border-left: 4px solid #6c757d;
+    background-color: rgba(108, 117, 125, 0.02);
+}
+
+/* Admin actions card */
+.admin-actions-card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.admin-actions-card.danger-border {
+    border-left: 4px solid #dc3545;
+    background-color: rgba(220, 53, 69, 0.02);
+}
+
+.force-cancel-btn {
+    width: 100%;
+}
+
+/* Modal styling */
+.force-cancel-modal-header {
+    background-color: #fff;
+    border-bottom: 2px solid #dccccc;
+}
+
+.force-cancel-modal-title {
+    color: #dc3545;
+    font-weight: 700;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 576px) {
+    .orders-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .orders-filter-buttons {
+        gap: 0.25rem;
+    }
+
+    .orders-filter-btn {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.85rem;
+    }
+
+    .orders-filter-divider {
+        margin: 0.5rem;
+    }
+
+    .orders-table {
+        font-size: 0.85rem;
+    }
+
+    .cancel-action-buttons {
+        height: auto;
+    }
+
+    .cancel-action-btn {
+        flex: 1;
+        min-width: 60px;
+    }
+
+    .order-detail-container {
+        padding: 0;
+    }
+
+    .order-detail-breadcrumb {
+        margin-bottom: 1rem;
+    }
+
+    .order-item-image {
+        width: 35px;
+        height: 35px;
+    }
+}
+
+@media (max-width: 992px) {
+    .order-items-table {
+        font-size: 0.9rem;
+    }
+}

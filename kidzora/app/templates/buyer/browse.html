@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+{% from 'macros.html' import render_pagination, render_price %}
+{% from 'macros.html' import render_pagination %}
+{% block title %}Browse Products{% if category %} – {{ category }}{% endif %} – KidZora{% endblock %}
+
+{% block seo_meta %}
+{% if category %}
+{% set _desc = 'Shop ' ~ category ~ ' for kids on KidZora – safe, curated products from verified local sellers.' %}
+{% elif q %}
+{% set _desc = 'Search results for “' ~ q ~ '” on KidZora – the trusted kids\' marketplace.' %}
+{% else %}
+{% set _desc = 'Browse thousands of safe, quality-checked kids\' products – toys, clothing, books and more on KidZora.' %}
+{% endif %}
+<meta name="description" content="{{ _desc }}">
+<meta name="robots" content="{% if q %}noindex, follow{% else %}index, follow{% endif %}">
+<meta property="og:site_name" content="KidZora">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{% if category %}{{ category }} – {% endif %}Browse Products – KidZora">
+<meta property="og:description" content="{{ _desc }}">
+<meta property="og:url" content="{{ request.base_url }}">
+<meta property="og:image" content="{{ request.host_url }}static/img/og-default.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Browse Products – KidZora">
+<meta name="twitter:description" content="{{ _desc }}">
+<link rel="canonical" href="{{ request.base_url }}{% if category %}?category={{ category | urlencode }}{% endif %}">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/buyer/browse.css') }}">
+{% endblock %}
+
+{% block content %}
+{# Count active filter slots for the mobile toggle badge #}
+{% set _active_count = (1 if q else 0) + (1 if category else 0) + (1 if age_group else 0) + (1 if condition else 0) + (1 if (min_price or max_price) else 0) %}
+<div class="container py-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="fw-bold mb-0"><i class="fas fa-shopping-bag me-2 text-primary"></i>Browse Products</h2>
+    {% if products %}
+    <span class="text-muted small">{{ products|length }} result{{ 's' if products|length != 1 }}</span>
+    {% endif %}
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} alert-dismissible fade show">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- ── Mobile filter toggle (hidden on md+) ───────────────── -->
+  <div class="d-flex d-md-none justify-content-between align-items-center mb-2">
+    <button id="browseFilterToggle" type="button"
+            class="btn btn-outline-primary btn-sm"
+            aria-expanded="false" aria-controls="browseFilterPanel">
+      <i class="fas fa-sliders-h me-1"></i>Filters
+      {% if _active_count %}<span class="badge bg-primary ms-1">{{ _active_count }}</span>{% endif %}
+    </button>
+    {% if _active_count %}
+    <span class="small text-muted">{{ _active_count }} filter{{ 's' if _active_count != 1 }} active</span>
+    {% endif %}
+  </div>
+
+  <!-- ── Filter Panel ─────────────────────────────────────── -->
+  <div id="browseFilterPanel" class="browse-filter-panel d-md-block">
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <form id="browseFilterForm" method="GET" class="row g-2 align-items-end">
+
+        <!-- Search -->
+        <div class="col-12 col-md-4">
+          <label class="form-label small fw-semibold mb-1"><i class="fas fa-search me-1 text-primary"></i>Search</label>
+          <div class="input-group">
+            <input type="text" name="q" class="form-control"
+                   placeholder="Search name or description…"
+                   value="{{ q }}" autocomplete="off">
+            {% if q %}
+            <a href="{{ url_for('buyer.browse_products') }}" class="btn btn-outline-secondary" title="Clear search">
+              <i class="fas fa-times"></i>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Category -->
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-semibold mb-1">Category</label>
+          <select name="category" class="form-select form-select-sm">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}" {{ 'selected' if category == cat }}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Age Group -->
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-semibold mb-1">Age Group</label>
+          <select name="age_group" class="form-select form-select-sm">
+            <option value="">Any Age</option>
+            {% for ag in age_groups %}
+            <option value="{{ ag }}" {{ 'selected' if age_group == ag }}>{{ ag }} yrs</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Condition -->
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-semibold mb-1">Condition</label>
+          <select name="condition" class="form-select form-select-sm">
+            <option value="">Any Condition</option>
+            {% for cond in conditions %}
+            <option value="{{ cond }}" {{ 'selected' if condition == cond }}>{{ cond.replace('_',' ').title() }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Sort -->
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-semibold mb-1">Sort By</label>
+          <select name="sort" class="form-select form-select-sm">
+            {% for val, label in sort_opts %}
+            <option value="{{ val }}" {{ 'selected' if sort == val }}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Price Range + buttons -->
+        <div class="col-12">
+          <div class="row g-2 align-items-end">
+            <div class="col-auto">
+              <label class="form-label small fw-semibold mb-1">Price Range (₱)</label>
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" name="min_price" class="form-control form-control-sm browse-price-input"
+                       placeholder="Min" min="0" step="1" value="{{ min_price }}">
+                <span class="text-muted small">–</span>
+                <input type="number" name="max_price" class="form-control form-control-sm browse-price-input"
+                       placeholder="Max" min="0" step="1" value="{{ max_price }}">
+              </div>
+            </div>
+            <div class="col-auto ms-auto d-flex gap-2">
+              <a id="browseFilterReset" href="{{ url_for('buyer.browse_products') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-undo me-1"></i>Reset
+              </a>
+              <button type="submit" class="btn btn-primary btn-sm px-4">
+                <i class="fas fa-search me-1"></i>Apply
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+  </div>{# /browseFilterPanel #}
+
+  <!-- ── Active Filter Pills ───────────────────────────────── -->
+  {% set has_filter = q or category or age_group or condition or min_price or max_price %}
+  {% if has_filter %}
+  <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+    <span class="small text-muted">Active filters:</span>
+    {% if q %}
+    <span class="badge bg-primary bg-opacity-10 text-primary"><i class="fas fa-search me-1"></i>{{ q }}</span>
+    {% endif %}
+    {% if category %}
+    <span class="badge bg-info bg-opacity-10 text-info">{{ category }}</span>
+    {% endif %}
+    {% if age_group %}
+    <span class="badge bg-success bg-opacity-10 text-success">{{ age_group }} yrs</span>
+    {% endif %}
+    {% if condition %}
+    <span class="badge bg-warning bg-opacity-10 text-warning">{{ condition.replace('_',' ').title() }}</span>
+    {% endif %}
+    {% if min_price or max_price %}
+    <span class="badge bg-secondary bg-opacity-10 text-secondary">
+      ₱{{ min_price or '0' }} – {{ ('₱' ~ max_price) if max_price else 'any' }}
+    </span>
+    {% endif %}
+    <a href="{{ url_for('buyer.browse_products') }}" class="small text-danger text-decoration-none ms-1">
+      <i class="fas fa-times-circle me-1"></i>Clear all
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- ── Product Grid ──────────────────────────────────────── -->
+  {% if products %}
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+      {% for product in products %}
+      <div class="col">
+        <div class="card h-100 border-0 shadow-sm position-relative">
+          {% set first_img = product.images[0] if product.images else None %}
+          {% if first_img %}
+            <img src="{{ first_img }}" class="card-img-top browse-card-img" alt="{{ product.name }}" loading="lazy">
+          {% else %}
+            <div class="bg-light d-flex align-items-center justify-content-center browse-card-placeholder">
+              <i class="fas fa-image fa-2x text-muted"></i>
+            </div>
+          {% endif %}
+
+          {% if product.condition %}
+          <span class="badge position-absolute top-0 end-0 m-2 browse-condition-badge bg-{{
+            'success' if product.condition == 'new'
+            else 'info' if product.condition == 'like_new'
+            else 'warning' if product.condition == 'good'
+            else 'secondary'
+          }}">{{ product.condition.replace('_',' ').title() }}</span>
+          {% endif %}
+
+          <div class="card-body d-flex flex-column">
+            <h6 class="card-title fw-semibold mb-1">
+              <a href="{{ url_for('buyer.product_detail', product_id=product.id) }}"
+                 class="text-dark text-decoration-none stretched-link">{{ product.name }}</a>
+            </h6>
+            <div class="d-flex flex-wrap gap-1 mb-1">
+              <span class="badge bg-light text-dark border browse-product-badge">{{ product.category }}</span>
+              {% if product.age_group %}
+              <span class="badge bg-light text-dark border browse-product-badge">{{ product.age_group }} yrs</span>
+              {% endif %}
+            </div>
+            {% if product._shop_name %}
+            <div class="mb-2 browse-shop-wrap">
+              <a href="{{ url_for('buyer.seller_shop', seller_id=product.seller_id) }}"
+                 class="text-muted text-decoration-none browse-shop-link">
+                <i class="fas fa-store me-1"></i>{{ product._shop_name }}
+              </a>
+            </div>
+            {% endif %}
+            <p class="card-text text-muted small flex-grow-1">{{ (product.description or '')[:80] }}{% if product.description and product.description|length > 80 %}…{% endif %}</p>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              {{ render_price(product) }}
+              {% if current_user.is_authenticated %}
+              <button class="wl-btn btn btn-sm py-0 px-2 {% if product.id in wishlisted_ids %}btn-danger{% else %}btn-outline-danger{% endif %}"
+                      data-product-id="{{ product.id }}" title="Wishlist" style="position:relative;z-index:1;">
+                <i class="fas fa-heart"></i>
+              </button>
+              {% else %}
+              <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline-danger py-0 px-2" title="Wishlist" style="position:relative;z-index:1;">
+                <i class="fas fa-heart"></i>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+  {% elif has_filter %}
+    <div class="text-center py-5">
+      <i class="fas fa-search fa-3x text-muted mb-3"></i>
+      <h5 class="text-muted">No products found</h5>
+      <p class="text-muted small">Try different keywords, remove some filters, or
+        <a href="{{ url_for('buyer.browse_products') }}">browse all products</a>.</p>
+    </div>
+
+  {% else %}
+    <div class="text-center py-5">
+      <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+      <h5 class="text-muted">No products available yet</h5>
+      <p class="text-muted small">Check back soon — sellers are adding new items.</p>
+    </div>
+  {% endif %}
+
+  {{ render_pagination(pagination) }}
+
+</div>
+
+<script id="kz-browse-data" type="application/json">
+{"hasFilter":{{ (_active_count > 0)|tojson }},"activeCount":{{ _active_count }}}
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/buyer/browse.js') }}"></script>
+<script>
+document.querySelectorAll('.wl-btn').forEach(function(btn) {
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var pid = this.dataset.productId;
+    var self = this;
+    fetch('/buyer/wishlist/toggle/' + pid, {
+      method: 'POST',
+      headers: {'X-CSRFToken': document.querySelector('meta[name="csrf-token"]') ?
+                document.querySelector('meta[name="csrf-token"]').content : ''}
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.status === 'added') {
+        self.classList.remove('btn-outline-danger');
+        self.classList.add('btn-danger');
+      } else {
+        self.classList.remove('btn-danger');
+        self.classList.add('btn-outline-danger');
+      }
+    })
+    .catch(function() {});
+  });
+});
+</script>
+{% endblock %}

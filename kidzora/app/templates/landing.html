@@ -1,0 +1,522 @@
+{% extends "base.html" %}
+{% from 'macros.html' import render_price %}
+{% block title %}{% if current_user.is_authenticated %}Home – KidZora{% else %}KidZora – Everything for Your Kids{% endif %}{% endblock %}
+
+{% block seo_meta %}
+<meta name="description" content="KidZora – the trusted kids' marketplace. Shop safe, curated toys, clothing, books and more from verified local sellers.">
+<meta name="robots" content="index, follow">
+<meta property="og:site_name" content="KidZora">
+<meta property="og:type" content="website">
+<meta property="og:title" content="KidZora – Kids' E-Commerce Platform">
+<meta property="og:description" content="KidZora – the trusted kids' marketplace.">
+<meta property="og:url" content="{{ request.base_url }}">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/public/landing.css') }}">
+{% endblock %}
+
+{# Override main_wrap to remove the container constraint — landing needs full-width sections #}
+{% block main_wrap %}
+
+<!-- ════════════════════════════════ HERO ══ -->
+<section class="kzp-hero">
+  <div class="container">
+    <div class="kzp-hero-inner">
+      <div class="kzp-hero-text">
+
+        {% if current_user.is_authenticated %}
+          {# ── Logged-in buyer hero ── #}
+          <span class="kzp-badge">👋 Welcome back, {{ current_user.first_name }}!</span>
+          <h1>Find the perfect <span class="kzp-accent">products</span> for your little ones</h1>
+          <p class="kzp-lead">Shop from trusted sellers — toys, clothing, books and more, all in one place.</p>
+          <form action="{{ url_for('buyer.browse_products') }}" method="GET"
+                class="d-flex mb-4 kzp-search-bar">
+            <input type="text" name="q" class="form-control form-control-lg"
+                   placeholder="Search toys, clothing, books…">
+            <button type="submit" class="btn btn-lg px-4">
+              <i class="fas fa-search"></i>
+            </button>
+          </form>
+         
+        {% else %}
+          {# ── Public (unauthenticated) hero ── #}
+          <span class="kzp-badge">🛍️ Trusted Kids' Marketplace</span>
+          <h1>Everything your <span class="kzp-accent">little one</span> needs</h1>
+          <p class="kzp-lead">Discover safe, curated products from verified local sellers — toys, clothing, books and more.</p>
+          <div class="d-flex gap-3 flex-wrap">
+            <a href="{{ url_for('buyer.browse_products') }}"
+               class="btn btn-lg px-5 kzp-btn-filled">
+              <i class="fas fa-shopping-bag me-2"></i>Start Shopping
+            </a>
+            <a href="{{ url_for('auth.register') }}"
+               class="btn btn-lg px-5 kzp-btn-outline-white">
+              Sell on KidZora
+            </a>
+          </div>
+        {% endif %}
+
+      </div>
+
+      <div class="kzp-hero-visual d-none d-lg-flex" aria-label="Featured advertisements">
+        {% set hero_ads = [
+          {
+            'href': url_for('buyer.browse_products', category='Toys'),
+            'src': 'images/ads/Ads1.jpg',
+            'alt': 'KidZora toy deals advertisement',
+            'class': 'kzp-ad-slot--main'
+          },
+          {
+            'href': url_for('buyer.browse_products', category='Clothing'),
+            'src': 'images/ads/ads2.jpg',
+            'alt': 'KidZora kids clothing advertisement',
+            'class': ''
+          },
+          {
+            'href': url_for('buyer.browse_products', category='Books'),
+            'src': 'images/ads/ads3.jpg',
+            'alt': 'KidZora books and learning advertisement',
+            'class': ''
+          }
+        ] %}
+        <div class="kzp-ad-grid">
+          {% for ad in hero_ads %}
+          <a href="{{ ad.href }}" class="kzp-ad-slot {{ ad.class }}" aria-label="{{ ad.alt }}">
+            <img src="{{ url_for('static', filename=ad.src) }}"
+                 alt="{{ ad.alt }}"
+                 loading="{{ 'eager' if loop.first else 'lazy' }}">
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ STATS BAR ══ -->
+<section class="kzp-stats">
+  <div class="container">
+    <div class="kzp-stats-row">
+
+      {% if current_user.is_authenticated %}
+        {# ── Personal stats ── #}
+        <a href="{{ url_for('buyer.orders') }}" class="kzp-stat-item">
+          <div class="kzp-stat-num">{{ stats.orders }}</div>
+          <div class="kzp-stat-lbl"><i class="fas fa-box me-1"></i>My Orders</div>
+        </a>
+        <a href="{{ url_for('buyer.wishlist') }}" class="kzp-stat-item">
+          <div class="kzp-stat-num">{{ stats.wishlist }}</div>
+          <div class="kzp-stat-lbl"><i class="fas fa-heart me-1"></i>Wishlist</div>
+        </a>
+        <a href="{{ url_for('buyer.cart') }}" class="kzp-stat-item">
+          <div class="kzp-stat-num"><i class="fas fa-shopping-cart"></i></div>
+          <div class="kzp-stat-lbl">My Cart</div>
+        </a>
+        <a href="{{ url_for('buyer.browse_products') }}" class="kzp-stat-item">
+          <div class="kzp-stat-num"><i class="fas fa-th-large"></i></div>
+          <div class="kzp-stat-lbl">Browse All</div>
+        </a>
+
+      {% else %}
+        {# ── Platform stats ── #}
+        <div class="kzp-stat-item">
+          <div class="kzp-stat-num">{{ stats.products }}+</div>
+          <div class="kzp-stat-lbl">Products</div>
+        </div>
+        <div class="kzp-stat-item">
+          <div class="kzp-stat-num">{{ stats.sellers }}+</div>
+          <div class="kzp-stat-lbl">Verified Sellers</div>
+        </div>
+        <div class="kzp-stat-item">
+          <div class="kzp-stat-num">{{ stats.buyers }}+</div>
+          <div class="kzp-stat-lbl">Happy Parents</div>
+        </div>
+        <div class="kzp-stat-item">
+          <div class="kzp-stat-num">{{ stats.orders }}+</div>
+          <div class="kzp-stat-lbl">Orders Delivered</div>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════ ROLE-SPECIFIC SECTIONS ══ -->
+
+{# ── Shared: Shop by Category (shown to everyone) ── #}
+<section class="kzp-section">
+  <div class="container">
+    <h2 class="kzp-section-title">Shop by Category</h2>
+      <div class="kzp-cat-grid">
+      {% set categories = [
+        ('Toys',         'images/categories/toys.png',          'toys',        'Games, puzzles & fun'),
+        ('Clothing',     'images/categories/baby_clothes.png',  'clothing',    'Outfits for every age'),
+        ('Books',        'images/categories/nursery.png',       'books',       'Stories & learning'),
+        ('Educational',  'images/categories/educational.png',   'educational', 'Art, STEM & skills'),
+        ('Safety',       'images/categories/safety.png',        'safety',      'Safety gear & more'),
+        ('Accessories',  'images/categories/strollers.png',     'accessories', 'Bags, hats & extras'),
+      ] %}
+      {% for name, image, slug, desc in categories %}
+      <a href="{{ url_for('buyer.browse_products', category=name) }}" class="kzp-cat-card text-decoration-none">
+        <div class="kzp-cat-icon kzp-cat-icon-{{ slug }}">
+          <img src="{{ url_for('static', filename=image) }}" alt="{{ name }}">
+        </div>
+        <div class="kzp-cat-name">{{ name }}</div>
+        <div class="kzp-cat-desc">{{ desc }}</div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if current_user.is_authenticated %}
+
+  {# ════ AUTHENTICATED BUYER SECTIONS ════ #}
+
+  {# ── Recently Viewed ── #}
+  {% if recently_viewed %}
+  <section class="kzp-section">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="kzp-section-title mb-0">🕐 Recently Viewed</h2>
+        <a href="{{ url_for('buyer.browse_products') }}" class="kzp-see-all">
+          See all <i class="fas fa-arrow-right ms-1"></i>
+        </a>
+      </div>
+      <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-3">
+        {% for p in recently_viewed %}
+        {% set fi = p.images[0] if p.images else None %}
+        <div class="col">
+          <div class="card h-100 border-0 shadow-sm kzp-prod-card">
+            <a href="{{ url_for('buyer.product_detail', product_id=p.id) }}" class="text-decoration-none">
+              {% if fi %}
+                <img src="{{ fi }}" class="card-img-top" alt="{{ p.name }}" style="height:160px;object-fit:cover;">
+              {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height:160px;">
+                  <i class="fas fa-image fa-2x text-muted"></i>
+                </div>
+              {% endif %}
+            </a>
+            <div class="card-body d-flex flex-column p-2">
+              <a href="{{ url_for('buyer.product_detail', product_id=p.id) }}"
+                 class="text-dark text-decoration-none fw-semibold small mb-1 kzp-line-clamp">{{ p.name }}</a>
+              <div class="mt-auto d-flex align-items-center justify-content-between pt-1">
+                <span class="kzp-price">₱{{ p.price|float|currency }}</span>
+                <button class="wl-btn btn btn-sm py-0 px-2 {% if p.id in wishlisted_ids %}btn-danger{% else %}btn-outline-danger{% endif %}"
+                        data-product-id="{{ p.id }}" title="Wishlist">
+                  <i class="fas fa-heart"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {# ── New Arrivals ── #}
+  {% if new_products %}
+  <section class="kzp-section">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="kzp-section-title mb-0"> New Arrivals</h2>
+        <a href="{{ url_for('buyer.browse_products') }}"
+           class="kzp-see-all">
+          See all <i class="fas fa-arrow-right ms-1"></i>
+        </a>
+      </div>
+      <div class="row row-cols-2 row-cols-md-4 g-3">
+        {% for p in new_products %}
+        {% set fi = p.images[0] if p.images else None %}
+        <div class="col">
+          <div class="card h-100 border-0 shadow-sm kzp-prod-card">
+            <a href="{{ url_for('buyer.product_detail', product_id=p.id) }}" class="text-decoration-none">
+              {% if fi %}
+                <img src="{{ fi }}" class="card-img-top" alt="{{ p.name }}" style="height:160px;object-fit:cover;">
+              {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height:160px;">
+                  <i class="fas fa-image fa-2x text-muted"></i>
+                </div>
+              {% endif %}
+            </a>
+            <div class="card-body d-flex flex-column p-2">
+              <a href="{{ url_for('buyer.product_detail', product_id=p.id) }}"
+                 class="text-dark text-decoration-none fw-semibold small mb-1 kzp-line-clamp">{{ p.name }}</a>
+              <div class="mt-auto d-flex align-items-center justify-content-between pt-1">
+                <span class="kzp-price">₱{{ p.price|float|currency }}</span>
+                <button class="wl-btn btn btn-sm py-0 px-2 {% if p.id in wishlisted_ids %}btn-danger{% else %}btn-outline-danger{% endif %}"
+                        data-product-id="{{ p.id }}" title="Wishlist">
+                  <i class="fas fa-heart"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {# ── Best Sellers ── #}
+  {% if best_products %}
+  <section class="kzp-section kzp-section--alt">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="kzp-section-title mb-0">Best Sellers</h2>
+        <a href="{{ url_for('buyer.browse_products') }}"
+           class="kzp-see-all">
+          See all <i class="fas fa-arrow-right ms-1"></i>
+        </a>
+      </div>
+      <div class="row row-cols-2 row-cols-md-4 g-3">
+        {% for p in best_products %}
+        {% set fi = p.images[0] if p.images else None %}
+        <div class="col">
+          <div class="card h-100 border-0 shadow-sm kzp-prod-card">
+            <a href="{{ url_for('buyer.product_detail', product_id=p.id) }}" class="text-decoration-none">
+              {% if fi %}
+                <img src="{{ fi }}" class="card-img-top" alt="{{ p.name }}" style="height:160px;object-fit:cover;">
+              {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height:160px;">
+                  <i class="fas fa-image fa-2x text-muted"></i>
+                </div>
+              {% endif %}
+            </a>
+            <div class="card-body d-flex flex-column p-2">
+              <a href="{{ url_for('buyer.product_detail', product_id=p.id) }}"
+                 class="text-dark text-decoration-none fw-semibold small mb-1 kzp-line-clamp">{{ p.name }}</a>
+              <div class="mt-auto d-flex align-items-center justify-content-between pt-1">
+                <span class="kzp-price">₱{{ p.price|float|currency }}</span>
+                <button class="wl-btn btn btn-sm py-0 px-2 {% if p.id in wishlisted_ids %}btn-danger{% else %}btn-outline-danger{% endif %}"
+                        data-product-id="{{ p.id }}" title="Wishlist">
+                  <i class="fas fa-heart"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {# ── Shops You Follow ── #}
+  {% if followed_shops %}
+  <section class="kzp-section kzp-section--alt">
+    <div class="container">
+      <h2 class="kzp-section-title mb-4">❤️ Shops You Follow</h2>
+      <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3">
+        {% for store in followed_shops %}
+        <div class="col">
+          <a href="{{ url_for('buyer.seller_shop', seller_id=store.id) }}" class="kzp-store-card">
+            <div class="kzp-store-avatar">
+              {% if store.avatar %}
+                <img src="{{ store.avatar }}" alt="{{ store.shop_name }}"
+                     style="width:64px;height:64px;object-fit:cover;">
+              {% else %}
+                <i class="fas fa-store fa-lg kzp-icon-primary"></i>
+              {% endif %}
+            </div>
+            <div class="fw-semibold small text-truncate px-1">{{ store.shop_name }}</div>
+            <div class="text-muted" style="font-size:.72rem;">
+              <i class="fas fa-heart text-danger me-1"></i>Following
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {# ── Top Stores ── #}
+  {% if best_stores %}
+  <section class="kzp-section">
+    <div class="container">
+      <h2 class="kzp-section-title">🏪 Top Stores</h2>
+      <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3">
+        {% for store in best_stores %}
+        <div class="col">
+          <a href="{{ url_for('buyer.seller_shop', seller_id=store.id) }}" class="kzp-store-card">
+            <div class="kzp-store-avatar">
+              {% if store.avatar %}
+                <img src="{{ store.avatar }}" alt="{{ store.shop_name }}"
+                     style="width:64px;height:64px;object-fit:cover;">
+              {% else %}
+                <i class="fas fa-store fa-lg kzp-icon-primary"></i>
+              {% endif %}
+            </div>
+            <div class="fw-semibold small text-truncate px-1">{{ store.shop_name }}</div>
+            {% if store.order_count %}
+            <div class="text-muted" style="font-size:.72rem;">
+              <i class="fas fa-fire text-danger me-1"></i>{{ store.order_count }} sold
+            </div>
+            {% endif %}
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {# ── Empty state ── #}
+  {% if not new_products and not best_products %}
+  <section class="kzp-section">
+    <div class="container text-center py-5">
+      <div class="kzp-step-icon mx-auto mb-4">
+        <i class="fas fa-box-open fa-2x"></i>
+      </div>
+      <h5 class="fw-bold text-muted">No products yet</h5>
+      <p class="text-muted">Check back soon — sellers are adding products!</p>
+      <a href="{{ url_for('buyer.browse_products') }}" class="btn btn-lg px-5 kzp-btn-filled">
+        Browse Products
+      </a>
+    </div>
+  </section>
+  {% endif %}
+
+{% else %}
+
+  {# ════ PUBLIC (UNAUTHENTICATED) SECTIONS ════ #}
+
+  {# ── Featured products ── #}
+  {% if featured %}
+  <section class="kzp-section kzp-section--alt">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="kzp-section-title mb-0">✨ Featured Products</h2>
+        <a href="{{ url_for('buyer.browse_products') }}"
+           class="kzp-see-all">
+          Browse all <i class="fas fa-arrow-right ms-1"></i>
+        </a>
+      </div>
+      <div class="row row-cols-2 row-cols-md-4 g-3">
+        {% for p in featured %}
+        {% set fi = p.images[0] if p.images else None %}
+        <div class="col">
+          <div class="card h-100 border-0 shadow-sm kzp-prod-card">
+            <a href="{{ url_for('buyer.product_detail', product_id=p.id) }}" class="text-decoration-none">
+              {% if fi %}
+                <img src="{{ fi }}" class="card-img-top" alt="{{ p.name }}" style="height:160px;object-fit:cover;">
+              {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height:160px;">
+                  <i class="fas fa-image fa-2x text-muted"></i>
+                </div>
+              {% endif %}
+            </a>
+            <div class="card-body d-flex flex-column p-2">
+              <a href="{{ url_for('buyer.product_detail', product_id=p.id) }}"
+                 class="text-dark text-decoration-none fw-semibold small mb-1 kzp-line-clamp">{{ p.name }}</a>
+              <div class="mt-auto d-flex align-items-center justify-content-between pt-1">
+                <span class="kzp-price">₱{{ p.price|float|currency }}</span>
+                <a href="{{ url_for('buyer.product_detail', product_id=p.id) }}"
+                   class="btn btn-sm py-0 px-2 kzp-btn-cart">
+                  View
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {# ── How it works ── #}
+  <section class="kzp-section">
+    <div class="container">
+      <h2 class="kzp-section-title text-center">How KidZora Works</h2>
+      <div class="row g-4">
+        {% for num, icon, title, body in [
+          ('1','fas fa-search',       'Browse & Discover',  'Find safe, curated products from verified local sellers.'),
+          ('2','fas fa-shopping-cart','Add & Checkout',     'Shop with confidence — secure checkout and trusted sellers.'),
+          ('3','fas fa-box',          'Get Delivered',      'Fast local delivery right to your doorstep.'),
+        ] %}
+        <div class="col-md-4">
+          <div class="kzp-step text-center mt-3">
+            <div class="kzp-step-num">{{ num }}</div>
+            <div class="kzp-step-icon mx-auto mb-3">
+              <i class="{{ icon }}"></i>
+            </div>
+            <h5 class="fw-bold mb-1">{{ title }}</h5>
+            <p class="text-muted small mb-0">{{ body }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  {# ── Trust badges ── #}
+  <section class="kzp-section kzp-section--alt">
+    <div class="container">
+      <div class="kzp-trust-row">
+        {% for icon, title, body in [
+          ('fas fa-shield-alt',    'Verified Sellers',  'Every seller is manually reviewed.'),
+          ('fas fa-undo-alt',      'Easy Returns',      'Hassle-free returns within 7 days.'),
+          ('fas fa-child',         'Kids First',        'All products are child-safe.'),
+          ('fas fa-headset',       '24/7 Support',      "We're here whenever you need us."),
+        ] %}
+        <div class="kzp-trust-item">
+          <i class="{{ icon }}"></i>
+          <div>
+            <div class="fw-bold small">{{ title }}</div>
+            <div class="text-muted" style="font-size:.8rem;">{{ body }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  {# ── CTA strip ── #}
+  <section class="kzp-cta py-5 text-white text-center">
+    <div class="container">
+      <h2 class="fw-bold mb-2">Ready to start shopping?</h2>
+      <p class="mb-4 opacity-75">Join thousands of parents who trust KidZora.</p>
+      <a href="{{ url_for('auth.register') }}"
+         class="btn btn-lg px-5 kzp-btn-outline-white">
+        Create Free Account
+      </a>
+    </div>
+  </section>
+
+{% endif %}
+{# ── end role sections ── #}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.wl-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var pid = this.dataset.productId;
+    var self = this;
+    fetch('/buyer/wishlist/toggle/' + pid, {
+      method: 'POST',
+      headers: {'X-CSRFToken': document.querySelector('meta[name="csrf-token"]') ?
+                document.querySelector('meta[name="csrf-token"]').content : ''}
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.status === 'added') {
+        self.classList.remove('btn-outline-danger');
+        self.classList.add('btn-danger');
+      } else {
+        self.classList.remove('btn-danger');
+        self.classList.add('btn-outline-danger');
+      }
+    })
+    .catch(function() {});
+  });
+});
+</script>
+{% endblock %}

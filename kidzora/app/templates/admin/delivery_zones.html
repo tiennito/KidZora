@@ -1,0 +1,157 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Delivery Zones - Admin - KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Delivery Zones - KidZora Admin">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+  <div>
+    <h1 class="mb-1"><i class="fas fa-map-marked-alt me-2"></i>Delivery Zones</h1>
+    <p class="text-muted mb-0">Configure delivery fees by city, province, or region.</p>
+  </div>
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createZoneModal">
+    <i class="fas fa-plus me-2"></i>Add Zone
+  </button>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header">
+        <h5 class="mb-0">Fallback Fee</h5>
+      </div>
+      <div class="card-body">
+        <p class="text-muted small">Used when no city, province, or region match exists.</p>
+        <form method="POST" action="{{ url_for('admin.update_default_delivery_fee') }}">
+          <label class="form-label">Default Delivery Fee</label>
+          <div class="input-group">
+            <span class="input-group-text">PHP</span>
+            <input type="number" class="form-control" name="default_delivery_fee"
+                   value="{{ '%.2f'|format(default_delivery_fee) }}" min="0" step="0.01" required>
+            <button class="btn btn-primary" type="submit">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Configured Zones</h5>
+        <span class="badge bg-primary">{{ zones|length }}</span>
+      </div>
+      <div class="card-body">
+        {% if zones %}
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Location Name</th>
+                <th>Delivery Fee</th>
+                <th>Updated</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for zone in zones %}
+              <tr>
+                <td class="fw-semibold">{{ zone.location_name }}</td>
+                <td>PHP {{ '%.2f'|format(zone.delivery_fee|float) }}</td>
+                <td class="text-muted small">{{ zone.updated_at[:10] if zone.updated_at else '—' }}</td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-outline-primary"
+                          data-bs-toggle="modal"
+                          data-bs-target="#editZoneModal{{ zone.id }}">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <form method="POST" action="{{ url_for('admin.delete_delivery_zone', zone_id=zone.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                            onclick="return confirm('Delete this delivery zone? Existing orders keep their stored fees.')">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="fas fa-map-marked-alt fa-3x mb-3 opacity-25"></i>
+          <p>No delivery zones yet. The fallback fee will be used until zones are added.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="createZoneModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.delivery_zones') }}">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Delivery Zone</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Location Name</label>
+            <input type="text" class="form-control" name="locationName" placeholder="Cebu City" required>
+            <div class="form-text">Use the exact city, province, or region name buyers enter.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Delivery Fee</label>
+            <div class="input-group">
+              <span class="input-group-text">PHP</span>
+              <input type="number" class="form-control" name="deliveryFee" min="0" step="0.01" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Zone</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% for zone in zones %}
+<div class="modal fade" id="editZoneModal{{ zone.id }}" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.edit_delivery_zone', zone_id=zone.id) }}">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Delivery Zone</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Location Name</label>
+            <input type="text" class="form-control" name="locationName" value="{{ zone.location_name }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Delivery Fee</label>
+            <div class="input-group">
+              <span class="input-group-text">PHP</span>
+              <input type="number" class="form-control" name="deliveryFee"
+                     value="{{ '%.2f'|format(zone.delivery_fee|float) }}" min="0" step="0.01" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

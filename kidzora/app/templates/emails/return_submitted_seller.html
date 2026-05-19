@@ -1,0 +1,17 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2 style="color:#d97706;margin:0 0 8px;">⚠️ New Return/Refund Request</h2>
+<p style="color:#374151;margin:0 0 16px;">
+    A buyer has submitted a Return/Refund request for order <strong>{{ order_ref }}</strong>.
+    Please review and respond.
+</p>
+<div style="background:#fffbeb;border-left:4px solid #d97706;padding:16px;border-radius:6px;margin:0 0 16px;">
+    <strong>Request type:</strong> {{ 'Return & Refund' if refund_type == 'return_and_refund' else 'Refund Only' }}<br>
+    <strong>Reason:</strong> {{ reason | replace('_', ' ') | title }}
+    {% if details %}<br><strong>Details:</strong> {{ details }}{% endif %}
+</div>
+<p style="color:#6b7280;font-size:.85rem;">
+    Log in to your seller dashboard → <strong>Returns</strong> to approve or reject this request.
+</p>
+{% endblock %}

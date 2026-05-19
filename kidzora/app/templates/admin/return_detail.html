@@ -1,0 +1,215 @@
+{% extends "admin/base.html" %}
+{% block title %}Return #{{ rr.id[:8]|upper }} – Admin{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Return – KidZora Admin">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:800px;">
+
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('admin.returns') }}">Returns</a></li>
+      <li class="breadcrumb-item active">Request #{{ rr.id[:8]|upper }}</li>
+    </ol>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} alert-dismissible fade show">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  {% set s = rr.status %}
+
+  <!-- Status banner -->
+  {% if s == 'escalated' %}
+  <div class="alert alert-danger d-flex align-items-center gap-3 py-3 mb-4">
+    <i class="fas fa-exclamation-triangle fa-lg"></i>
+    <div>
+      <p class="mb-0 fw-bold">Escalated Dispute — Needs Admin Decision</p>
+      <p class="mb-0 small">The seller rejected this request and the buyer has escalated it to you. Review both sides and make a final decision.</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+
+    <!-- Left: full timeline -->
+    <div class="col-lg-7">
+
+      <!-- Request info -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold py-3">
+          <i class="fas fa-file-alt me-2 text-primary"></i>Request Details
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0 small">
+            <dt class="col-5 text-muted">Request ID</dt>
+            <dd class="col-7"><code>#{{ rr.id[:8]|upper }}</code></dd>
+
+            <dt class="col-5 text-muted">Order</dt>
+            <dd class="col-7">
+              <a href="{{ url_for('admin.order_detail', order_id=rr.order_id) }}"
+                 class="text-primary fw-semibold text-decoration-none">
+                #{{ rr.order_id[:8]|upper }}
+              </a>
+            </dd>
+
+            <dt class="col-5 text-muted">Request Type</dt>
+            <dd class="col-7">{{ 'Return &amp; Refund' if rr.refund_type == 'return_and_refund' else 'Refund Only' }}</dd>
+
+            <dt class="col-5 text-muted">Reason</dt>
+            <dd class="col-7">{{ reason_labels.get(rr.reason, rr.reason|replace('_',' ')|title) }}</dd>
+
+            <dt class="col-5 text-muted">Buyer ID</dt>
+            <dd class="col-7"><code>{{ rr.buyer_id[:8] if rr.buyer_id else '—' }}</code></dd>
+
+            <dt class="col-5 text-muted">Seller ID</dt>
+            <dd class="col-7"><code>{{ rr.seller_id[:8] if rr.seller_id else '—' }}</code></dd>
+
+            <dt class="col-5 text-muted">Submitted</dt>
+            <dd class="col-7">{{ rr.created_at[:10] if rr.created_at else '—' }}</dd>
+
+            {% if rr.details %}
+            <dt class="col-5 text-muted">Buyer's Details</dt>
+            <dd class="col-7">{{ rr.details }}</dd>
+            {% endif %}
+          </dl>
+        </div>
+      </div>
+
+      <!-- Buyer Evidence Attachments -->
+      {% set evidence = rr.evidence_files if rr.evidence_files else [] %}
+      {% if evidence %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold py-3">
+          <i class="fas fa-paperclip me-2 text-primary"></i>Buyer's Evidence
+          <span class="badge bg-secondary ms-2">{{ evidence|length }}</span>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            {% for path in evidence %}
+              {% set ext = path.rsplit('.', 1)[-1].lower() %}
+              <div class="col-6 col-md-4 col-lg-3">
+                {% if ext in ('mp4','mov','avi','webm','mkv') %}
+                  <video src="{{ path }}" controls
+                         class="w-100 rounded shadow-sm"
+                         style="max-height:160px;object-fit:cover;background:#000;">
+                  </video>
+                  <p class="text-muted mt-1 mb-0" style="font-size:.72rem; word-break:break-all;">
+                    <i class="fas fa-film me-1"></i>{{ path.rsplit('/', 1)[-1] }}
+                  </p>
+                {% else %}
+                  <a href="{{ path }}" target="_blank">
+                    <img src="{{ path }}" alt="Evidence {{ loop.index }}"
+                         class="img-thumbnail w-100 shadow-sm"
+                         style="height:130px;object-fit:cover;cursor:zoom-in;">
+                  </a>
+                  <p class="text-muted mt-1 mb-0" style="font-size:.72rem; word-break:break-all;">
+                    <i class="fas fa-image me-1"></i>{{ path.rsplit('/', 1)[-1] }}
+                  </p>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Seller response -->
+      {% if rr.seller_response %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold py-3">
+          <i class="fas fa-store me-2 text-primary"></i>Seller's Response
+        </div>
+        <div class="card-body small">{{ rr.seller_response }}</div>
+      </div>
+      {% endif %}
+
+      <!-- Admin decision (post-resolution) -->
+      {% if rr.admin_response %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold py-3">
+          <i class="fas fa-shield-alt me-2 text-primary"></i>Admin's Decision
+        </div>
+        <div class="card-body small">
+          <span class="badge {{ 'bg-success' if s == 'admin_approved' else 'bg-secondary' }} mb-2">
+            {{ 'Approved' if s == 'admin_approved' else 'Rejected' }}
+          </span>
+          <p class="mb-0">{{ rr.admin_response }}</p>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Right: resolve panel (only for escalated) -->
+    <div class="col-lg-5">
+      {% if s == 'escalated' %}
+      <div class="card border-0 shadow-sm border-danger">
+        <div class="card-header bg-white fw-semibold py-3 text-danger">
+          <i class="fas fa-gavel me-2"></i>Resolve Dispute
+        </div>
+        <div class="card-body">
+          <p class="small text-muted mb-3">
+            Your decision is final. Choose carefully.
+          </p>
+
+          <!-- Approve -->
+          <form method="POST" action="{{ url_for('admin.return_resolve', rr_id=rr.id) }}" class="mb-3">
+            <input type="hidden" name="decision" value="approve">
+            <label class="form-label small fw-semibold text-success">
+              <i class="fas fa-check-circle me-1"></i>Approve refund — side with buyer
+            </label>
+            <textarea class="form-control form-control-sm mb-2" name="admin_response" rows="2"
+                      placeholder="e.g. After reviewing the evidence, the buyer's claim is valid." required></textarea>
+            <button type="submit" class="btn btn-success btn-sm w-100"
+                    onclick="return confirm('Approve this refund request?')">
+              <i class="fas fa-check me-1"></i>Approve Refund
+            </button>
+          </form>
+
+          <hr>
+
+          <!-- Reject -->
+          <form method="POST" action="{{ url_for('admin.return_resolve', rr_id=rr.id) }}">
+            <input type="hidden" name="decision" value="reject">
+            <label class="form-label small fw-semibold text-danger">
+              <i class="fas fa-times-circle me-1"></i>Reject — side with seller
+            </label>
+            <textarea class="form-control form-control-sm mb-2" name="admin_response" rows="2"
+                      placeholder="e.g. Based on the seller's evidence, the return request is not valid." required></textarea>
+            <button type="submit" class="btn btn-outline-danger btn-sm w-100"
+                    onclick="return confirm('Reject this refund request?')">
+              <i class="fas fa-times me-1"></i>Reject Request
+            </button>
+          </form>
+
+        </div>
+      </div>
+      {% else %}
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-4 text-muted small">
+          {% set sc = {'pending':'warning','seller_approved':'success','seller_rejected':'secondary',
+                       'admin_approved':'success','admin_rejected':'secondary'}.get(s,'secondary') %}
+          <span class="badge bg-{{ sc }} mb-2">{{ s|replace('_',' ')|title }}</span><br>
+          {% if s not in ('escalated',) %}
+          This request has already been resolved.
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/returns.css') }}">
+{% endblock %}

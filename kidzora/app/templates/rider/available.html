@@ -1,0 +1,115 @@
+{% extends "rider/base.html" %}
+{% block title %}Available Pickups – KidZora Rider{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Available Pickups – KidZora Rider">
+{% endblock %}
+
+{% block page_content %}
+<div class="mb-4">
+  <h4 class="fw-bold mb-0"><i class="fas fa-box-open me-2 text-success"></i>Available Pickups</h4>
+  <p class="text-muted small mb-0">Orders packed by sellers and waiting for a rider</p>
+</div>
+
+{% if not rider_is_available %}
+<div class="alert alert-secondary d-flex align-items-center gap-3 py-3 mb-4">
+  <i class="fas fa-moon fa-lg" style="color:#6c757d;"></i>
+  <div class="flex-grow-1">
+    <strong>You are currently Offline.</strong><br>
+    <span class="small text-muted">Go online to accept new delivery assignments.</span>
+  </div>
+  <button id="kzAvailPageBtn" class="btn btn-success btn-sm px-3" data-available="false">
+    <i class="fas fa-power-off me-1"></i>Go Online
+  </button>
+</div>
+{% endif %}
+
+{% if orders %}
+  {% for order in orders %}
+  {% set addr = order.delivery_address or {} %}
+  {% set seller = order.sellers or {} %}
+  <div class="delivery-card">
+    <div class="delivery-card-body">
+
+      <!-- Header row -->
+      <div class="delivery-card-head">
+        <div class="delivery-card-title">
+          <span class="delivery-card-order">Order #{{ order.id[:8]|upper }}</span>
+          <span class="delivery-card-meta"><i class="fas fa-clock"></i>{{ order.created_at[:16].replace('T',' ') if order.created_at else '' }}</span>
+        </div>
+        <span class="status-pill status-pill-warning">
+          <i class="fas fa-box me-1"></i>Ready for Pickup
+        </span>
+      </div>
+
+      <!-- Items preview -->
+      {% if order._items %}
+      <div class="delivery-preview">
+        {% for item in order._items %}
+          {% set prod = item.products or {} %}
+          {% set imgs = prod.images if prod.images else [] %}
+          <div class="delivery-preview-item">
+            {% if imgs %}
+              <img src="{{ imgs[0] }}" class="order-thumb" alt="{{ prod.name }}">
+            {% else %}
+              <div class="order-thumb-ph"><i class="fas fa-image"></i></div>
+            {% endif %}
+            <div>
+              <div class="fw-semibold small delivery-product-name">{{ prod.name or 'Product' }}</div>
+              <div class="delivery-product-qty">Qty: {{ item.quantity or 1 }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Delivery info -->
+      <div class="delivery-info-grid">
+        <div class="delivery-info-card">
+          <div class="delivery-info-label"><i class="fas fa-store me-1"></i>Pickup from</div>
+          <div class="delivery-info-value">{{ seller.shop_name or 'Seller' }}</div>
+        </div>
+        <div class="delivery-info-card">
+          <div class="delivery-info-label"><i class="fas fa-map-marker-alt me-1"></i>Deliver to</div>
+          <div class="delivery-info-value">
+            {% if addr %}
+              {{ addr.full_name or '' }} · {{ addr.barangay or '' }}, {{ addr.city or '' }}
+            {% else %}—{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer: total + accept -->
+      <div class="delivery-card-footer">
+        <div>
+          <span class="delivery-total-label">Order Total</span>
+          <span class="delivery-total-value">₱{{ order.total_amount|float|currency }}</span>
+          {% if order.delivery_fee %}
+            <div class="delivery-extra-meta">Delivery fee: ₱{{ order.delivery_fee|float|currency }}</div>
+          {% endif %}
+        </div>
+        <form action="{{ url_for('rider.accept_order', order_id=order.id) }}" method="POST">
+          <button type="submit" class="btn btn-success btn-sm px-3">
+            <i class="fas fa-check me-1"></i>Accept Delivery
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="rider-card">
+    <div class="rider-card-body text-center py-5">
+      <i class="fas fa-box-open fa-3x text-muted mb-3 d-block opacity-25"></i>
+      <h5 class="fw-semibold">No orders available right now</h5>
+      <p class="text-muted small">Check back soon — sellers will pack more orders shortly.</p>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/rider/available.js') }}"></script>
+{% endblock %}

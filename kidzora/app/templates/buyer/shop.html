@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% block title %}{{ seller.shop_name }} – KidZora{% endblock %}
+
+{% block seo_meta %}
+{% set _shop_desc = seller.shop_description | truncate(155, True, '...') if seller.shop_description else (seller.shop_name ~ ' – browse all kids\' products from this verified seller on KidZora.') %}
+{% set _shop_img  = seller.avatar if seller.avatar else (request.host_url ~ 'static/img/og-default.png') %}
+<meta name="description" content="{{ _shop_desc }}">
+<meta name="robots" content="index, follow">
+<meta property="og:site_name" content="KidZora">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ seller.shop_name }} – KidZora">
+<meta property="og:description" content="{{ _shop_desc }}">
+<meta property="og:url" content="{{ request.base_url }}">
+<meta property="og:image" content="{{ _shop_img }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ seller.shop_name }} – KidZora">
+<meta name="twitter:description" content="{{ _shop_desc }}">
+<meta name="twitter:image" content="{{ _shop_img }}">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/buyer/shop.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<!-- Store banner -->
+{% if seller.shop_banner_url %}
+<div class="w-100 overflow-hidden" style="max-height:260px;background:#1e293b;">
+  <img src="{{ seller.shop_banner_url }}" alt="{{ seller.shop_name }} banner"
+       style="width:100%;max-height:260px;object-fit:cover;object-position:center;display:block;">
+</div>
+{% endif %}
+
+<!-- Store header -->
+<div class="{% if seller.shop_banner_url %}bg-primary text-white py-3 mb-4{% else %}bg-primary text-white py-4 mb-4{% endif %}">
+  <div class="container">
+    <div class="d-flex align-items-center gap-4 flex-wrap">
+      <!-- Store avatar -->
+      {% set avatar = seller.avatar_url if (seller.avatar_url is defined and seller.avatar_url) else (seller.avatar if seller.avatar is defined and seller.avatar else None) %}
+      <div class="rounded-circle overflow-hidden bg-white border border-3 border-white shadow flex-shrink-0 d-flex align-items-center justify-content-center"
+           style="width:80px;height:80px;">
+        {% if avatar %}
+          <img src="{{ avatar }}" alt="{{ seller.shop_name }}"
+               style="width:80px;height:80px;object-fit:cover;">
+        {% else %}
+          <i class="fas fa-store fa-2x text-primary"></i>
+        {% endif %}
+      </div>
+      <div class="flex-grow-1">
+        <h2 class="fw-bold mb-1">{{ seller.shop_name }}</h2>
+        {% if seller.shop_description %}
+          <p class="mb-1 opacity-75 small">{{ seller.shop_description }}</p>
+        {% endif %}
+        {% if seller.city or seller.province %}
+          <small class="opacity-75">
+            <i class="fas fa-map-marker-alt me-1"></i>
+            {{ seller.city }}{% if seller.city and seller.province %}, {% endif %}{{ seller.province }}
+          </small>
+        {% endif %}
+      </div>
+      <div class="text-end flex-shrink-0">
+        <div class="display-6 fw-bold">{{ products|length }}</div>
+        <div class="opacity-75 small">Products</div>
+        {% if current_user.is_authenticated and seller.user_id != current_user.id %}
+        <button id="follow-btn"
+                data-seller-id="{{ seller.id }}"
+                data-following="{{ 'true' if is_following else 'false' }}"
+                class="btn btn-sm mt-2 {% if is_following %}btn-light{% else %}btn-outline-light{% endif %} px-3">
+          <i class="fas {% if is_following %}fa-heart text-danger{% else %}fa-heart{% endif %} me-1"></i>
+          <span id="follow-label">{{ 'Following' if is_following else 'Follow' }}</span>
+        </button>
+        <div id="follower-count" class="opacity-75 small mt-1">
+          {{ follower_count }} follower{{ 's' if follower_count != 1 else '' }}
+        </div>
+        {% else %}
+        <div class="opacity-75 small mt-1">
+          {{ follower_count }} follower{{ 's' if follower_count != 1 else '' }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small mb-0">
+      <li class="breadcrumb-item">
+        <a href="{{ url_for('buyer.browse_products') }}" class="text-decoration-none">
+          <i class="fas fa-shopping-bag me-1"></i>Browse Products
+        </a>
+      </li>
+      <li class="breadcrumb-item active text-truncate" style="max-width:220px;" aria-current="page">
+        {{ seller.shop_name }}
+      </li>
+    </ol>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} alert-dismissible fade show">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if seller.about_store %}
+  <!-- About the Store -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h6 class="fw-bold mb-2"><i class="fas fa-info-circle me-2 text-primary"></i>About the Store</h6>
+      <p class="mb-0 text-muted" style="white-space:pre-line;">{{ seller.about_store }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if products %}
+    <!-- Filter / search within shop -->
+    <div class="d-flex gap-2 mb-4 flex-wrap align-items-center">
+      <span class="text-muted small"><i class="fas fa-filter me-1"></i>Filter by category:</span>
+      <a href="{{ url_for('buyer.seller_shop', seller_id=seller.id) }}"
+         class="badge rounded-pill {% if not request.args.get('cat') %}bg-primary{% else %}bg-light text-dark border{% endif %} text-decoration-none px-3 py-2">All</a>
+      {% for cat in products|map(attribute='category')|unique|sort %}
+      <a href="{{ url_for('buyer.seller_shop', seller_id=seller.id) }}?cat={{ cat }}"
+         class="badge rounded-pill {% if request.args.get('cat') == cat %}bg-primary text-white{% else %}bg-light text-dark border{% endif %} text-decoration-none px-3 py-2">{{ cat }}</a>
+      {% endfor %}
+    </div>
+
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+      {% for p in products %}
+      {% set first_img = p.images[0] if p.images else None %}
+      <div class="col">
+        <div class="card h-100 border-0 shadow-sm product-card">
+          <a href="{{ url_for('buyer.product_detail', product_id=p.id) }}" class="text-decoration-none">
+            {% if first_img %}
+              <img src="{{ first_img }}" class="card-img-top"
+                   alt="{{ p.name }}" style="height:180px;object-fit:cover;">
+            {% else %}
+              <div class="bg-light d-flex align-items-center justify-content-center" style="height:180px;">
+                <i class="fas fa-image fa-2x text-muted"></i>
+              </div>
+            {% endif %}
+          </a>
+          <div class="card-body d-flex flex-column p-3">
+            <span class="badge bg-light text-dark border mb-1" style="font-size:.72rem;width:fit-content;">
+              {{ p.category }}
+            </span>
+            <a href="{{ url_for('buyer.product_detail', product_id=p.id) }}"
+               class="text-dark text-decoration-none fw-semibold mb-1 line-clamp-2">{{ p.name }}</a>
+            {% if p.description %}
+              <p class="text-muted small flex-grow-1 line-clamp-2 mb-2">{{ p.description }}</p>
+            {% endif %}
+            <div class="d-flex align-items-center justify-content-between mt-auto">
+              <div>
+                <div class="fw-bold text-primary">₱{{ p.price|float|currency }}</div>
+                {% if p.stock_quantity and p.stock_quantity > 0 %}
+                  <small class="text-success"><i class="fas fa-check-circle me-1"></i>In Stock</small>
+                {% else %}
+                  <small class="text-danger">Out of Stock</small>
+                {% endif %}
+              </div>
+              {% if current_user.is_authenticated %}
+              {% set _wl = p.id in wishlisted_ids %}
+              <button class="btn btn-sm {% if _wl %}btn-danger{% else %}btn-outline-danger{% endif %} wl-btn"
+                      data-product-id="{{ p.id }}"
+                      title="{% if _wl %}Remove from Favorites{% else %}Add to Favorites{% endif %}">
+                <i class="fas fa-heart"></i>
+              </button>
+              {% else %}
+              <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline-danger" title="Login to save">
+                <i class="fas fa-heart"></i>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="text-center py-5">
+      <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+      <h5 class="text-muted">No products in this store yet</h5>
+    </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const btn = document.getElementById('follow-btn');
+  if (!btn) return;
+
+  btn.addEventListener('click', function () {
+    const sellerId = btn.dataset.sellerId;
+    btn.disabled = true;
+
+    fetch(`/buyer/shop/${sellerId}/follow`, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin',
+    })
+    .then(r => r.json())
+    .then(data => {
+      btn.dataset.following = data.following ? 'true' : 'false';
+      const icon = btn.querySelector('i');
+      const label = document.getElementById('follow-label');
+      const counter = document.getElementById('follower-count');
+
+      if (data.following) {
+        btn.classList.replace('btn-outline-light', 'btn-light');
+        icon.classList.replace('fa-heart', 'fa-heart');
+        icon.classList.add('text-danger');
+        label.textContent = 'Following';
+      } else {
+        btn.classList.replace('btn-light', 'btn-outline-light');
+        icon.classList.remove('text-danger');
+        label.textContent = 'Follow';
+      }
+      const n = data.follower_count;
+      counter.textContent = n + (n === 1 ? ' follower' : ' followers');
+      btn.disabled = false;
+    })
+    .catch(() => { btn.disabled = false; });
+  });
+})();
+</script>
+
+<script>
+/* ── Wishlist heart buttons ─────────────────────────────── */
+document.querySelectorAll('.wl-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var pid = btn.dataset.productId;
+    btn.disabled = true;
+    fetch('/buyer/wishlist/toggle/' + pid, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin',
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.success) {
+        if (data.wishlisted) {
+          btn.classList.replace('btn-outline-danger', 'btn-danger');
+          btn.title = 'Remove from Favorites';
+        } else {
+          btn.classList.replace('btn-danger', 'btn-outline-danger');
+          btn.title = 'Add to Favorites';
+        }
+      }
+      btn.disabled = false;
+    })
+    .catch(function () { btn.disabled = false; });
+  });
+});
+</script>
+{% endblock %}

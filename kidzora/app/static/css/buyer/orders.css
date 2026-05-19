@@ -1,0 +1,66 @@
+/* =============================================================
+   KidZora – Buyer / Orders List Page
+   ============================================================= */
+
+/* ── Order card ────────────────────────────────────────────── */
+.order-card { border-radius: 14px; transition: box-shadow .2s; }
+.order-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,.10) !important; }
+
+/* ── Order thumbnail ───────────────────────────────────────── */
+.order-thumb {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #f0f0f0;
+  flex-shrink: 0;
+}
+.order-thumb-placeholder {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #f0f0f0;
+  color: #adb5bd;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.order-thumb-more {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  background: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .85rem;
+  font-weight: 700;
+  color: #6c757d;
+  flex-shrink: 0;
+}
+
+/* ── Status pill ───────────────────────────────────────────── */
+.status-pill {
+  font-size: .75rem;
+  padding: .35em .8em;
+  border-radius: 20px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  white-space: nowrap;
+}
+
+/* ── Step dot ──────────────────────────────────────────────── */
+.step-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #dee2e6;
+  flex-shrink: 0;
+}
+.step-dot.done   { background: #0d6efd; }
+.step-dot.active { background: #0d6efd; box-shadow: 0 0 0 3px rgba(13,110,253,.22); }

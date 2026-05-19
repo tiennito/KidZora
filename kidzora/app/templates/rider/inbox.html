@@ -1,0 +1,19 @@
+{% extends "rider/base.html" %}
+{% block title %}Messages – KidZora Rider{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Messages – KidZora Rider">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/inbox.css') }}">
+{% endblock %}
+
+{% block page_content %}
+{% include 'shared/_inbox_body.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/rider/inbox.js') }}"></script>
+{% endblock %}

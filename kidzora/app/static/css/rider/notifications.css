@@ -1,0 +1,55 @@
+/* =================================================================
+   KidZora – Rider / Notifications Page
+   ================================================================= */
+
+/* ── Page wrapper ──────────────────────────────────────────── */
+.rn-wrap {
+  padding: 1.25rem;
+  max-width: 740px;
+}
+
+/* ── Header banner ─────────────────────────────────────────── */
+.rn-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+  border-radius: 14px;
+  padding: 1.4rem 1.6rem;
+  color: #fff;
+  margin-bottom: 1.25rem;
+}
+.rn-header h4 { font-size: 1.2rem; font-weight: 800; margin: 0 0 .15rem; }
+.rn-header p  { font-size: .82rem; opacity: .85; margin: 0; }
+.rn-badge-new { font-size: .8rem; align-self: center; }
+
+/* ── Notification card backgrounds ────────────────────────── */
+.rn-bg-blue    { background: #eff6ff; }
+.rn-bg-yellow  { background: #fffbeb; }
+.rn-bg-green   { background: #f0fdf4; }
+.rn-bg-red     { background: #fef2f2; }
+.rn-bg-default { background: #f9fafb; }
+
+/* ── Unread indicator (left border) ───────────────────────── */
+.rn-unread { border-left: 3px solid #22c55e !important; }
+
+/* ── Icon circle ───────────────────────────────────────────── */
+.rn-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Text sizing ───────────────────────────────────────────── */
+.rn-title    { font-size: .92rem; }
+.rn-body     { font-size: .82rem; }
+.rn-date     { font-size: .72rem; white-space: nowrap; }
+.rn-view-btn { font-size: .75rem; }
+.rn-badge-pill { font-size: .65rem; }
+
+/* ── Empty state ───────────────────────────────────────────── */
+.rn-empty { padding: 3rem 1rem; }

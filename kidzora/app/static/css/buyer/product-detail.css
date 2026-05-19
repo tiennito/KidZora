@@ -1,0 +1,378 @@
+/* =============================================================
+   KidZora – Buyer / Product Detail Page
+   Shopee-inspired layout (kz-* component classes)
+   ============================================================= */
+
+:root { --kz-orange: #ee4d2d; }
+
+/* ── Panel wrapper ─────────────────────────────────────────── */
+.kz-pd-panel {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+}
+
+/* ── Price box ─────────────────────────────────────────────── */
+.kz-price-box {
+  background: #fafafa;
+  border-radius: 4px;
+  padding: 14px 18px;
+}
+.kz-price {
+  color: var(--kz-orange);
+  font-size: 1.85rem;
+  font-weight: 700;
+}
+
+/* ── Info rows (Vouchers / Shipping / Quantity etc.) ───────── */
+.kz-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid #f5f5f5;
+  font-size: .88rem;
+}
+.kz-info-row:last-child { border-bottom: none; }
+.kz-info-label {
+  color: #757575;
+  min-width: 130px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+.kz-info-val {
+  color: #222;
+  flex: 1;
+}
+
+/* ── Voucher chip ──────────────────────────────────────────── */
+.kz-voucher-chip {
+  background: #fff0ed;
+  color: var(--kz-orange);
+  border: 1px dashed var(--kz-orange);
+  border-radius: 2px;
+  font-size: .78rem;
+  font-weight: 600;
+  padding: 2px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-block;
+}
+.kz-voucher-chip:hover {
+  background: var(--kz-orange);
+  color: #fff;
+}
+
+/* ── Variant buttons ───────────────────────────────────────── */
+.kz-var-btn {
+  border: 1.5px solid #ddd;
+  border-radius: 2px;
+  background: #fff;
+  padding: 6px 12px;
+  font-size: .85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: border-color .15s, color .15s;
+  position: relative;
+}
+.kz-var-btn:hover  { border-color: var(--kz-orange); color: var(--kz-orange); }
+.kz-var-btn.active {
+  border-color: var(--kz-orange);
+  color: var(--kz-orange);
+  background: #fff0ed;
+}
+.kz-var-btn.active::after {
+  content: '\2713';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  background: var(--kz-orange);
+  color: #fff;
+  font-size: 9px;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px 0 2px 0;
+}
+.kz-var-btn img {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+/* ── Quantity stepper ──────────────────────────────────────── */
+.kz-qty-wrap {
+  display: inline-flex;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+}
+.kz-qty-btn {
+  width: 38px;
+  height: 34px;
+  border: none;
+  background: #f5f5f5;
+  cursor: pointer;
+  font-size: 1.1rem;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.kz-qty-btn:hover { background: #e0e0e0; }
+.kz-qty-input {
+  width: 56px;
+  height: 34px;
+  border: none;
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  text-align: center;
+  font-size: .9rem;
+}
+.kz-qty-input:focus { outline: none; }
+
+/* ── Action buttons ────────────────────────────────────────── */
+.kz-btn-cart {
+  border: 1px solid var(--kz-orange);
+  color: var(--kz-orange);
+  background: #fff0ed;
+  border-radius: 2px;
+  padding: 11px 26px;
+  font-size: .95rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background .15s;
+}
+.kz-btn-cart:hover    { background: #ffe4de; }
+.kz-btn-cart:disabled { opacity: .5; cursor: not-allowed; }
+
+.kz-btn-buy {
+  background: var(--kz-orange);
+  color: #fff;
+  border: none;
+  border-radius: 2px;
+  padding: 11px 26px;
+  font-size: .95rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: filter .15s;
+}
+.kz-btn-buy:hover    { filter: brightness(1.08); }
+.kz-btn-buy:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Thumbnail strip ───────────────────────────────────────── */
+.kz-thumb {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border: 2px solid transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.kz-thumb:hover  { border-color: #aaa; }
+.kz-thumb.active { border-color: var(--kz-orange); }
+
+/* ── Wishlist (heart) button ───────────────────────────────── */
+.kz-btn-wish {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #555;
+  border-radius: 2px;
+  padding: 11px 18px;
+  font-size: .9rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.kz-btn-wish:hover {
+  border-color: var(--kz-orange);
+  color: var(--kz-orange);
+  background: #fff0ed;
+}
+.kz-btn-wish.active {
+  border-color: var(--kz-orange);
+  color: var(--kz-orange);
+  background: #fff0ed;
+}
+.kz-btn-wish.active i { color: var(--kz-orange); }
+.kz-wish-label { font-size: .82rem; }
+
+/* ── Seller card ───────────────────────────────────────────── */
+.kz-seller-avatar {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #eee;
+  background: linear-gradient(135deg, #ee4d2d, #f7a500);
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.kz-seller-stat {
+  font-size: .85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 0;
+  border-right: 1px solid #f0f0f0;
+  text-align: center;
+}
+.kz-seller-stat:last-child { border-right: none; }
+.kz-ss-lbl {
+  color: #888;
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.kz-seller-stat .val {
+  display: block;
+  font-weight: 800;
+  color: var(--kz-orange);
+  font-size: 1.15rem;
+  line-height: 1.1;
+}
+.kz-seller-stat .val.text-warning {
+  color: #f5a623 !important;
+}
+
+/* ── Product meta pills (condition, age group) ───────────── */
+.kz-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: .82rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+  line-height: 1;
+}
+.kz-pill-green  { background: #e6f9f0; color: #1a7f4b; border: 1px solid #b7ebd4; }
+.kz-pill-amber  { background: #fff8e6; color: #9a6500; border: 1px solid #fde7a0; }
+.kz-pill-blue   { background: #e8f0fe; color: #1a56c4; border: 1px solid #bdd0fb; }
+
+/* ── Tabs ──────────────────────────────────────────────────── */
+.kz-tab-btn {
+  border: none;
+  background: none;
+  padding: 12px 20px;
+  font-size: .9rem;
+  color: #555;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+.kz-tab-btn.active { color: var(--kz-orange); border-color: var(--kz-orange); }
+.kz-tab-btn:hover  { color: var(--kz-orange); }
+.kz-tab-pane        { display: none; }
+.kz-tab-pane.active { display: block; }
+.kz-spec-row td {
+  padding: 8px 14px;
+  font-size: .88rem;
+  vertical-align: top;
+}
+.kz-spec-row td:first-child { color: #757575; width: 200px; }
+.kz-spec-row:nth-child(even) { background: #fafafa; }
+
+/* ── Ratings panel ─────────────────────────────────────────── */
+.kz-ratings-box {
+  background: #fffdf9;
+  border: 1px solid #f5e8d8;
+  border-radius: 4px;
+  padding: 20px 24px;
+}
+.kz-big-score {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--kz-orange);
+  line-height: 1;
+}
+.kz-star-bar {
+  height: 6px;
+  width: var(--bar-w, 0%);
+  background: var(--kz-orange);
+  border-radius: 99px;
+}
+
+/* review star colours */
+.kz-star-on  { color: var(--kz-orange); }
+.kz-star-off { color: #d9d9d9; }
+
+/* ── Filter pills ──────────────────────────────────────────── */
+.kz-filter-pill {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #333;
+  border-radius: 2px;
+  padding: 5px 14px;
+  font-size: .8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+.kz-filter-pill:hover  { border-color: var(--kz-orange); color: var(--kz-orange); }
+.kz-filter-pill.active {
+  border-color: var(--kz-orange);
+  color: var(--kz-orange);
+  background: #fff0ed;
+}
+
+/* ── Review card ───────────────────────────────────────────── */
+.kz-review-card { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+.kz-review-card:last-child { border-bottom: none; }
+.kz-rev-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #ee4d2d, #f7a500);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.kz-variation-tag {
+  font-size: .75rem;
+  color: #757575;
+  background: #f5f5f5;
+  border-radius: 2px;
+  padding: 2px 8px;
+}
+.kz-media-thumb {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid #eee;
+}
+
+/* ── Write / Edit review form ──────────────────────────────── */
+.kz-write-form {
+  background: #f9f9f9;
+  border-radius: 4px;
+  padding: 22px;
+}
+
+/* ── Responsive tweaks ─────────────────────────────────────── */
+@media (max-width: 576px) {
+  .kz-btn-cart,
+  .kz-btn-buy { padding: 10px 16px; font-size: .88rem; }
+}

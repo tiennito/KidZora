@@ -1,0 +1,21 @@
+/* ============================================================
+   KidZora – Seller Panel / Products List
+   ============================================================ */
+
+/* ── Product thumbnail ───────────────────────────────────── */
+.product-thumb {
+  width: 52px; height: 52px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #e2e8f0;
+}
+
+.product-thumb-placeholder {
+  width: 52px; height: 52px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  display: flex; align-items: center; justify-content: center;
+  color: #94a3b8;
+  font-size: 1.2rem;
+  border: 1px solid #e2e8f0;
+}

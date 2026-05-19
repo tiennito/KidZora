@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% from 'macros.html' import render_pagination %}
+{% block title %}My Orders – KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="Track all your current and past orders on KidZora.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="My Orders – KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/buyer/orders.css') }}">
+<style>
+.step-connector        { height:2px; border-radius:2px; min-width:6px; background:#dee2e6; }
+.step-connector.active { background:#0d6efd; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:800px;">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="fw-bold mb-0"><i class="fas fa-shopping-bag me-2 text-primary"></i>My Orders</h4>
+      <p class="text-muted small mb-0">Track and manage everything you've ordered</p>
+    </div>
+    <a href="{{ url_for('buyer.browse_products') }}" class="btn btn-primary btn-sm px-3">
+      <i class="fas fa-plus me-1"></i>Shop More
+    </a>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} alert-dismissible fade show">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <div id="orders-container">
+    <!-- Empty State -->
+    <div data-empty-state class="empty-state empty-state--orders d-none">
+      <div class="empty-state__icon empty-state__icon--float">
+        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="60" r="55" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+          <rect x="35" y="32" width="50" height="56" rx="3" fill="none" stroke="#3b82f6" stroke-width="2"/>
+          <path d="M40 40L46 46M46 40L40 46" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M40 56L80 56" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M40 64L80 64" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M40 72L77 72" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="90" cy="35" r="3" fill="#fbbf24" opacity="0.7"/>
+          <circle cx="25" cy="75" r="2.5" fill="#3b82f6" opacity="0.4"/>
+        </svg>
+      </div>
+      <h2 class="empty-state__title">No Orders Yet</h2>
+      <p class="empty-state__description">Start your shopping adventure! Browse our collection of amazing products for kids and place your first order today.</p>
+      <div class="empty-state__action">
+        <a href="{{ url_for('buyer.browse_products') }}" class="empty-state__btn empty-state__btn-primary">
+          <i class="fas fa-shopping-bag"></i>Start Shopping
+        </a>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div data-empty-content>
+      {% if orders %}
+
+        {% for order in orders %}
+        {% set s = order.status or 'pending' %}
+        {% set status_map = {
+            'pending':          ('warning', 'fas fa-clock',         'Order Placed',     0),
+            'confirmed':        ('info',    'fas fa-check-circle',  'Confirmed',        1),
+            'preparing':        ('info',    'fas fa-box',           'Preparing',        2),
+            'ready_for_pickup': ('info',    'fas fa-store',         'Ready for Pickup', 3),
+            'out_for_delivery': ('primary', 'fas fa-motorcycle',    'Out for Delivery', 4),
+            'delivered':        ('success', 'fas fa-house-user',    'Delivered',        5),
+            'completed':        ('success', 'fas fa-star',          'Completed',        6),
+            'cancelled':        ('danger',  'fas fa-times-circle',  'Cancelled',       -1),
+        } %}
+        {% set sc = status_map.get(s, ('secondary','fas fa-circle','Unknown',-1)) %}
+
+        <div class="card order-card border-0 shadow-sm mb-3">
+          <div class="card-body p-3">
+
+            <!-- Order header -->
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+              <div>
+                <span class="fw-bold">Order #{{ order.id[:8]|upper }}</span>
+                <span class="text-muted small ms-2">
+                  <i class="fas fa-calendar-alt me-1"></i>{{ order.created_at[:10] if order.created_at else '' }}
+                </span>
+              </div>
+              <span class="status-pill
+                {% if sc[0]=='warning' %}bg-warning text-dark
+                {% elif sc[0]=='info' %}bg-info text-dark
+                {% elif sc[0]=='primary' %}bg-primary text-white
+                {% elif sc[0]=='success' %}bg-success text-white
+                {% elif sc[0]=='danger' %}bg-danger text-white
+                {% else %}bg-secondary text-white{% endif %}">
+                <i class="{{ sc[1] }}"></i>{{ sc[2] }}
+              </span>
+            </div>
+
+            <!-- Product thumbnails -->
+            {% set preview = order._items or [] %}
+            {% if preview %}
+        <div class="d-flex align-items-start gap-3 flex-wrap mb-3 pb-3 border-bottom">
+          {% for item in preview[:3] %}
+            {% set prod  = item.products or {} %}
+            {% set imgs  = prod.images if prod.images else [] %}
+            <div class="d-flex gap-2 align-items-center">
+              {% if imgs %}
+                <img src="{{ imgs[0] }}" class="order-thumb" alt="{{ prod.name or 'Product' }}">
+              {% else %}
+                <div class="order-thumb-placeholder"><i class="fas fa-image"></i></div>
+              {% endif %}
+              <div>
+                <div class="fw-semibold small" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ prod.name or 'Product' }}</div>
+                {% if item.product_variants %}
+                  <span class="badge bg-light text-secondary border" style="font-size:.68rem;">{{ item.product_variants.name }}</span>
+                {% endif %}
+                <div class="text-muted" style="font-size:.75rem;">
+                  Qty: <strong>{{ item.quantity or 1 }}</strong>
+                  &nbsp;·&nbsp; ₱{{ item.price|float|currency }}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+          {% if order.item_count and order.item_count > 3 %}
+            <div class="order-thumb-more">+{{ order.item_count - 3 }}<br><span style="font-size:.65rem;font-weight:400;">more</span></div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Mini tracker dots (skip when cancelled) -->
+        {% if s != 'cancelled' %}
+        {% set steps = ['pending','confirmed','preparing','ready_for_pickup','out_for_delivery','delivered','completed'] %}
+        {% set cur_idx = sc[3] %}
+        <div class="d-flex align-items-center gap-1 mb-3">
+          {% for step in steps %}
+            {% set i = loop.index0 %}
+            <div class="step-dot {{ 'done' if i < cur_idx else ('active' if i == cur_idx else '') }}"></div>
+            {% if not loop.last %}
+              <div class="flex-grow-1 step-connector {{ 'active' if i < cur_idx else '' }}"></div>
+            {% endif %}
+          {% endfor %}
+          <span class="ms-2 text-muted" style="font-size:.7rem;white-space:nowrap;">{{ sc[2] }}</span>
+        </div>
+        {% endif %}
+
+        <!-- Footer: total + action -->
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <span class="text-muted small">Order Total</span>
+            <span class="fw-bold text-primary ms-2">₱{{ order.total_amount|float|currency }}</span>
+          </div>
+          <div class="d-flex gap-2">
+            {% if s in ('completed', 'cancelled') %}
+            <form method="POST"
+                  action="{{ url_for('buyer.reorder', order_id=order.id) }}"
+                  style="display:inline;">
+              <button type="submit" class="btn btn-outline-primary btn-sm px-3">
+                <i class="fas fa-redo me-1"></i>Buy Again
+              </button>
+            </form>
+            {% endif %}
+            <a href="{{ url_for('buyer.order_detail', order_id=order.id) }}"
+               class="btn btn-primary btn-sm px-3">
+              <i class="fas fa-map-marker-alt me-1"></i>Track Order
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    {% endfor %}
+
+      {% endif %}
+    </div>
+  </div>
+
+  {{ render_pagination(pagination) }}
+
+</div>
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/kidzora-utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/buyer/orders.js') }}"></script>
+{% endblock %}
+{% endblock %}

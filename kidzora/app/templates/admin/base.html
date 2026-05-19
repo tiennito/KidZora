@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% if current_user.is_authenticated %}
+  <meta name="kz-uid" content="{{ current_user.id }}">
+  <meta name="kz-role" content="{{ current_user.role }}">
+  {% endif %}
+  <title>{% block title %}Admin Panel – KidZora{% endblock %}</title>
+
+  <!-- SEO Meta Tags -->
+  {% block seo_meta %}
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:site_name" content="KidZora">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Admin Panel – KidZora">
+  {% endblock %}
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/admin/sidebar.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/kidzora-toast.css') }}" rel="stylesheet">
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body style="margin:0;padding:0;overflow-x:hidden;">
+
+<!-- ── Top Navbar ─────────────────────────────────────────── -->
+<nav class="navbar navbar-dark px-3 py-1" style="background:linear-gradient(90deg,#31405f,#8f9bff,#73d7d0);position:sticky;top:0;z-index:200;border-bottom:1px solid rgba(255,255,255,.2);min-height:56px;display:flex;align-items:center;">
+  <div class="d-flex align-items-center gap-3">
+    <button id="sidebarToggle" class="btn btn-sm border-0 d-md-none" style="color:#a5b4fc;">
+      <i class="fas fa-bars"></i>
+    </button>
+    <a class="navbar-brand mb-0 h6 fw-bold" href="{{ url_for('index') }}" style="color:#fff;">
+      <i class="fas fa-child me-2"></i>KidZora
+    </a>
+  </div>
+
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-white-50 small d-none d-md-inline">
+      <i class="fas fa-shield-alt me-1" style="color:#818cf8;"></i>Admin Panel
+    </span>
+    <button id="kz-bell-btn" title="Notifications" aria-label="Notifications">
+      <i class="fas fa-bell" style="font-size:1rem;"></i>
+      <span id="kz-bell-badge"></span>
+    </button>
+    <button id="kzPushToggleBtn"
+            title="Push alerts OFF — click to enable"
+            data-push-enabled="false"
+            style="background:none;border:none;cursor:pointer;padding:.25rem .35rem;line-height:1;color:#fff;margin-left:.5rem;">
+      <i class="fas fa-bell-slash" style="font-size:.9rem;opacity:.5;"></i>
+    </button>
+    <div class="dropdown">
+      <button class="btn btn-sm btn-outline-light dropdown-toggle" data-bs-toggle="dropdown">
+        <i class="fas fa-user-shield me-1"></i>{{ current_user.first_name|default('Admin') }}
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><span class="dropdown-item-text small text-muted">{{ current_user.email|default('') }}</span></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+          <i class="fas fa-sign-out-alt me-2"></i>Logout
+        </a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+{#- Flash messages #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <script id="kz-flash-data" type="application/json">{{ messages | tojson }}</script>
+  {% endif %}
+{% endwith %}
+
+<!-- ── Wrapper ─────────────────────────────────────────────── -->
+<div class="admin-wrapper">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-brand">
+      <h5><i class="fas fa-shield-alt me-2"></i>Admin Panel</h5>
+      <small>KidZora Control Centre</small>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">Main</div>
+      <a href="{{ url_for('admin.dashboard') }}"
+         class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+      </a>
+
+      <!-- Users Dropdown -->
+      <div class="sidebar-dropdown {% if request.endpoint in ['admin.users_list', 'admin.users_pending', 'admin.unban_requests'] %}expanded{% endif %}">
+        <button class="sidebar-dropdown-toggle">
+          <i class="fas fa-users"></i> Users
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="sidebar-dropdown-menu">
+          <a href="{{ url_for('admin.users_list') }}"
+             class="sidebar-dropdown-link {% if request.endpoint == 'admin.users_list' %}active{% endif %}">
+            <i class="fas fa-list"></i> All Users
+          </a>
+          <a href="{{ url_for('admin.users_pending') }}"
+             class="sidebar-dropdown-link {% if request.endpoint == 'admin.users_pending' %}active{% endif %}">
+            <i class="fas fa-user-clock"></i> Pending Approval
+          </a>
+          <a href="{{ url_for('admin.unban_requests') }}"
+             class="sidebar-dropdown-link {% if request.endpoint == 'admin.unban_requests' %}active{% endif %}">
+            <i class="fas fa-user-slash"></i> Unban Requests
+          </a>
+        </div>
+      </div>
+
+      <!-- Commerce Dropdown -->
+      <div class="sidebar-dropdown {% if 'admin.order' in request.endpoint or 'admin.return' in request.endpoint or 'delivery_zone' in request.endpoint or request.endpoint in ['admin.coupons', 'admin.product_moderation', 'admin.resolve_product_report', 'admin.commission_overview', 'admin.payouts', 'admin.approve_payout', 'admin.reject_payout', 'admin.rider_payouts', 'admin.approve_rider_payout', 'admin.reject_rider_payout'] %}expanded{% endif %}">
+        <button class="sidebar-dropdown-toggle">
+          <i class="fas fa-shopping-bag"></i> Commerce
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="sidebar-dropdown-menu">
+          <a href="{{ url_for('admin.orders') }}"
+             class="sidebar-dropdown-link {% if 'admin.order' in request.endpoint %}active{% endif %}">
+            <i class="fas fa-shopping-bag"></i> Orders
+          </a>
+          <a href="{{ url_for('admin.returns') }}"
+             class="sidebar-dropdown-link {% if 'admin.return' in request.endpoint %}active{% endif %}">
+            <i class="fas fa-undo-alt"></i> Returns
+          </a>
+          <a href="{{ url_for('admin.coupons') }}"
+             class="sidebar-dropdown-link {% if request.endpoint == 'admin.coupons' %}active{% endif %}">
+            <i class="fas fa-ticket-alt"></i> Coupons
+          </a>
+          <a href="{{ url_for('admin.delivery_zones') }}"
+             class="sidebar-dropdown-link {% if 'delivery_zone' in request.endpoint %}active{% endif %}">
+            <i class="fas fa-map-marked-alt"></i> Delivery Zones
+          </a>
+          <a href="{{ url_for('admin.product_moderation') }}"
+             class="sidebar-dropdown-link {% if request.endpoint in ['admin.product_moderation', 'admin.resolve_product_report'] %}active{% endif %}">
+            <i class="fas fa-flag"></i> Product Moderation
+          </a>
+<a href="{{ url_for('admin.commission_overview') }}"
+             class="sidebar-dropdown-link {% if request.endpoint == 'admin.commission_overview' %}active{% endif %}">
+            <i class="fas fa-percentage"></i> Commission
+          </a>
+          <form id="downloadPdfForm" method="POST" action="{{ url_for('admin.commission_export_pdf') }}" style="display:none;">
+            <input type="hidden" name="period" value="all">
+          </form>
+          <a href="{{ url_for('admin.payouts') }}"
+             class="sidebar-dropdown-link {% if request.endpoint in ['admin.payouts','admin.approve_payout','admin.reject_payout'] %}active{% endif %}">
+            <i class="fas fa-money-bill-wave"></i> Seller Payouts
+          </a>
+          <a href="{{ url_for('admin.rider_payouts') }}"
+             class="sidebar-dropdown-link {% if request.endpoint in ['admin.rider_payouts','admin.approve_rider_payout','admin.reject_rider_payout'] %}active{% endif %}">
+            <i class="fas fa-motorcycle"></i> Rider Payouts
+          </a>
+        </div>
+      </div>
+
+      <!-- Analytics Dropdown -->
+      <div class="sidebar-dropdown {% if request.endpoint in ['admin.analytics_page', 'admin.reports', 'admin.audit_logs', 'admin.system_health'] %}expanded{% endif %}">
+        <button class="sidebar-dropdown-toggle">
+          <i class="fas fa-chart-line"></i> Analytics
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="sidebar-dropdown-menu">
+          <a href="{{ url_for('admin.analytics_page') }}"
+             class="sidebar-dropdown-link {% if request.endpoint == 'admin.analytics_page' %}active{% endif %}">
+            <i class="fas fa-chart-line"></i> Analytics
+          </a>
+          <a href="{{ url_for('admin.reports') }}"
+             class="sidebar-dropdown-link {% if request.endpoint == 'admin.reports' %}active{% endif %}">
+            <i class="fas fa-chart-bar"></i> Reports
+          </a>
+          <a href="{{ url_for('admin.audit_logs') }}"
+             class="sidebar-dropdown-link {% if request.endpoint == 'admin.audit_logs' %}active{% endif %}">
+            <i class="fas fa-clipboard-list"></i> Audit Logs
+          </a>
+          <a href="{{ url_for('admin.system_health') }}"
+             class="sidebar-dropdown-link {% if request.endpoint == 'admin.system_health' %}active{% endif %}">
+            <i class="fas fa-heartbeat"></i> System Health
+          </a>
+        </div>
+      </div>
+
+      <!-- Communication Dropdown -->
+      <div class="sidebar-dropdown {% if request.endpoint in ['admin.inbox', 'admin.chat_with_seller'] or 'admin.support' in request.endpoint %}expanded{% endif %}">
+        <button class="sidebar-dropdown-toggle">
+          <i class="fas fa-comment-dots"></i> Communication
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="sidebar-dropdown-menu">
+          <a href="{{ url_for('admin.inbox') }}"
+             class="sidebar-dropdown-link {% if request.endpoint in ['admin.inbox','admin.chat_with_seller'] %}active{% endif %}">
+            <i class="fas fa-comment-dots"></i> Messages
+          </a>
+          <a href="{{ url_for('admin.support_tickets') }}"
+             class="sidebar-dropdown-link {% if 'admin.support' in request.endpoint %}active{% endif %}">
+            <i class="fas fa-life-ring"></i> Support Tickets
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('auth.logout') }}">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="admin-main">
+    <!-- Topbar -->
+    {% block admin_topbar %}
+    <div class="admin-topbar">
+      <h5 class="page-title">{% block page_title %}Dashboard{% endblock %}</h5>
+      <div class="d-flex align-items-center gap-2">
+        {% block topbar_actions %}{% endblock %}
+      </div>
+    </div>
+    {% endblock %}
+
+    <!-- Content -->
+    <div class="admin-content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+</div><!-- /admin-wrapper -->
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Sidebar toggle -->
+<script src="{{ url_for('static', filename='js/admin/base.js') }}"></script>
+<!-- KidZora Toast -->
+<script src="{{ url_for('static', filename='js/kidzora-toast.js') }}"></script>
+<!-- Real-time notifications (polling) -->
+<script src="{{ url_for('static', filename='js/kidzora-realtime.js') }}"></script>
+<!-- Real-time badge updates (Supabase Realtime) -->
+<script src="{{ url_for('static', filename='js/kidzora-notifications-realtime.js') }}"></script>
+  <!-- Web Push notifications (VAPID) -->
+  <script src="{{ url_for('static', filename='js/kidzora-push.js') }}"></script>
+<div id="kz-panel" role="dialog" aria-label="Notifications">
+  <div id="kz-panel-header">
+    <h6>Notifications</h6>
+    <button id="kz-panel-clear" type="button">Clear all</button>
+  </div>
+  <div id="kz-panel-list"></div>
+  <div id="kz-panel-empty">No notifications yet</div>
+  <div id="kz-panel-detail">
+    <div id="kz-panel-detail-header">
+      <button id="kz-panel-back" type="button">&#8592; Back</button>
+    </div>
+    <div id="kz-panel-detail-body"></div>
+  </div>
+</div>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

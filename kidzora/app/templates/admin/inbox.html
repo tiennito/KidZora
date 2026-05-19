@@ -1,0 +1,21 @@
+{% extends "admin/base.html" %}
+{% block title %}Messages – KidZora Admin{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Messages – KidZora Admin">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/inbox.css') }}">
+{% endblock %}
+
+{% block admin_topbar %}{% endblock %}
+
+{% block content %}
+{% include 'shared/_inbox_body.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin/inbox.js') }}"></script>
+{% endblock %}

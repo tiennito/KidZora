@@ -1,0 +1,73 @@
+/* =============================================================
+   KidZora – Rider / Ratings Page
+   ============================================================= */
+
+/* ── Page wrapper ──────────────────────────────────────── */
+.rr-wrap { padding: 1.25rem; }
+
+/* ── Page header ───────────────────────────────────────── */
+.rr-header {
+  background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+  border-radius: 14px;
+  padding: 1.4rem 1.6rem;
+  color: #fff;
+  margin-bottom: 1.25rem;
+}
+.rr-header h4 { font-size: 1.2rem; font-weight: 800; margin: 0 0 .15rem; }
+.rr-header p  { font-size: .82rem; opacity: .85; margin: 0; }
+
+/* ── Score card ────────────────────────────────────────── */
+.rr-score-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
+  text-align: center;
+}
+.rr-score-big   { font-size: 3rem; font-weight: 900; color: #166534; line-height: 1; }
+.rr-score-stars { color: #f59e0b; font-size: 1.2rem; letter-spacing: .1em; margin: .4rem 0; }
+.rr-score-sub   { font-size: .8rem; color: #6b7280; }
+
+/* ── Breakdown bars ────────────────────────────────────── */
+.rr-bar-row  { display: flex; align-items: center; gap: .6rem; font-size: .8rem; margin-bottom: .35rem; }
+.rr-bar-wrap { flex: 1; background: #f3f4f6; border-radius: 999px; height: 8px; overflow: hidden; }
+.rr-bar-fill { background: #22c55e; height: 100%; border-radius: 999px; transition: width .4s; }
+.rr-bar-cnt  { width: 20px; text-align: right; font-weight: 600; color: #374151; }
+
+/* ── Rating cards ──────────────────────────────────────── */
+.rr-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: .9rem 1rem;
+  margin-bottom: .75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+}
+.rr-stars { color: #f59e0b; font-size: .85rem; }
+.rr-stars .empty { color: #d1d5db; }
+
+.rr-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.rr-avatar-ph {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #dcfce7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .82rem;
+  font-weight: 700;
+  color: #166534;
+  flex-shrink: 0;
+}
+
+/* ── Empty state ───────────────────────────────────────── */
+.rr-empty { text-align: center; padding: 3rem 1rem; color: #9ca3af; }
+.rr-empty i { font-size: 2.5rem; margin-bottom: .75rem; display: block; }

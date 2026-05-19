@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Email Verification - KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="Verify your email address to activate your KidZora account.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Email Verification - KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
+                        <h2 class="card-title">Email Verification</h2>
+                        <p class="text-muted">Verify your email to create your KidZora account</p>
+                    </div>
+                    
+                    <!-- Step 1: Email Verification -->
+                    <form id="emailVerificationForm" method="POST" action="{{ url_for('auth.send_confirmation_code') }}">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2"><i class="fas fa-envelope me-2"></i>Email Verification</h5>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email address" required>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        We'll send a confirmation code to this email address
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="sendCodeBtn">
+                                <i class="fas fa-paper-plane me-2"></i>Send Confirmation Code
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr>
+                    
+                    <!-- Step 2: Code Verification (Hidden initially) -->
+                    <form id="codeVerificationForm" method="POST" action="{{ url_for('auth.verify_code') }}" style="display: none;">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2"><i class="fas fa-shield-alt me-2"></i>Enter Confirmation Code</h5>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="confirmation_code" class="form-label">Confirmation Code <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="confirmation_code" name="confirmation_code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" required>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Enter the 6-digit code sent to your email
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="resendCodeBtn">
+                                        <i class="fas fa-redo me-1"></i>Resend Code
+                                    </button>
+                                    <span id="countdown" class="ms-2 text-muted"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check me-2"></i>Verify Code & Continue
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr>
+                    
+                    <div class="text-center">
+                        <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="kz-ev-cfg" hidden
+     data-verification-email="{{ session.get('verification_email', '') }}"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/auth/email-verification.js') }}"></script>
+{% endblock %}

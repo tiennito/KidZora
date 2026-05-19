@@ -1,0 +1,150 @@
+/* ============================================================
+   KidZora Admin — Analytics / Dashboard chart styles
+   ============================================================ */
+
+/* ── Period tab strip ─────────────────────────────────────────── */
+.adm-period-tabs {
+  display: flex;
+  gap: .35rem;
+  flex-wrap: wrap;
+}
+.adm-period-tabs .btn {
+  border-radius: 20px;
+  font-size: .78rem;
+  padding: .25rem .85rem;
+  transition: box-shadow .15s, background .15s;
+}
+.adm-period-tabs .btn.active,
+.adm-period-tabs .btn[aria-pressed="true"] {
+  box-shadow: 0 2px 10px rgba(99, 102, 241, .35);
+}
+
+/* ── Sub-period pills (Mon / Tue / Jan / Feb …) ───────────────── */
+.adm-sub-tabs {
+  display: flex;
+  gap: .3rem;
+  flex-wrap: wrap;
+  margin-top: .45rem;
+}
+.adm-sub-tabs .btn {
+  border-radius: 14px;
+  font-size: .72rem;
+  padding: .18rem .65rem;
+}
+
+/* ── Live KPI mini-cards ──────────────────────────────────────── */
+.kpi-mini {
+  background: #fff;
+  border-radius: 12px;
+  padding: .9rem 1.1rem;
+  border: 1px solid #e8e8f0;
+  transition: box-shadow .2s, transform .2s;
+}
+.kpi-mini:hover {
+  box-shadow: 0 4px 18px rgba(0, 0, 0, .08);
+  transform: translateY(-1px);
+}
+.kpi-mini .kpi-val {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1e1b4b;
+  min-height: 1.8rem;
+}
+.kpi-mini .kpi-lbl {
+  font-size: .72rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.kpi-mini .kpi-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .95rem;
+  flex-shrink: 0;
+}
+
+/* ── Chart cards ──────────────────────────────────────────────── */
+.chart-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e8e8f0;
+  padding: 1.2rem 1.4rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.chart-card .chart-title {
+  font-size: .84rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: .7rem;
+}
+.chart-card .chart-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .82rem;
+  color: #9ca3af;
+}
+
+/* ── Period label text ────────────────────────────────────────── */
+.period-desc {
+  font-size: .8rem;
+  color: #6b7280;
+  margin: .35rem 0 1rem;
+}
+
+/* ── Analytics full page header ──────────────────────────────── */
+.analytics-page-header {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  border-radius: 16px;
+  padding: 1.6rem 2rem;
+  color: #fff;
+  margin-bottom: 1.5rem;
+}
+.analytics-page-header h4 { color: #fff; font-weight: 700; margin-bottom: .25rem; }
+.analytics-page-header p  { color: rgba(255,255,255,.7); margin: 0; font-size: .85rem; }
+
+/* ── Date-range picker (Monthly filter) ──────────────────────── */
+.adm-date-picker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem;
+  padding: .55rem .9rem;
+  background: #f8f8ff;
+  border: 1px solid #e0e0f0;
+  border-radius: 12px;
+  margin-top: .45rem;
+}
+.adm-date-label {
+  font-size: .78rem;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+.adm-date-input {
+  width: 150px;
+  font-size: .8rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: .28rem .55rem;
+  background: #fff;
+  color: #1e1b4b;
+  transition: border-color .15s, box-shadow .15s;
+}
+.adm-date-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, .15);
+  outline: none;
+}
+.adm-date-picker .btn {
+  border-radius: 8px;
+  font-size: .78rem;
+  padding: .28rem .75rem;
+}

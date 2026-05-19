@@ -1,0 +1,117 @@
+{% extends "rider/base.html" %}
+{% block title %}My Deliveries – KidZora Rider{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="My Deliveries – KidZora Rider">
+{% endblock %}
+
+{% block page_content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="fas fa-motorcycle me-2 text-success"></i>My Deliveries</h4>
+    <p class="text-muted small mb-0">Orders you've accepted</p>
+  </div>
+  <!-- Tab switch -->
+  <div class="btn-group">
+    <a href="{{ url_for('rider.deliveries', tab='active') }}"
+       class="btn btn-sm {{ 'btn-success' if tab == 'active' else 'btn-outline-success' }}">
+      <i class="fas fa-motorcycle me-1"></i>Active
+    </a>
+    <a href="{{ url_for('rider.deliveries', tab='history') }}"
+       class="btn btn-sm {{ 'btn-success' if tab == 'history' else 'btn-outline-success' }}">
+      <i class="fas fa-history me-1"></i>History
+    </a>
+  </div>
+</div>
+
+{% if deliveries %}
+  {% for order in deliveries %}
+  {% set s = order.status or 'out_for_delivery' %}
+  {% set color = {'out_for_delivery':'primary','delivered':'success','completed':'success','cancelled':'danger'}.get(s,'secondary') %}
+  <div class="delivery-card">
+    <div class="delivery-card-body">
+
+      <!-- Header -->
+      <div class="delivery-card-head">
+        <div class="delivery-card-title">
+          <span class="delivery-card-order">Order #{{ order.id[:8]|upper }}</span>
+          <span class="delivery-card-meta"><i class="fas fa-clock"></i>{{ order.updated_at[:10] if order.updated_at else '' }}</span>
+        </div>
+        <span class="status-pill bg-{{ color }} text-white">
+          <i class="fas {{ 'fa-motorcycle' if s == 'out_for_delivery' else ('fa-check-circle' if s in ['delivered','completed'] else 'fa-times-circle') }}"></i>
+          {{ s|replace('_',' ')|title }}
+        </span>
+      </div>
+
+      <!-- Items preview -->
+      {% if order._items %}
+      <div class="delivery-preview">
+        {% for item in order._items %}
+          {% set prod = item.products or {} %}
+          {% set imgs = prod.images if prod.images else [] %}
+          <div class="delivery-preview-item">
+            {% if imgs %}
+              <img src="{{ imgs[0] }}" class="order-thumb" alt="{{ prod.name }}">
+            {% else %}
+              <div class="order-thumb-ph"><i class="fas fa-image"></i></div>
+            {% endif %}
+            <div>
+              <div class="fw-semibold small delivery-product-name">{{ prod.name or 'Product' }}</div>
+              <div class="delivery-product-qty">Qty: {{ item.quantity or 1 }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Deliver-to summary -->
+      {% set addr = order.delivery_address or {} %}
+      {% if addr %}
+      <div class="delivery-address-pill">
+        <i class="fas fa-map-marker-alt me-1 text-danger"></i>
+        <span class="fw-semibold">{{ addr.full_name or '' }}</span>
+        · {{ addr.barangay or '' }}, {{ addr.city or '' }}
+        {% if addr.phone %}<span class="text-muted"> · {{ addr.phone }}</span>{% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Footer -->
+      <div class="delivery-card-footer">
+        <div>
+          <span class="delivery-total-label">Order Total</span>
+          <span class="delivery-total-value">₱{{ order.total_amount|float|currency }}</span>
+        </div>
+        <a href="{{ url_for('rider.delivery_detail', order_id=order.id) }}"
+           class="btn btn-success btn-sm px-3">
+          <i class="fas fa-eye me-1"></i>View Details
+        </a>
+      </div>
+
+    </div>
+  </div>
+  {% endfor %}
+
+{% else %}
+  <div class="rider-card">
+    <div class="rider-card-body text-center py-5">
+      <i class="fas fa-motorcycle fa-3x d-block mb-3 text-muted opacity-25"></i>
+      {% if tab == 'history' %}
+        <h5 class="fw-semibold">No completed deliveries yet</h5>
+        <p class="text-muted small">Your delivery history will appear here.</p>
+      {% else %}
+        <h5 class="fw-semibold">No active deliveries</h5>
+        <p class="text-muted small">Accept a pickup order to get started.</p>
+        <a href="{{ url_for('rider.available') }}" class="btn btn-success btn-sm px-4">
+          <i class="fas fa-box-open me-1"></i>See Available Pickups
+        </a>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/kidzora-utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/rider/deliveries.js') }}"></script>
+{% endblock %}

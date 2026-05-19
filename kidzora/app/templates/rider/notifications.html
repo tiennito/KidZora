@@ -1,0 +1,107 @@
+{% extends "rider/base.html" %}
+{% block title %}Notifications – KidZora Rider{% endblock %}
+{% block seo_meta %}
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Notifications – KidZora Rider">
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/rider/notifications.css') }}">
+{% endblock %}
+
+{% block page_content %}
+<div class="rn-wrap">
+
+  <div class="rn-header">
+    <div>
+      <h4><i class="fas fa-bell me-2"></i>Notifications</h4>
+      <p>Your recent alerts, pickup calls, and account updates</p>
+    </div>
+    {% if unread_count %}
+    <span class="badge bg-danger rounded-pill rn-badge-new">{{ unread_count }} new</span>
+    {% endif %}
+  </div>
+
+  {% if notifications %}
+    <div class="d-flex flex-column gap-2">
+    {% for n in notifications %}
+      {% set was_unread = not n.is_read %}
+      {% set ntype = n.type or '' %}
+
+      {# ── icon / colour mapping for rider notification types ── #}
+      {% if 'new_pickup' in ntype %}
+        {% set ic = 'fas fa-box-open' %}{% set clr = 'text-primary' %}{% set bgcls = 'rn-bg-blue' %}
+      {% elif 'order_completed' in ntype or 'completed' in ntype %}
+        {% set ic = 'fas fa-check-circle' %}{% set clr = 'text-success' %}{% set bgcls = 'rn-bg-green' %}
+      {% elif 'order_cancelled' in ntype or 'cancel' in ntype %}
+        {% set ic = 'fas fa-times-circle' %}{% set clr = 'text-danger' %}{% set bgcls = 'rn-bg-red' %}
+      {% elif 'out_delivery' in ntype or 'out_for_delivery' in ntype %}
+        {% set ic = 'fas fa-motorcycle' %}{% set clr = 'text-primary' %}{% set bgcls = 'rn-bg-blue' %}
+      {% elif 'delivered' in ntype %}
+        {% set ic = 'fas fa-house-user' %}{% set clr = 'text-success' %}{% set bgcls = 'rn-bg-green' %}
+      {% elif 'rider_payout_approved' in ntype %}
+        {% set ic = 'fas fa-check-circle' %}{% set clr = 'text-success' %}{% set bgcls = 'rn-bg-green' %}
+      {% elif 'rider_payout_rejected' in ntype or 'payout' in ntype %}
+        {% set ic = 'fas fa-hand-holding-usd' %}{% set clr = 'text-warning' %}{% set bgcls = 'rn-bg-yellow' %}
+      {% elif 'rating' in ntype %}
+        {% set ic = 'fas fa-star' %}{% set clr = 'text-warning' %}{% set bgcls = 'rn-bg-yellow' %}
+      {% elif 'message' in ntype %}
+        {% set ic = 'fas fa-comment-dots' %}{% set clr = 'text-primary' %}{% set bgcls = 'rn-bg-blue' %}
+      {% elif 'handback' in ntype %}
+        {% set ic = 'fas fa-undo-alt' %}{% set clr = 'text-warning' %}{% set bgcls = 'rn-bg-yellow' %}
+      {% elif 'unban' in ntype %}
+        {% set ic = 'fas fa-user-check' %}{% set clr = 'text-success' %}{% set bgcls = 'rn-bg-green' %}
+      {% elif 'ban' in ntype %}
+        {% set ic = 'fas fa-user-slash' %}{% set clr = 'text-danger' %}{% set bgcls = 'rn-bg-red' %}
+      {% else %}
+        {% set ic = 'fas fa-bell' %}{% set clr = 'text-secondary' %}{% set bgcls = 'rn-bg-default' %}
+      {% endif %}
+
+      {% set url = n._url or '' %}
+      <div class="card border-0 shadow-sm {{ bgcls }} {% if was_unread %}rn-unread{% endif %}">
+        <div class="card-body py-3 px-3 d-flex align-items-start gap-3">
+          <div class="rn-icon-wrap flex-shrink-0">
+            <i class="{{ ic }} {{ clr }}"></i>
+          </div>
+          <div class="flex-grow-1 min-width-0">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <p class="mb-0 fw-semibold rn-title">{{ n.title }}</p>
+              <span class="text-muted flex-shrink-0 rn-date">
+                {{ n.created_at[:10] if n.created_at else '' }}
+              </span>
+            </div>
+            {% if n.body %}
+            <p class="mb-0 text-muted mt-1 rn-body">{{ n.body }}</p>
+            {% endif %}
+            {% if url %}
+            <a href="{{ url }}" class="btn btn-sm btn-outline-success mt-2 py-0 px-2 rn-view-btn">
+              View details →
+            </a>
+            {% endif %}
+          </div>
+          {% if was_unread %}
+          <span class="badge bg-success rounded-pill align-self-center flex-shrink-0 rn-badge-pill">New</span>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="text-center py-5 text-muted rn-empty">
+      <i class="fas fa-bell-slash fa-3x mb-3 opacity-25"></i>
+      <p class="fw-semibold mb-1">No notifications yet</p>
+      <p class="small">Pickup alerts, earnings updates, and messages will appear here.</p>
+      <a href="{{ url_for('rider.available') }}" class="btn btn-success btn-sm mt-2">
+        <i class="fas fa-box-open me-1"></i>View Available Pickups
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/kidzora-utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/rider/notifications.js') }}"></script>
+{% endblock %}
+{% endblock %}

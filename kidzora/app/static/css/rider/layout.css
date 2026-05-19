@@ -1,0 +1,48 @@
+/* ============================================================
+   KidZora – Rider Panel / Layout
+   (CSS custom properties, page wrapper, main content, responsive)
+   ============================================================ */
+
+:root {
+  --rider-accent: #73d7d0;
+  --rider-dark:   #31405f;
+  --sidebar-w:    230px;
+}
+
+/* ── Outer flex wrapper ──────────────────────────────────── */
+.rider-wrapper {
+  display: flex;
+  min-height: calc(100vh - 52px);
+}
+
+/* ── Main content area ───────────────────────────────────── */
+.rider-main {
+  flex: 1;
+  padding: 1.5rem;
+  background:
+    radial-gradient(circle at 88% 6%, rgba(223, 248, 235, 0.52), transparent 20rem),
+    linear-gradient(135deg, #fbfdff 0%, #fff6fb 52%, #f3fff9 100%);
+  min-width: 0;
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .rider-main { padding: 1rem; }
+}
+
+.kz-avail-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+.kz-avail-dot.is-online {
+  background: #d1fae5;
+}
+
+.kz-avail-dot.is-offline {
+  background: #ccc;
+}

@@ -1,0 +1,29 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2 style="color:{{ color }};margin:0 0 8px;">{{ icon }} {{ title }}</h2>
+<p style="color:#374151;margin:0 0 20px;">
+    Hi there! Here's an update on your order <strong>{{ order_ref }}</strong>.
+</p>
+<div style="background:#f9fafb;border-left:4px solid {{ color }};padding:16px;border-radius:6px;margin:0 0 20px;">
+    <p style="margin:0;color:#374151;">{{ message }}</p>
+</div>
+<table style="width:100%;font-size:.85rem;color:#6b7280;margin-bottom:20px;">
+    <tr>
+        <td style="padding:4px 0;"><strong>Order</strong></td>
+        <td style="text-align:right;color:#111827;font-weight:600;">{{ order_ref }}</td>
+    </tr>
+    <tr>
+        <td style="padding:4px 0;"><strong>Amount</strong></td>
+        <td style="text-align:right;color:#111827;font-weight:600;">{{ amount }}</td>
+    </tr>
+    <tr>
+        <td style="padding:4px 0;"><strong>Status</strong></td>
+        <td style="text-align:right;">
+            <span style="background:{{ color }};color:#fff;padding:2px 10px;border-radius:99px;font-size:.75rem;">
+                {{ status_display }}
+            </span>
+        </td>
+    </tr>
+</table>
+{% endblock %}

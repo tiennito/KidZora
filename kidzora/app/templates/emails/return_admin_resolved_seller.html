@@ -1,0 +1,14 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<h2 style="color:#374151;margin:0 0 8px;">📋 Admin Resolved Dispute for Order {{ order_ref }}</h2>
+<p style="color:#374151;margin:0 0 16px;">
+    The admin has made a final decision on the Return/Refund dispute
+    for order <strong>{{ order_ref }}</strong>.
+</p>
+<div style="background:#f9fafb;border-left:4px solid #6b7280;padding:16px;border-radius:6px;margin:0 0 16px;">
+    <strong>Decision:</strong> {{ decision_text | title }}<br>
+    <strong>Admin's note:</strong><br>
+    <span style="color:#374151;">{{ admin_response }}</span>
+</div>
+{% endblock %}

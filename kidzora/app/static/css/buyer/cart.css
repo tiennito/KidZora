@@ -1,0 +1,65 @@
+/* ══════════════════════════════════════════════
+   buyer/cart.css
+   Styles for buyer/cart.html
+══════════════════════════════════════════════ */
+
+/* ── Item thumbnail ── */
+.cart-thumb {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: .375rem;
+}
+
+.cart-thumb-empty {
+  width: 70px;
+  height: 70px;
+  border-radius: .375rem;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Quantity controls ── */
+.cart-qty-group { width: 110px; }
+
+/* ── Per-item subtotal ── */
+.cart-subtotal { min-width: 80px; text-align: right; }
+
+/* ── Sticky order summary ── */
+.cart-summary { top: 76px; }
+
+/* ══════════════════════════════════════════════
+   EMPTY STATE
+══════════════════════════════════════════════ */
+
+.cart-empty-state { padding: 3.5rem 1rem 2.5rem; }
+
+/* Gentle float animation for the SVG illustration */
+.cart-empty-svg {
+  display: block;
+  margin: 0 auto;
+  animation: cartFloat 3.2s ease-in-out infinite;
+}
+
+@keyframes cartFloat {
+  0%   { transform: translateY(0px);   }
+  50%  { transform: translateY(-12px); }
+  100% { transform: translateY(0px);   }
+}
+
+.cart-empty-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.cart-empty-sub {
+  color: #64748b;
+  font-size: .95rem;
+  max-width: 340px;
+  margin: 0 auto;
+  line-height: 1.6;
+}

@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}Complete Registration - KidZora{% endblock %}
+{% block seo_meta %}
+<meta name="description" content="Complete your KidZora registration to start buying or selling.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Complete Registration - KidZora">
+<link rel="canonical" href="{{ request.base_url }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+                        <h2 class="card-title">Complete Your Registration</h2>
+                        <p class="text-muted">
+                            {% if account_type == 'buyer' %}
+                                Complete your buyer registration
+                            {% elif account_type == 'seller' %}
+                                Complete your seller registration
+                            {% elif account_type == 'rider' %}
+                                Complete your rider registration
+                            {% endif %}
+                        </p>
+                        
+                        <!-- Account Type Reminder -->
+                        <div class="alert alert-info mb-4">
+                            <h5><i class="fas fa-info-circle me-2"></i>Account Type: 
+                                <span class="badge bg-primary">
+                                    {% if account_type == 'buyer' %}
+                                        <i class="fas fa-shopping-cart me-1"></i>Buyer
+                                    {% elif account_type == 'seller' %}
+                                        <i class="fas fa-store me-1"></i>Seller
+                                    {% elif account_type == 'rider' %}
+                                        <i class="fas fa-motorcycle me-1"></i>Rider
+                                    {% endif %}
+                                </span>
+                            </h5>
+                        </div>
+                        
+                        <!-- Personal Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2"><i class="fas fa-user me-2"></i>Personal Information</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Enter your first name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Enter your last name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="Enter your phone number" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                </div>
+                            </div>
+                            
+                            <!-- Hidden account type field -->
+                            <input type="hidden" name="role" value="{{ account_type }}">
+                        </div>
+                        
+                        <!-- Location Details -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2"><i class="fas fa-map-marker-alt me-2"></i>Location Details</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="region" class="form-label">Region <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="region" name="region" placeholder="Enter your region" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="province" class="form-label">Province <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="province" name="province" placeholder="Enter your province" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="city" class="form-label">City/Municipality <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="city" name="city" placeholder="Enter your city/municipality" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="barangay" class="form-label">Barangay <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="barangay" name="barangay" placeholder="Enter your barangay" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="postal_code" class="form-label">Postal Code <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="postal_code" name="postal_code" placeholder="Enter your postal code" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="country" class="form-label">Country <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="country" name="country" value="Philippines" readonly>
+                                    <div class="form-text">Currently serving Philippines only</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Street Address <span class="text-danger">*</span></label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-2">
+                                                <label for="building_number" class="form-label">Building/Unit Number</label>
+                                                <input type="text" class="form-control" id="building_number" name="building_number" placeholder="e.g., 123, Unit 4B">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-2">
+                                                <label for="street_name" class="form-label">Street Name</label>
+                                                <input type="text" class="form-control" id="street_name" name="street_name" placeholder="e.g., Rizal Avenue">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-text">Enter your complete address (building number and street name)</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Seller Specific Fields -->
+                        {% if show_seller_fields %}
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2"><i class="fas fa-store me-2"></i>Business Information</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="business_name" class="form-label">Business Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="business_name" name="business_name" placeholder="Enter your business name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="business_type" class="form-label">Business Type <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="business_type" name="business_type" required>
+                                        <option value="">Select Business Type</option>
+                                        <option value="individual">Individual</option>
+                                        <option value="corporation">Corporation</option>
+                                        <option value="partnership">Partnership</option>
+                                        <option value="sole_proprietorship">Sole Proprietorship</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="seller_id_type" class="form-label">Government ID Type <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="seller_id_type" name="seller_id_type" required>
+                                        <option value="">Select ID Type</option>
+                                        <option value="passport">Passport</option>
+                                        <option value="drivers_license">Driver's License</option>
+                                        <option value="national_id">National ID</option>
+                                        <option value="umid">UMID</option>
+                                        <option value="philhealth_id">PhilHealth ID</option>
+                                        <option value="sss_id">SSS ID</option>
+                                        <option value="tin_id">TIN ID</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="seller_id_number" class="form-label">ID Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="seller_id_number" name="seller_id_number" placeholder="Enter your ID number" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="seller_id_file" class="form-label">Upload Government ID <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="seller_id_file" name="seller_id_file" accept="image/*,.pdf">
+                                        <label class="input-group-text" for="seller_id_file">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </label>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Upload a clear photo or scan of your government ID (JPG, PNG, PDF)
+                                    </div>
+                                    <div id="seller_id_preview" class="mt-2" style="display: none;">
+                                        <img src="" alt="ID Preview" class="img-thumbnail" style="max-width: 200px; max-height: 150px;">
+                                        <div class="small text-muted">ID Preview</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="business_permit_file" class="form-label">Business Permit <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="business_permit_file" name="business_permit_file" accept="image/*,.pdf">
+                                        <label class="input-group-text" for="business_permit_file">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </label>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Upload your business permit or BIR registration (JPG, PNG, PDF)
+                                    </div>
+                                    <div id="business_permit_preview" class="mt-2" style="display: none;">
+                                        <img src="" alt="Permit Preview" class="img-thumbnail" style="max-width: 200px; max-height: 150px;">
+                                        <div class="small text-muted">Permit Preview</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="bir_file" class="form-label">BIR Certificate <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" id="bir_file" name="bir_file" accept="image/*,.pdf">
+                                        <label class="input-group-text" for="bir_file">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </label>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Upload your BIR Certificate of Registration (JPG, PNG, PDF)
+                                    </div>
+                                    <div id="bir_preview" class="mt-2" style="display: none;">
+                                        <img src="" alt="BIR Preview" class="img-thumbnail" style="max-width: 200px; max-height: 150px;">
+                                        <div class="small text-muted">BIR Certificate Preview</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <hr>
+                        
+                        <div class="text-center">
+                            <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-plus me-2"></i>Create Account
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/auth/register-fixed.js') }}"></script>
+{% endblock %}

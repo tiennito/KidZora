@@ -1,0 +1,13 @@
+/* ══════════════════════════════════════════════
+   buyer/wishlist.css
+   Styles for buyer/wishlist.html
+══════════════════════════════════════════════ */
+
+/* ── Product card image ── */
+.wishlist-card-img {
+  height: 180px;
+  object-fit: cover;
+}
+
+/* ── No-image placeholder ── */
+.wishlist-card-placeholder { height: 180px; }
