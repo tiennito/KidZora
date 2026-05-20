@@ -15,14 +15,14 @@ class Config:
     
     # Email Configuration (Resend SMTP)
     USE_SUPABASE_EMAIL = os.environ.get('USE_SUPABASE_EMAIL', 'False').lower() in ['true', 'on', '1']
-    MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'smtp.resend.com'
-    MAIL_PORT = int(os.environ.get('MAIL_PORT') or 465)
+    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.resend.com')
+    MAIL_PORT = int(os.environ.get('MAIL_PORT', 465))
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'False').lower() in ['true', 'on', '1']
     MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'True').lower() in ['true', 'on', '1']
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or 'resend'
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or 're_cGQHWAKD_C8XTsGLcpvrkE6AgoQRAvEHJ'
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or 'KidZora <onboarding@resend.dev>'
-    MAIL_FROM_ADDRESS = os.environ.get('MAIL_FROM_ADDRESS') or 'onboarding@resend.dev'
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', 'resend')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'KidZora <noreply@kidzora.com>')
+    MAIL_FROM_ADDRESS = os.environ.get('MAIL_FROM_ADDRESS', 'noreply@kidzora.com')
     
     # ── Web Push / VAPID ──────────────────────────────────────────────────────
     # Generate a key pair once and store in .env:

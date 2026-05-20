@@ -161,3 +161,33 @@ def upload_raw_to_storage(file_storage, bucket: str, storage_path: str) -> str:
         ) from exc
 
     return supabase_admin.storage.from_(bucket).get_public_url(storage_path)
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Convenience functions for the general "images" bucket
+# ─────────────────────────────────────────────────────────────────────────
+
+def upload_image(file_storage, storage_path: str, max_width: int = 900,
+                max_height: int = 900, quality: int = 82) -> str:
+    """
+    Convenience function: Upload an image to the general "images" bucket.
+    
+    Example:
+        url = upload_image(file_obj, f'user-uploads/{user_id}/banner.webp')
+    
+    Returns the public URL. Raises RuntimeError on failure.
+    """
+    return upload_to_storage(file_storage, 'images', storage_path,
+                            max_width, max_height, quality)
+
+
+def upload_image_raw(file_storage, storage_path: str) -> str:
+    """
+    Convenience function: Upload a non-image file to the "images" bucket as-is.
+    
+    Example:
+        url = upload_image_raw(video_file, f'user-uploads/{user_id}/video.mp4')
+    
+    Returns the public URL. Raises RuntimeError on failure.
+    """
+    return upload_raw_to_storage(file_storage, 'images', storage_path)
