@@ -6,6 +6,9 @@ from pathlib import Path
 kidzora_path = Path(__file__).parent.parent / 'kidzora'
 sys.path.insert(0, str(kidzora_path))
 
+# Configure Flask to find static files correctly on Vercel
+os.environ.setdefault('STATIC_FOLDER', str(Path(__file__).parent.parent / 'app' / 'static'))
+
 from run import app
 
 # Export app for Vercel

@@ -1,6 +1,6 @@
 {
   "buildCommand": "pip install --no-cache-dir -r kidzora/requirements.txt",
-  "outputDirectory": ".",
+  "public": "app/static",
   "framework": "flask",
   "regions": ["sfo1"],
   "env": {

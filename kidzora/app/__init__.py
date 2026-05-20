@@ -2,9 +2,17 @@ from flask import Flask, redirect, url_for, render_template, got_request_excepti
 from flask_login import LoginManager, current_user
 from config import config
 from app.extensions import supabase, supabase_admin, login_manager
+import os
+from pathlib import Path
 
 def create_app(config_name='default'):
-    app = Flask(__name__)
+    # Calculate absolute path to static folder (works on Vercel and locally)
+    static_folder = os.environ.get('STATIC_FOLDER')
+    if not static_folder:
+        # Default: relative to this file (app/__init__.py)
+        static_folder = str(Path(__file__).parent / 'static')
+    
+    app = Flask(__name__, static_folder=static_folder, static_url_path='/static')
     app.config.from_object(config[config_name])
     app.jinja_env.auto_reload = True
     
