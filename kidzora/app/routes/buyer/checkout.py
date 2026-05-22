@@ -168,12 +168,35 @@ def checkout():
     items = []
     total = 0.0
     seller_ids = set()
+    invalid_cart_keys = []
     for pid, item in cart.items():
-        subtotal = float(item['price']) * item['qty']
-        total   += subtotal
-        items.append({**item, 'id': pid, 'subtotal': subtotal})
+        try:
+            qty = int(item.get('qty') or 0)
+            price = float(item.get('price') or 0)
+        except (AttributeError, TypeError, ValueError):
+            invalid_cart_keys.append(pid)
+            continue
+
+        if qty < 1 or price < 0:
+            invalid_cart_keys.append(pid)
+            continue
+
+        subtotal = price * qty
+        total += subtotal
+        items.append({**item, 'id': pid, 'qty': qty, 'price': price, 'subtotal': subtotal})
         if item.get('seller_id'):
             seller_ids.add(item['seller_id'])
+
+    if invalid_cart_keys:
+        current_app.logger.warning(
+            'Checkout skipped invalid cart rows for buyer %s: %s',
+            current_user.id,
+            invalid_cart_keys,
+        )
+
+    if not items:
+        flash('Your cart needs to be refreshed before checkout. Add the item again and retry.', 'warning')
+        return redirect(url_for('buyer.cart'))
 
     seller_ids_list = list(seller_ids)
 
