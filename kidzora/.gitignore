@@ -193,6 +193,10 @@ app/static/uploads/
 *.heic
 *.heif
 
+# App-owned static artwork must be deployed with the application.
+!app/static/images/
+!app/static/images/**
+
 # Logs
 *.log
 logs/
