@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Two-Factor Verification - KidZora{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 460px;">
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-4 p-md-5">
+      <div class="text-center mb-4">
+        <i class="fas fa-shield-alt text-primary fs-1"></i>
+        <h1 class="h3 fw-bold mt-3 mb-1">Two-Factor Verification</h1>
+        <p class="text-muted mb-0">Enter the six-digit authenticator code.</p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ 'danger' if cat == 'error' else cat }} mb-3">{{ msg }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      <form method="POST" autocomplete="off">
+        <label class="form-label fw-semibold" for="code">Authenticator Code</label>
+        <input
+          class="form-control form-control-lg text-center"
+          id="code"
+          name="code"
+          inputmode="numeric"
+          pattern="[0-9 ]{6,8}"
+          maxlength="8"
+          autocomplete="one-time-code"
+          autofocus
+          required>
+        <button type="submit" class="btn btn-primary btn-lg w-100 mt-3">
+          Verify
+        </button>
+      </form>
+
+      <div class="text-center mt-3">
+        <a href="{{ url_for('auth.login') }}" class="text-decoration-none">Back to login</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -7,6 +7,8 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+    # Keep this stable after users enroll authenticator apps.
+    TOTP_ENCRYPTION_KEY = os.environ.get('TOTP_ENCRYPTION_KEY') or SECRET_KEY
     SUPABASE_URL = os.environ.get('SUPABASE_URL')
     SUPABASE_ANON_KEY = os.environ.get('SUPABASE_ANON_KEY')
     SUPABASE_SERVICE_ROLE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')

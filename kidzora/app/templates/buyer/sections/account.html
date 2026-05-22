@@ -102,6 +102,17 @@
           </div>
         </div>
 
+        <div class="card border-0 bg-light mt-3">
+          <div class="card-header bg-white fw-semibold border-bottom">
+            <i class="fas fa-shield-alt me-2 text-danger"></i>Account Security
+          </div>
+          <div class="card-body">
+            <a href="{{ url_for('auth.two_factor_setup') }}" class="btn btn-outline-danger">
+              <i class="fas fa-mobile-alt me-2"></i>Authenticator 2FA
+            </a>
+          </div>
+        </div>
+
         <!-- Save Button -->
         <div class="mt-4">
           <button type="submit" class="btn btn-danger fw-semibold">

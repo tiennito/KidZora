@@ -10,9 +10,17 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 from app.models.profile import Profile
 from app.extensions import supabase, supabase_admin
+from app.services.two_factor import (
+    decrypt_secret,
+    encrypt_secret,
+    new_totp_secret,
+    provisioning_uri,
+    qr_data_uri,
+    verify_totp,
+)
 
 ALLOWED_DOC_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
 
@@ -60,6 +68,56 @@ def save_rider_file(file, user_id, file_type):
         return None
 
 auth_bp = Blueprint('auth', __name__)
+
+_TWO_FACTOR_PENDING_KEYS = (
+    'two_factor_pending_user_id',
+    'two_factor_pending_at',
+)
+
+
+def _clear_pending_two_factor_login():
+    for key in _TWO_FACTOR_PENDING_KEYS:
+        session.pop(key, None)
+
+
+def _redirect_after_login(profile):
+    # Merge guest/session cart with the buyer's persisted DB cart after all
+    # authentication checks have passed.
+    if profile.role == 'buyer':
+        try:
+            from app.routes.buyer.cart import _db_load, _db_sync
+            session_cart = session.get('cart') or {}
+            db_cart = _db_load(profile.id)
+            merged = {**db_cart, **session_cart}
+            session['cart'] = merged
+            session.modified = True
+            if merged != db_cart:
+                _db_sync(profile.id, merged)
+        except Exception as cart_error:
+            print(f'[auth] cart restore error: {cart_error}')
+
+    flash(
+        f'Welcome back, {profile.first_name}! 👋||'
+        'You have successfully logged in to KidZora.',
+        'auth_popup'
+    )
+
+    role_dashboards = {
+        'admin': 'admin.dashboard',
+        'seller': 'seller.dashboard',
+        'rider': 'rider.dashboard',
+    }
+    return redirect(url_for(role_dashboards.get(profile.role, 'index')))
+
+
+def _two_factor_profile_row(user_id):
+    result = supabase_admin.table('profiles').select('*').eq('id', user_id).execute()
+    return result.data[0] if result.data else None
+
+
+def _two_factor_is_enabled(profile_data):
+    return bool(profile_data.get('two_factor_enabled') and profile_data.get('two_factor_secret'))
+
 
 def send_confirmation_email(email, confirmation_code):
     """Send verification code email via SMTP."""
@@ -135,7 +193,7 @@ def login():
             detail = ', '.join(missing) if missing else 'Supabase client initialization failed'
             current_app.logger.error('Login unavailable: %s', detail)
             flash(
-                'Login service is not configured. Check the Supabase environment variables on Render.',
+                'Login service is not configured. Check the Supabase environment variables for this app.',
                 'error'
             )
             return render_template('auth/login.html')
@@ -192,6 +250,16 @@ def login():
                         flash('Pending Approval||Your account is under review. We will notify you by email once it is approved.', 'warning')
                         return render_template('auth/login.html')
 
+                    if _two_factor_is_enabled(profile_data):
+                        session['two_factor_pending_user_id'] = profile.id
+                        session['two_factor_pending_at'] = datetime.now().isoformat()
+                        try:
+                            supabase.auth.sign_out()
+                        except Exception:
+                            pass
+                        flash('Enter the code from your authenticator app to finish logging in.', 'info')
+                        return redirect(url_for('auth.two_factor_verify'))
+
                     login_user(profile)
 
                     # ── GUEST CART MERGE ──────────────────────────────────────
@@ -245,12 +313,150 @@ def login():
 @login_required
 def logout():
     logout_user()
+    _clear_pending_two_factor_login()
     try:
         supabase.auth.sign_out()
     except Exception:
         pass
     flash('Logged out successfully 👋||See you next time on KidZora!', 'auth_popup')
     return redirect(url_for('auth.login'))
+
+@auth_bp.route('/two-factor/verify', methods=['GET', 'POST'])
+def two_factor_verify():
+    """Finish login for accounts that enabled authenticator-app 2FA."""
+    pending_user_id = session.get('two_factor_pending_user_id')
+    pending_at = session.get('two_factor_pending_at')
+    if not pending_user_id or not pending_at:
+        flash('Start with your email and password before entering a 2FA code.', 'info')
+        return redirect(url_for('auth.login'))
+
+    try:
+        if datetime.now() - datetime.fromisoformat(pending_at) > timedelta(minutes=5):
+            _clear_pending_two_factor_login()
+            flash('Your 2FA login check expired. Please log in again.', 'error')
+            return redirect(url_for('auth.login'))
+        profile_data = _two_factor_profile_row(pending_user_id)
+    except Exception as e:
+        current_app.logger.exception('Could not load 2FA login profile: %s', e)
+        flash('Could not verify your login right now. Please try again.', 'error')
+        return redirect(url_for('auth.login'))
+
+    if not profile_data or not _two_factor_is_enabled(profile_data):
+        _clear_pending_two_factor_login()
+        flash('Two-factor authentication is not available for this account.', 'error')
+        return redirect(url_for('auth.login'))
+
+    if request.method == 'POST':
+        secret = decrypt_secret(profile_data.get('two_factor_secret'))
+        if not verify_totp(secret, request.form.get('code', '')):
+            flash('That authenticator code is not valid. Try the current six-digit code.', 'error')
+            return render_template('auth/two_factor_verify.html')
+
+        if profile_data.get('is_banned'):
+            _clear_pending_two_factor_login()
+            flash('This account is currently banned.', 'error')
+            return redirect(url_for('auth.login'))
+
+        profile = Profile(profile_data)
+        _clear_pending_two_factor_login()
+        login_user(profile)
+        return _redirect_after_login(profile)
+
+    return render_template('auth/two_factor_verify.html')
+
+
+@auth_bp.route('/two-factor/setup', methods=['GET', 'POST'])
+@login_required
+def two_factor_setup():
+    """Enroll the current user in authenticator-app TOTP 2FA."""
+    if not supabase_admin:
+        flash('Two-factor setup is not configured right now.', 'error')
+        return redirect(url_for('index'))
+
+    try:
+        profile_data = _two_factor_profile_row(current_user.id)
+    except Exception as e:
+        current_app.logger.exception('Could not load 2FA setup profile: %s', e)
+        flash('Could not load two-factor settings.', 'error')
+        return redirect(url_for('index'))
+
+    if not profile_data:
+        flash('Profile not found.', 'error')
+        return redirect(url_for('index'))
+
+    if request.method == 'POST' and not _two_factor_is_enabled(profile_data):
+        pending_secret = decrypt_secret(session.get('two_factor_setup_secret'))
+        if not verify_totp(pending_secret, request.form.get('code', '')):
+            flash('Enter the current six-digit code from your authenticator app.', 'error')
+            return redirect(url_for('auth.two_factor_setup'))
+
+        try:
+            supabase_admin.table('profiles').update({
+                'two_factor_enabled': True,
+                'two_factor_secret': encrypt_secret(pending_secret),
+                'two_factor_confirmed_at': datetime.utcnow().isoformat(),
+            }).eq('id', current_user.id).execute()
+        except Exception as e:
+            current_app.logger.exception('Could not enable 2FA: %s', e)
+            flash('Could not enable 2FA. Run the two-factor profile migration and try again.', 'error')
+            return redirect(url_for('auth.two_factor_setup'))
+
+        session.pop('two_factor_setup_secret', None)
+        flash('Authenticator two-factor authentication is enabled.', 'success')
+        return redirect(url_for('auth.two_factor_setup'))
+
+    if _two_factor_is_enabled(profile_data):
+        session.pop('two_factor_setup_secret', None)
+        return render_template('auth/two_factor_setup.html', two_factor_enabled=True)
+
+    setup_secret = decrypt_secret(session.get('two_factor_setup_secret'))
+    if not setup_secret:
+        setup_secret = new_totp_secret()
+        session['two_factor_setup_secret'] = encrypt_secret(setup_secret)
+
+    uri = provisioning_uri(current_user.email, setup_secret)
+    return render_template(
+        'auth/two_factor_setup.html',
+        two_factor_enabled=False,
+        manual_secret=setup_secret,
+        qr_code=qr_data_uri(uri),
+        provisioning_uri=uri,
+    )
+
+
+@auth_bp.route('/two-factor/disable', methods=['POST'])
+@login_required
+def two_factor_disable():
+    """Disable authenticator-app TOTP after a valid current code."""
+    try:
+        profile_data = _two_factor_profile_row(current_user.id)
+    except Exception as e:
+        current_app.logger.exception('Could not load 2FA disable profile: %s', e)
+        flash('Could not load two-factor settings.', 'error')
+        return redirect(url_for('auth.two_factor_setup'))
+
+    secret = decrypt_secret((profile_data or {}).get('two_factor_secret'))
+    if not _two_factor_is_enabled(profile_data or {}):
+        flash('Two-factor authentication is already disabled.', 'info')
+        return redirect(url_for('auth.two_factor_setup'))
+    if not verify_totp(secret, request.form.get('code', '')):
+        flash('Enter a valid current authenticator code to disable 2FA.', 'error')
+        return redirect(url_for('auth.two_factor_setup'))
+
+    try:
+        supabase_admin.table('profiles').update({
+            'two_factor_enabled': False,
+            'two_factor_secret': None,
+            'two_factor_confirmed_at': None,
+        }).eq('id', current_user.id).execute()
+    except Exception as e:
+        current_app.logger.exception('Could not disable 2FA: %s', e)
+        flash('Could not disable 2FA right now.', 'error')
+        return redirect(url_for('auth.two_factor_setup'))
+
+    flash('Authenticator two-factor authentication is disabled.', 'success')
+    return redirect(url_for('auth.two_factor_setup'))
+
 
 @auth_bp.route('/banned')
 def banned_page():
