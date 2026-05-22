@@ -126,6 +126,19 @@ def login():
         password = request.form.get('password')
         
         print(f"Login attempt: {email}")
+
+        if not supabase:
+            missing = [
+                name for name in ('SUPABASE_URL', 'SUPABASE_ANON_KEY')
+                if not current_app.config.get(name)
+            ]
+            detail = ', '.join(missing) if missing else 'Supabase client initialization failed'
+            current_app.logger.error('Login unavailable: %s', detail)
+            flash(
+                'Login service is not configured. Check the Supabase environment variables on Render.',
+                'error'
+            )
+            return render_template('auth/login.html')
         
         try:
             # Authenticate with Supabase
