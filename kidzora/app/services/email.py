@@ -31,6 +31,7 @@ def _send(to_email: str, subject: str, html: str) -> None:
         sender      = current_app.config.get('MAIL_DEFAULT_SENDER', username)
         use_ssl     = current_app.config.get('MAIL_USE_SSL', True)
         use_tls     = current_app.config.get('MAIL_USE_TLS', False)
+        timeout     = float(current_app.config.get('MAIL_TIMEOUT_SECONDS', 5))
 
         msg = MIMEMultipart('alternative')
         msg['From']    = sender
@@ -40,9 +41,9 @@ def _send(to_email: str, subject: str, html: str) -> None:
 
         ctx = ssl.create_default_context()
         if use_ssl:
-            server = smtplib.SMTP_SSL(smtp_server, smtp_port, context=ctx)
+            server = smtplib.SMTP_SSL(smtp_server, smtp_port, context=ctx, timeout=timeout)
         else:
-            server = smtplib.SMTP(smtp_server, smtp_port)
+            server = smtplib.SMTP(smtp_server, smtp_port, timeout=timeout)
             if use_tls:
                 server.starttls(context=ctx)
 

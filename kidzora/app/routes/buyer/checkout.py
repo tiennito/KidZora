@@ -5,7 +5,6 @@ from flask_login import login_required, current_user
 
 from app.extensions import supabase_admin as supabase
 from app.services.notify import push_order_event, push, push_low_stock, LOW_STOCK_THRESHOLD
-from app.services.email import notify_order_placed, notify_new_order_seller
 from app.services.delivery_fee_service import calculate_delivery_fee, build_order_totals
 from app.utils.settings import get_commission_rate
 from .utils import buyer_bp
@@ -470,6 +469,7 @@ def place_order():
                                 product_name=item.get('name', 'Product'),
                                 stock_left=new_var_stock,
                                 variant_name=item.get('variant_name'),
+                                email_alert=False,
                             )
                     except Exception:
                         pass
@@ -487,21 +487,19 @@ def place_order():
                                 product_id=item['pid'],
                                 product_name=item.get('name', 'Product'),
                                 stock_left=new_prod_stock,
+                                email_alert=False,
                             )
                     except Exception:
                         pass
 
             placed.append(order_id)
-            # notify seller of new order (push + email)
+            # Keep checkout notifications in-app. SMTP should not keep the
+            # buyer waiting while Render holds the request open.
             try:
                 push_order_event(order_id, 'order_placed')
             except Exception:
                 pass
-            try:
-                notify_new_order_seller(order_id, items_list, net_total)
-            except Exception:
-                pass
-            # notify buyer — in-app push + order confirmation email
+            # Notify the buyer in-app.
             try:
                 short_id = str(order_id)[:8].upper()
                 push(
@@ -513,11 +511,6 @@ def place_order():
                 )
             except Exception:
                 pass
-            try:
-                notify_order_placed(order_id, items_list, net_total, delivery_address)
-            except Exception:
-                pass
-
     except Exception as e:
         flash(f'Order failed: {e}', 'error')
         return redirect(url_for('buyer.checkout'))

@@ -27,6 +27,7 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'KidZora <noreply@kidzora.com>')
     MAIL_FROM_ADDRESS = os.environ.get('MAIL_FROM_ADDRESS', 'noreply@kidzora.com')
+    MAIL_TIMEOUT_SECONDS = float(os.environ.get('MAIL_TIMEOUT_SECONDS', 5))
     
     # ── Web Push / VAPID ──────────────────────────────────────────────────────
     # Generate a key pair once and store in .env:

@@ -302,6 +302,7 @@ def push_low_stock(
     product_name: str,
     stock_left: int,
     variant_name: str | None = None,
+    email_alert: bool = True,
 ) -> None:
     """Notify a seller that a product (or variant) is low on stock or sold out.
     seller_id may be sellers.id (shop row) — resolved to profiles.id internally."""
@@ -338,16 +339,17 @@ def push_low_stock(
     )
     
     # Send email alert
-    try:
-        notify_low_stock_email(
-            seller_user_id=seller_user_id,
-            product_id=product_id,
-            product_name=product_name,
-            stock_left=stock_left,
-            variant_name=variant_name,
-        )
-    except Exception:
-        pass  # Email failure should not break stock alert
+    if email_alert:
+        try:
+            notify_low_stock_email(
+                seller_user_id=seller_user_id,
+                product_id=product_id,
+                product_name=product_name,
+                stock_left=stock_left,
+                variant_name=variant_name,
+            )
+        except Exception:
+            pass  # Email failure should not break stock alert
 
 
 # ── Seller-follow helpers ─────────────────────────────────────────────────────
