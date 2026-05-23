@@ -129,6 +129,7 @@ def send_confirmation_email(email, confirmation_code):
         sender_full   = current_app.config.get('MAIL_DEFAULT_SENDER', username)
         use_ssl       = current_app.config.get('MAIL_USE_SSL', True)
         use_tls       = current_app.config.get('MAIL_USE_TLS', False)
+        timeout       = float(current_app.config.get('MAIL_TIMEOUT_SECONDS', 5))
 
         msg = MIMEMultipart('alternative')
         msg['From']    = sender_full
@@ -158,9 +159,9 @@ def send_confirmation_email(email, confirmation_code):
 
         context = ssl.create_default_context()
         if use_ssl:
-            server = smtplib.SMTP_SSL(smtp_server, smtp_port, context=context)
+            server = smtplib.SMTP_SSL(smtp_server, smtp_port, context=context, timeout=timeout)
         else:
-            server = smtplib.SMTP(smtp_server, smtp_port)
+            server = smtplib.SMTP(smtp_server, smtp_port, timeout=timeout)
             if use_tls:
                 server.starttls(context=context)
 
@@ -172,6 +173,9 @@ def send_confirmation_email(email, confirmation_code):
 
     except smtplib.SMTPAuthenticationError as e:
         print(f"SMTP Auth Error: {e}")
+        return False
+    except (TimeoutError, OSError) as e:
+        print(f"SMTP Connection Error ({smtp_server}:{smtp_port}, ssl={use_ssl}, tls={use_tls}): {e}")
         return False
     except Exception as e:
         print(f"Failed to send email: {e}")
@@ -1038,6 +1042,7 @@ def forgot_password_send_code():
         use_ssl     = current_app.config.get('MAIL_USE_SSL', True)
         use_tls     = current_app.config.get('MAIL_USE_TLS', False)
         sender_full = current_app.config.get('MAIL_DEFAULT_SENDER', username)
+        timeout     = float(current_app.config.get('MAIL_TIMEOUT_SECONDS', 5))
 
         msg = MIMEMultipart('alternative')
         msg['From']    = sender_full
@@ -1067,9 +1072,9 @@ def forgot_password_send_code():
 
         context = ssl.create_default_context()
         if use_ssl:
-            server = smtplib.SMTP_SSL(smtp_server, smtp_port, context=context)
+            server = smtplib.SMTP_SSL(smtp_server, smtp_port, context=context, timeout=timeout)
         else:
-            server = smtplib.SMTP(smtp_server, smtp_port)
+            server = smtplib.SMTP(smtp_server, smtp_port, timeout=timeout)
             if use_tls:
                 server.starttls(context=context)
         server.login(username, password)
