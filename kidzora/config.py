@@ -17,8 +17,9 @@ class Config:
     # Default: 150 MB to support up to 5 × 30 MB evidence files on return/refund requests
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 157286400))
     
-    # Email Configuration (Resend SMTP)
+    # Email Configuration
     USE_SUPABASE_EMAIL = os.environ.get('USE_SUPABASE_EMAIL', 'False').lower() in ['true', 'on', '1']
+    MAIL_PROVIDER = os.environ.get('MAIL_PROVIDER', '').lower()
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.resend.com')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', 465))
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'False').lower() in ['true', 'on', '1']
@@ -26,6 +27,7 @@ class Config:
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME', 'resend')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '')
     RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+    BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'KidZora <noreply@kidzora.com>')
     MAIL_FROM_ADDRESS = os.environ.get('MAIL_FROM_ADDRESS', 'noreply@kidzora.com')
     MAIL_TIMEOUT_SECONDS = float(os.environ.get('MAIL_TIMEOUT_SECONDS', 5))
