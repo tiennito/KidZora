@@ -17,12 +17,15 @@ from email.mime.text import MIMEText
 from flask import current_app, render_template
 
 from app.extensions import supabase_admin as supabase
+from app.services.mail_transport import send_html_email
 
 
 # ── Low-level send ─────────────────────────────────────────────────────────────
 
 def _send(to_email: str, subject: str, html: str) -> None:
     """Send one HTML email. Silently swallows errors."""
+    send_html_email(to_email, subject, html)
+    return
     try:
         smtp_server = current_app.config.get('MAIL_SERVER', 'smtp.gmail.com')
         smtp_port   = int(current_app.config.get('MAIL_PORT', 465))

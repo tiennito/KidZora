@@ -25,6 +25,7 @@ class Config:
     MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'True').lower() in ['true', 'on', '1']
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME', 'resend')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '')
+    RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'KidZora <noreply@kidzora.com>')
     MAIL_FROM_ADDRESS = os.environ.get('MAIL_FROM_ADDRESS', 'noreply@kidzora.com')
     MAIL_TIMEOUT_SECONDS = float(os.environ.get('MAIL_TIMEOUT_SECONDS', 5))

@@ -13,6 +13,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models.profile import Profile
 from app.extensions import supabase, supabase_admin
+from app.services.mail_transport import send_html_email
 from app.services.two_factor import (
     decrypt_secret,
     encrypt_secret,
@@ -120,22 +121,9 @@ def _two_factor_is_enabled(profile_data):
 
 
 def send_confirmation_email(email, confirmation_code):
-    """Send verification code email via SMTP."""
+    """Send verification code email."""
     try:
-        smtp_server   = current_app.config.get('MAIL_SERVER', 'smtp.gmail.com')
-        smtp_port     = int(current_app.config.get('MAIL_PORT', 465))
-        username      = current_app.config.get('MAIL_USERNAME', '')
-        password      = current_app.config.get('MAIL_PASSWORD', '')
-        sender_full   = current_app.config.get('MAIL_DEFAULT_SENDER', username)
-        use_ssl       = current_app.config.get('MAIL_USE_SSL', True)
-        use_tls       = current_app.config.get('MAIL_USE_TLS', False)
-        timeout       = float(current_app.config.get('MAIL_TIMEOUT_SECONDS', 5))
-
-        msg = MIMEMultipart('alternative')
-        msg['From']    = sender_full
-        msg['To']      = email
-        msg['Subject'] = 'KidZora - Email Verification Code'
-
+        subject = 'KidZora - Email Verification Code'
         html_body = f"""
         <html>
         <body style="font-family:Arial,sans-serif;background:#f4f6f9;padding:30px;">
@@ -155,28 +143,7 @@ def send_confirmation_email(email, confirmation_code):
         </body>
         </html>
         """
-        msg.attach(MIMEText(html_body, 'html'))
-
-        context = ssl.create_default_context()
-        if use_ssl:
-            server = smtplib.SMTP_SSL(smtp_server, smtp_port, context=context, timeout=timeout)
-        else:
-            server = smtplib.SMTP(smtp_server, smtp_port, timeout=timeout)
-            if use_tls:
-                server.starttls(context=context)
-
-        server.login(username, password)
-        server.sendmail(username, email, msg.as_string())
-        server.quit()
-        print(f"Email sent via {smtp_server} to {email}")
-        return True
-
-    except smtplib.SMTPAuthenticationError as e:
-        print(f"SMTP Auth Error: {e}")
-        return False
-    except (TimeoutError, OSError) as e:
-        print(f"SMTP Connection Error ({smtp_server}:{smtp_port}, ssl={use_ssl}, tls={use_tls}): {e}")
-        return False
+        return send_html_email(email, subject, html_body)
     except Exception as e:
         print(f"Failed to send email: {e}")
         return False
@@ -1069,6 +1036,10 @@ def forgot_password_send_code():
         </html>
         """
         msg.attach(MIMEText(html, 'html'))
+
+        if not send_html_email(email, 'KidZora - Password Reset Code', html):
+            raise RuntimeError('Email provider rejected or could not send the message.')
+        return jsonify({'success': True, 'message': 'Code sent! Check your inbox.'})
 
         context = ssl.create_default_context()
         if use_ssl:

@@ -13,6 +13,7 @@ from email.mime.multipart import MIMEMultipart
 
 from flask import Blueprint, current_app
 
+from app.services.mail_transport import send_html_email
 from app.utils.decorators import admin_required  # re-exported for sub-modules
 
 admin_bp = Blueprint('admin', __name__)
@@ -21,7 +22,8 @@ admin_bp = Blueprint('admin', __name__)
 # ── Email helpers ──────────────────────────────────────────────────────────────
 
 def _send_admin_email(to_email: str, subject: str, html_body: str) -> bool:
-    """Send an HTML notification email via SMTP."""
+    """Send an HTML notification email."""
+    return send_html_email(to_email, subject, html_body)
     try:
         smtp_server = current_app.config.get('MAIL_SERVER', 'smtp.gmail.com')
         smtp_port   = int(current_app.config.get('MAIL_PORT', 465))
