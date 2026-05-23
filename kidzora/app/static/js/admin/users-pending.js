@@ -28,7 +28,7 @@
                '</div>' +
              '</div>';
     }
-    var isImg   = /\.(png|jpg|jpeg|gif)$/i.test(url);
+    var isImg   = /\.(png|jpg|jpeg|gif|webp)(\?|$)/i.test(url);
     var preview = isImg
       ? '<img src="' + url + '" class="img-fluid rounded mb-2" style="max-height:120px;object-fit:cover;" alt="' + label + '">'
       : '<i class="fas fa-file-pdf fa-3x text-danger mb-2"></i>';

@@ -7,7 +7,7 @@
   /* ── Helper: render a document thumbnail or link ─────────── */
   function docCell(url, label) {
     if (!url) return '<span class="text-muted small">Not uploaded</span>';
-    var isImg = /\.(jpg|jpeg|png|gif)$/i.test(url);
+    var isImg = /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(url);
     return isImg
       ? '<a href="' + url + '" target="_blank">' +
           '<img src="' + url + '" alt="' + label + '" style="max-height:80px;max-width:160px;border-radius:6px;border:1px solid #ddd;">' +

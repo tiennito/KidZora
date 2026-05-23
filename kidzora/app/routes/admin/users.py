@@ -9,6 +9,8 @@ Covers:
   POST /admin/users/<id>/ban          — ban a user
   POST /admin/users/<id>/activate     — unban a user
 """
+from urllib.parse import unquote, urlparse
+
 from flask import render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required
 
@@ -22,6 +24,58 @@ from app.utils.pagination import paginate_list
 from .utils import (admin_bp, admin_required,
                      send_approval_email, send_rejection_email,
                      send_ban_email, send_unban_approved_email, send_unban_rejected_email)
+
+
+PRIVATE_DOCUMENT_BUCKETS = {'seller-documents', 'rider-documents'}
+SIGNED_DOCUMENT_URL_TTL_SECONDS = 60 * 10
+
+
+def _extract_storage_object(url_or_path, default_bucket):
+    """Return (bucket, path) from a stored Supabase Storage URL or raw object path."""
+    if not url_or_path:
+        return None, None
+
+    value = str(url_or_path).strip()
+    parsed = urlparse(value)
+    parts = [unquote(p) for p in parsed.path.split('/') if p]
+
+    marker_variants = [
+        ('storage', 'v1', 'object', 'public'),
+        ('storage', 'v1', 'object', 'sign'),
+        ('storage', 'v1', 'object'),
+    ]
+    for marker in marker_variants:
+        marker_len = len(marker)
+        for idx in range(0, len(parts) - marker_len):
+            if tuple(parts[idx:idx + marker_len]) == marker:
+                rest = parts[idx + marker_len:]
+                if len(rest) >= 2:
+                    return rest[0], '/'.join(rest[1:])
+
+    if default_bucket and not parsed.scheme:
+        path = value.lstrip('/')
+        if path.startswith(default_bucket + '/'):
+            path = path[len(default_bucket) + 1:]
+        return default_bucket, path
+
+    return None, None
+
+
+def _admin_document_url(url_or_path, default_bucket):
+    """Create a short-lived signed URL for private seller/rider documents."""
+    bucket, path = _extract_storage_object(url_or_path, default_bucket)
+    if not bucket or not path or bucket not in PRIVATE_DOCUMENT_BUCKETS:
+        return url_or_path
+
+    try:
+        signed = supabase_admin.storage.from_(bucket).create_signed_url(
+            path,
+            SIGNED_DOCUMENT_URL_TTL_SECONDS,
+        )
+        return signed.get('signedURL') or signed.get('signedUrl') or url_or_path
+    except Exception as exc:
+        print(f'[admin.documents] signed URL failed [{bucket}/{path}]: {exc}')
+        return url_or_path
 
 
 @admin_bp.route('/users/pending')
@@ -86,9 +140,9 @@ def seller_details_api(user_id):
         'business_type':        profile.business_type,
         'seller_id_type':       profile.seller_id_type,
         'seller_id_number':     profile.seller_id_number,
-        'seller_id_file':       profile.seller_id_file,
-        'business_permit_file': profile.business_permit_file,
-        'bir_file':             profile.bir_file,
+        'seller_id_file':       _admin_document_url(profile.seller_id_file, 'seller-documents'),
+        'business_permit_file': _admin_document_url(profile.business_permit_file, 'seller-documents'),
+        'bir_file':             _admin_document_url(profile.bir_file, 'seller-documents'),
         'created_at':           profile.created_at,
     }})
 
@@ -129,9 +183,9 @@ def rider_details_api(user_id):
             'created_at':                       p.get('created_at'),
             'vehicle_type':                     r.get('vehicle_type'),
             'vehicle_plate':                    r.get('vehicle_plate'),
-            'licensed_id_url':                  r.get('licensed_id_url'),
-            'original_receipt_url':             r.get('original_receipt_url'),
-            'certificate_of_registration_url':  r.get('certificate_of_registration_url'),
+            'licensed_id_url':                  _admin_document_url(r.get('licensed_id_url'), 'rider-documents'),
+            'original_receipt_url':             _admin_document_url(r.get('original_receipt_url'), 'rider-documents'),
+            'certificate_of_registration_url':  _admin_document_url(r.get('certificate_of_registration_url'), 'rider-documents'),
         }})
 
     except Exception as e:
