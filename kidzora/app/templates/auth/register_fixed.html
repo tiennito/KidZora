@@ -75,13 +75,23 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
-                                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                                    <div class="kz-password-field">
+                                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                                        <button type="button" class="kz-password-toggle" data-password-toggle="password" aria-label="Show password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="confirm_password" class="form-label">Confirm Password <span class="text-danger">*</span></label>
-                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                    <div class="kz-password-field">
+                                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                        <button type="button" class="kz-password-toggle" data-password-toggle="confirm_password" aria-label="Show confirm password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             

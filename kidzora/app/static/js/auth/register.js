@@ -4,6 +4,20 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Initializing registration form with simple inputs...');
 
+    document.querySelectorAll('[data-password-toggle]').forEach(function(button) {
+        const input = document.getElementById(button.dataset.passwordToggle);
+        const icon = button.querySelector('i');
+        if (!input || !icon) return;
+
+        button.addEventListener('click', function() {
+            const showPassword = input.type === 'password';
+            input.type = showPassword ? 'text' : 'password';
+            icon.classList.toggle('fa-eye', !showPassword);
+            icon.classList.toggle('fa-eye-slash', showPassword);
+            button.setAttribute('aria-label', showPassword ? 'Hide password' : 'Show password');
+        });
+    });
+
     // Toggle seller fields based on account type
     function toggleAccountType() {
         const role         = document.getElementById('role').value;
