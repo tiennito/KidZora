@@ -275,33 +275,43 @@ a.kz-action-link {
 /* Bell button in navbar */
 #kz-bell-btn {
   position: relative;
-  background: transparent;
+  background: rgba(255, 142, 168, 0.14);
   border: 0;
-  padding: 0.3rem 0.5rem;
+  border-radius: 999px;
+  min-width: 34px;
+  height: 34px;
+  padding: 0.3rem 0.55rem;
   cursor: pointer;
   line-height: 1;
-  color: rgba(255,255,255,0.85);
-  transition: color 150ms ease;
+  color: #e83e6f;
+  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
 }
-#kz-bell-btn:hover { color: #fff; }
+#kz-bell-btn:hover,
+#kz-bell-btn:focus-visible {
+  background: #e83e6f;
+  color: #fff;
+  transform: translateY(-1px);
+}
 
 /* Unread counter badge */
 #kz-bell-badge {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: -3px;
+  right: -5px;
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
   border-radius: 9999px;
-  background: #e53e3e;
+  background: #ffb703;
+  border: 2px solid #fff;
   color: #fff;
   font-size: 0.6rem;
   font-weight: 700;
-  line-height: 16px;
+  line-height: 12px;
   text-align: center;
   display: none;
   pointer-events: none;
+  box-shadow: 0 4px 10px rgba(232, 62, 111, 0.28);
 }
 #kz-bell-badge.kz-visible { display: block; }
 
