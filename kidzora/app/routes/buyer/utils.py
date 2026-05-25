@@ -41,5 +41,13 @@ def buyer_required(f):
         if not current_user.is_authenticated or current_user.role != 'buyer':
             flash('Access denied.', 'error')
             return redirect(url_for('auth.login'))
+        verification_status = (getattr(current_user, 'verification_status', '') or '').lower()
+        if verification_status == 'rejected' or not getattr(current_user, 'is_approved', False):
+            if verification_status == 'rejected':
+                reason = getattr(current_user, 'rejection_reason', '') or 'Please contact support for details.'
+                flash(f'Your account verification was rejected. Reason: {reason}', 'error')
+            else:
+                flash('Your account is pending admin identity verification.', 'warning')
+            return redirect(url_for('auth.login'))
         return f(*args, **kwargs)
     return decorated

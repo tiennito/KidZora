@@ -9,10 +9,11 @@ Covers:
   POST /admin/users/<id>/ban          — ban a user
   POST /admin/users/<id>/activate     — unban a user
 """
+from datetime import datetime
 from urllib.parse import unquote, urlparse
 
 from flask import render_template, request, flash, redirect, url_for, jsonify
-from flask_login import login_required
+from flask_login import current_user, login_required
 
 from app.models.profile import Profile
 from app.models.seller import Seller
@@ -26,7 +27,7 @@ from .utils import (admin_bp, admin_required,
                      send_ban_email, send_unban_approved_email, send_unban_rejected_email)
 
 
-PRIVATE_DOCUMENT_BUCKETS = {'seller-documents', 'rider-documents'}
+PRIVATE_DOCUMENT_BUCKETS = {'seller-documents', 'rider-documents', 'buyer-valid-ids'}
 SIGNED_DOCUMENT_URL_TTL_SECONDS = 60 * 10
 
 
@@ -82,6 +83,13 @@ def _admin_document_url(url_or_path, default_bucket):
 @login_required
 @admin_required
 def users_pending():
+    _buyer_rows = supabase_admin.table('profiles') \
+        .select('*') \
+        .eq('role', 'buyer') \
+        .eq('verification_status', 'Pending') \
+        .execute()
+    pending_buyers = [Profile(r) for r in (_buyer_rows.data or [])]
+
     pending_sellers = Profile.get_all({'role': 'seller', 'is_approved': False})
 
     # Pending riders = unapproved AND not yet rejected (rejection_reason IS NULL / empty).
@@ -100,8 +108,56 @@ def users_pending():
         rider.rider_details = Rider.get_by_user_id(rider.id)
 
     return render_template('admin/users_pending.html',
+                           pending_buyers=pending_buyers,
                            pending_sellers=pending_sellers,
                            pending_riders=pending_riders)
+
+
+@admin_bp.route('/api/buyer-details/<user_id>')
+@login_required
+@admin_required
+def buyer_details_api(user_id):
+    """Return buyer profile and signed valid-ID URL for admin review."""
+    try:
+        profile_resp = supabase_admin.table('profiles').select('*').eq('id', user_id).execute()
+        if not profile_resp.data:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+        p = profile_resp.data[0]
+        if p.get('role') != 'buyer':
+            return jsonify({'success': False, 'message': 'User is not a buyer'}), 400
+
+        full_address = ', '.join(filter(None, [
+            p.get('building_number'), p.get('street_name'), p.get('barangay'),
+            p.get('city'), p.get('province'), p.get('region'),
+            p.get('postal_code'), p.get('country'),
+        ]))
+        full_name = f"{p.get('first_name', '')} {p.get('last_name', '')}".strip()
+
+        return jsonify({'success': True, 'data': {
+            'id':                  p.get('id'),
+            'full_name':           full_name,
+            'email':               p.get('email'),
+            'phone':               p.get('phone'),
+            'role':                p.get('role'),
+            'is_approved':         p.get('is_approved'),
+            'is_banned':           p.get('is_banned', False),
+            'verification_status': p.get('verification_status') or 'Pending',
+            'rejection_reason':    p.get('rejection_reason'),
+            'valid_id_url':        _admin_document_url(p.get('valid_id_path'), 'buyer-valid-ids'),
+            'full_address':        full_address,
+            'region':              p.get('region'),
+            'province':            p.get('province'),
+            'city':                p.get('city'),
+            'barangay':            p.get('barangay'),
+            'postal_code':         p.get('postal_code'),
+            'country':             p.get('country'),
+            'building_number':     p.get('building_number'),
+            'street_name':         p.get('street_name'),
+            'created_at':          p.get('created_at'),
+        }})
+    except Exception as e:
+        print(f'buyer_details_api error: {e}')
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @admin_bp.route('/api/seller-details/<user_id>')
@@ -202,9 +258,26 @@ def approve_user(user_id):
         flash('User not found', 'error')
         return redirect(url_for('admin.users_pending'))
 
-    if user.update({'is_approved': True}):
+    update_data = {'is_approved': True}
+    if user.role == 'buyer':
+        update_data.update({
+            'verification_status': 'Approved',
+            'verified_by': current_user.id,
+            'verified_at': datetime.utcnow().isoformat(),
+            'rejection_reason': None,
+        })
+
+    try:
+        update_resp = supabase_admin.table('profiles').update(update_data).eq('id', user.id).execute()
+        updated = bool(update_resp.data)
+    except Exception as e:
+        print(f'approve_user update error: {e}')
+        updated = False
+
+    if updated:
         send_approval_email(user)
-        notify_welcome_approved(user.id)
+        if user.role in ('seller', 'rider'):
+            notify_welcome_approved(user.id)
         log_admin_action(
             action='approve_user',
             entity_type='profile',
@@ -232,22 +305,35 @@ def reject_user(user_id):
     user_name = user.get_full_name()
 
     # ── Riders: soft-reject so they can re-upload documents ───────────────────
-    if user.role == 'rider':
+    if user.role in ('buyer', 'rider'):
         send_rejection_email(user, reason)
         try:
+            update_data = {
+                'is_approved': False,
+                'rejection_reason': reason or 'Submitted documents did not meet requirements.',
+            }
+            if user.role == 'buyer':
+                update_data.update({
+                    'verification_status': 'Rejected',
+                    'verified_by': current_user.id,
+                    'verified_at': datetime.utcnow().isoformat(),
+                })
             supabase_admin.table('profiles') \
-                .update({'rejection_reason': reason or 'Documents did not meet requirements.'}) \
+                .update(update_data) \
                 .eq('id', user.id).execute()
             log_admin_action(
                 action='reject_user_soft',
                 entity_type='profile',
                 entity_id=user.id,
                 target_user_id=user.id,
-                details={'role': user.role, 'reason': reason or 'Documents did not meet requirements.'},
+                details={'role': user.role, 'reason': update_data['rejection_reason']},
             )
         except Exception as e:
             print(f'Warning: could not set rejection_reason for {user.id}: {e}')
-        flash(f'Rider Rejected||{user_name} has been notified. They can log in to re-upload their documents.', 'success')
+        if user.role == 'rider':
+            flash(f'Rider Rejected||{user_name} has been notified. They can log in to re-upload their documents.', 'success')
+        else:
+            flash(f'Buyer Rejected||{user_name} has been notified and will see the rejection reason when logging in.', 'success')
         return redirect(url_for('admin.users_pending'))
 
     # ── Sellers / others: hard-delete (must re-register) ──────────────────────

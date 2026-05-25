@@ -122,6 +122,35 @@
                         </div>
                     </div>
                     
+                    <!-- Buyer Identity Verification -->
+                    <div id="buyerVerificationFields" class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2"><i class="fas fa-id-card me-2"></i>Identity Verification</h5>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="buyer_valid_id" class="form-label">Valid Government-Issued ID <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="file" class="form-control" id="buyer_valid_id" name="buyer_valid_id" accept=".jpg,.jpeg,.png,.pdf" required>
+                                    <label class="input-group-text" for="buyer_valid_id">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </label>
+                                </div>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Upload exactly one clear National ID, Driver's License, Passport, Postal ID, UMID, or any valid government-issued ID. JPG, PNG, or PDF only. Maximum 5 MB.
+                                </div>
+                                <div id="buyer_valid_id_preview" class="mt-2"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-info mb-0">
+                                <strong>Admin review required</strong><br>
+                                Buyer accounts are marked pending until an admin verifies the uploaded ID.
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Location Details -->
                     <div class="row mb-4">
                         <div class="col-12">

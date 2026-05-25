@@ -21,8 +21,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Toggle role-specific fields based on account type
     function toggleRoleFields() {
         const role         = document.querySelector('input[name="role"]:checked').value;
+        const buyerFields  = document.getElementById('buyerVerificationFields');
         const sellerFields = document.getElementById('sellerFields');
         const riderFields  = document.getElementById('riderFields');
+        const buyerValidId = document.getElementById('buyer_valid_id');
+
+        if (role === 'buyer') {
+            if (buyerFields) buyerFields.style.display = 'flex';
+            if (buyerValidId) buyerValidId.required = true;
+        } else {
+            if (buyerFields) buyerFields.style.display = 'none';
+            if (buyerValidId) buyerValidId.required = false;
+        }
 
         // --- Seller ---
         if (role === 'seller') {
@@ -102,11 +112,13 @@ document.addEventListener('DOMContentLoaded', function() {
     setupFilePreview('licensed_id', 'licensed_id_preview');
     setupFilePreview('original_receipt', 'original_receipt_preview');
     setupFilePreview('certificate_of_registration', 'certificate_of_registration_preview');
+    setupFilePreview('buyer_valid_id', 'buyer_valid_id_preview');
 
     // Role radio button listeners
     document.querySelectorAll('input[name="role"]').forEach(function(radio) {
         radio.addEventListener('change', toggleRoleFields);
     });
+    toggleRoleFields();
 
     // Form + modal setup
     const form              = document.getElementById('registrationForm');
@@ -150,6 +162,23 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!/^[0-9]{4}$/.test(postalCode)) {
                 alert('Postal code must be exactly 4 digits (e.g. 1000).');
                 return;
+            }
+
+            const role = formData.get('role');
+            const buyerId = formData.get('buyer_valid_id');
+            if (role === 'buyer') {
+                if (!buyerId || !buyerId.name) {
+                    alert('Please upload exactly one valid government-issued ID.');
+                    return;
+                }
+                if (!/\.(jpg|jpeg|png|pdf)$/i.test(buyerId.name)) {
+                    alert('Valid ID must be a JPG, PNG, or PDF file.');
+                    return;
+                }
+                if (buyerId.size > 5 * 1024 * 1024) {
+                    alert('Valid ID file must be 5 MB or smaller.');
+                    return;
+                }
             }
 
             sendConfirmationCode(email, formData);
@@ -229,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data.success) {
-                        alert('Account created successfully! Please login.');
+                        alert(data.message || 'Registration submitted. Please wait for admin verification.');
                         window.location.href = '/auth/login';
                     } else {
                         alert('Registration failed: ' + (data.message || 'Please try again.'));

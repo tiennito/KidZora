@@ -59,8 +59,12 @@ def _send_admin_email(to_email: str, subject: str, html_body: str) -> bool:
 def send_approval_email(user) -> None:
     role        = getattr(user, 'role', 'seller')
     is_rider    = role == 'rider'
-    role_label  = 'Rider' if is_rider else 'Seller'
-    dashboard   = 'rider dashboard and start accepting deliveries' if is_rider else 'seller dashboard and start listing your products'
+    is_buyer    = role == 'buyer'
+    role_label  = 'Buyer' if is_buyer else 'Rider' if is_rider else 'Seller'
+    if is_buyer:
+        dashboard = 'account and start shopping'
+    else:
+        dashboard = 'rider dashboard and start accepting deliveries' if is_rider else 'seller dashboard and start listing your products'
     subject     = f'KidZora - Your {role_label} Account Has Been Approved!'
 
     html = f"""
@@ -87,8 +91,12 @@ def send_approval_email(user) -> None:
 def send_rejection_email(user, reason: str) -> None:
     role        = getattr(user, 'role', 'seller')
     is_rider    = role == 'rider'
-    role_label  = 'Rider' if is_rider else 'Seller'
-    default_reason = 'Does not meet our rider requirements.' if is_rider else 'Does not meet our seller requirements.'
+    is_buyer    = role == 'buyer'
+    role_label  = 'Buyer' if is_buyer else 'Rider' if is_rider else 'Seller'
+    if is_buyer:
+        default_reason = 'Submitted identity verification did not meet our requirements.'
+    else:
+        default_reason = 'Does not meet our rider requirements.' if is_rider else 'Does not meet our seller requirements.'
     subject     = f'KidZora - {role_label} Registration Update'
 
     html = f"""

@@ -69,6 +69,8 @@
         var userRole = button.getAttribute('data-user-role') || 'seller';
         var cfg      = window.KZ_ADMIN_PENDING || {};
         var isRider  = (userRole === 'rider');
+        var isBuyer  = (userRole === 'buyer');
+        var isSoftReject = isRider || isBuyer;
 
         // Populate name in both notices
         var nameEl       = document.getElementById('rejectUserName');
@@ -83,11 +85,11 @@
         var btnLabel     = document.getElementById('rejectBtnLabel');
         var submitBtn    = document.getElementById('rejectSubmitBtn');
 
-        if (isRider) {
+        if (isSoftReject) {
           if (riderNotice)  riderNotice.classList.remove('d-none');
           if (sellerNotice) sellerNotice.classList.add('d-none');
           if (confirmWrap)  confirmWrap.style.display = 'none';
-          if (btnLabel)     btnLabel.textContent = 'Reject & Notify Rider';
+          if (btnLabel)     btnLabel.textContent = isBuyer ? 'Reject & Notify Buyer' : 'Reject & Notify Rider';
           if (submitBtn)    submitBtn.disabled = false;
         } else {
           if (riderNotice)  riderNotice.classList.add('d-none');
@@ -123,12 +125,16 @@
 
         var apiUrl = userType === 'rider'
           ? '/admin/api/rider-details/' + userId
-          : '/admin/api/seller-details/' + userId;
+          : userType === 'buyer'
+            ? '/admin/api/buyer-details/' + userId
+            : '/admin/api/seller-details/' + userId;
 
         var modalTitle = document.getElementById('viewModalTitle');
         modalTitle.innerHTML = userType === 'rider'
           ? '<i class="fas fa-motorcycle me-2"></i>Rider Application Details'
-          : '<i class="fas fa-store me-2"></i>Seller Application Details';
+          : userType === 'buyer'
+            ? '<i class="fas fa-id-card me-2"></i>Buyer Verification Details'
+            : '<i class="fas fa-store me-2"></i>Seller Application Details';
 
         fetch(apiUrl)
           .then(function (r) { return r.json(); })
@@ -174,7 +180,21 @@
                 '</div>' +
               '</div>';
 
-            if (userType === 'rider') {
+            if (userType === 'buyer') {
+              document.getElementById('viewModalContent').innerHTML =
+                '<div class="row g-3">' +
+                  personalCard +
+                  addressCard +
+                  '<div class="col-12">' +
+                    '<div class="card">' +
+                      '<div class="card-header bg-light"><i class="fas fa-id-card me-2"></i><strong>Submitted Valid ID</strong></div>' +
+                      '<div class="card-body"><div class="row">' +
+                        fileCard('Government-Issued Valid ID', d.valid_id_url, 'fa-id-card') +
+                      '</div></div>' +
+                    '</div>' +
+                  '</div>' +
+                '</div>';
+            } else if (userType === 'rider') {
               document.getElementById('viewModalContent').innerHTML =
                 '<div class="row g-3">' +
                   personalCard +
@@ -231,7 +251,7 @@
             footer.innerHTML =
               '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>' +
               '<button type="button" class="btn btn-danger" data-bs-dismiss="modal"' +
-                ' onclick="triggerReject(\'' + d.id + '\',\'' + d.full_name + '\')">' +
+                ' onclick="triggerReject(\'' + d.id + '\',\'' + d.full_name + '\',\'' + d.role + '\')">' +
                 '<i class="fas fa-times me-1"></i>Reject' +
               '</button>' +
               '<button type="button" class="btn btn-success" data-bs-dismiss="modal"' +
@@ -258,12 +278,18 @@
   }
   window.triggerApprove = triggerApprove;
 
-  function triggerReject(userId, userName) {
+  function triggerReject(userId, userName, userRole) {
     var cfg = window.KZ_ADMIN_PENDING || {};
+    var isSoftReject = userRole === 'buyer' || userRole === 'rider';
     document.getElementById('rejectUserName').textContent = userName;
+    document.getElementById('rejectUserNameSeller').textContent = userName;
     document.querySelector('#rejectModal form').action = (cfg.rejectUserUrl || '').replace('PLACEHOLDER', userId);
     document.getElementById('rejectConfirm').checked = false;
-    document.getElementById('rejectSubmitBtn').disabled = true;
+    document.getElementById('rejectSubmitBtn').disabled = !isSoftReject;
+    document.getElementById('rejectRiderNotice').classList.toggle('d-none', !isSoftReject);
+    document.getElementById('rejectSellerNotice').classList.toggle('d-none', isSoftReject);
+    document.getElementById('rejectConfirmWrap').style.display = isSoftReject ? 'none' : '';
+    document.getElementById('rejectBtnLabel').textContent = userRole === 'buyer' ? 'Reject & Notify Buyer' : userRole === 'rider' ? 'Reject & Notify Rider' : 'Reject permanently';
     document.getElementById('rejectReason').value = '';
     new bootstrap.Modal(document.getElementById('rejectModal')).show();
   }

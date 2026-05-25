@@ -14,6 +14,7 @@ VALUES
   ('return-evidence',  'return-evidence',   true),
   ('review-media',     'review-media',      true),
   -- Private buckets — sensitive ID / legal documents
+  ('buyer-valid-ids', 'buyer-valid-ids', false),
   ('seller-documents', 'seller-documents',  false),
   ('rider-documents',  'rider-documents',   false),
   ('appeals',          'appeals',           false)
@@ -87,6 +88,18 @@ CREATE POLICY "Authenticated update review-media"
   ON storage.objects FOR UPDATE TO authenticated
   USING (bucket_id = 'review-media');
 
+
+-- ── buyer-valid-ids (PRIVATE — admin only) ──────────────────
+DROP POLICY IF EXISTS "Service role read buyer-valid-ids"    ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated upsert buyer-valid-ids" ON storage.objects;
+
+CREATE POLICY "Service role read buyer-valid-ids"
+  ON storage.objects FOR SELECT TO service_role
+  USING (bucket_id = 'buyer-valid-ids');
+
+CREATE POLICY "Authenticated upsert buyer-valid-ids"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'buyer-valid-ids');
 
 -- ── seller-documents (PRIVATE — admin only) ──────────────────
 DROP POLICY IF EXISTS "Service role read seller-documents"   ON storage.objects;

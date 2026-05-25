@@ -24,9 +24,94 @@ from app.services.two_factor import (
 )
 
 ALLOWED_DOC_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
+ALLOWED_BUYER_ID_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
+BUYER_VALID_ID_BUCKET = 'buyer-valid-ids'
+MAX_BUYER_VALID_ID_BYTES = 5 * 1024 * 1024
 
 def _allowed_doc(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_DOC_EXTENSIONS
+
+
+def _clean_text(value):
+    return (value or '').strip()
+
+
+def _clean_email(value):
+    return _clean_text(value).lower()
+
+
+def _buyer_id_extension(filename):
+    if not filename or '.' not in filename:
+        return ''
+    return filename.rsplit('.', 1)[1].lower()
+
+
+def _buyer_valid_id_error(file):
+    """Return None when the buyer ID file is acceptable, otherwise a user-safe error."""
+    if not file or file.filename == '':
+        return 'Please upload exactly one valid government-issued ID.'
+
+    ext = _buyer_id_extension(file.filename)
+    if ext not in ALLOWED_BUYER_ID_EXTENSIONS:
+        return 'Valid ID must be a JPG, PNG, or PDF file.'
+
+    try:
+        pos = file.stream.tell()
+        file.stream.seek(0, os.SEEK_END)
+        size = file.stream.tell()
+        file.stream.seek(pos)
+    except Exception:
+        size = getattr(file, 'content_length', 0) or 0
+
+    if size <= 0:
+        return 'The uploaded valid ID file appears to be empty.'
+    if size > MAX_BUYER_VALID_ID_BYTES:
+        return 'Valid ID file must be 5 MB or smaller.'
+
+    try:
+        pos = file.stream.tell()
+        header = file.stream.read(8)
+        file.stream.seek(pos)
+    except Exception:
+        header = b''
+
+    is_jpeg = ext in {'jpg', 'jpeg'} and header.startswith(b'\xff\xd8\xff')
+    is_png = ext == 'png' and header.startswith(b'\x89PNG\r\n\x1a\n')
+    is_pdf = ext == 'pdf' and header.startswith(b'%PDF-')
+    if not (is_jpeg or is_png or is_pdf):
+        return 'The uploaded valid ID does not match its file type.'
+
+    return None
+
+
+def save_buyer_valid_id(file, user_id):
+    """Upload one buyer government ID to private storage and return its object path."""
+    error = _buyer_valid_id_error(file)
+    if error:
+        raise ValueError(error)
+
+    ext = _buyer_id_extension(file.filename)
+    filename = secure_filename(f"valid_id_{user_id}.{ext}")
+    storage_path = f"buyers/{user_id}/{filename}"
+    content_type = {
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'pdf': 'application/pdf',
+    }[ext]
+
+    try:
+        file.stream.seek(0)
+        data = file.read()
+        supabase_admin.storage.from_(BUYER_VALID_ID_BUCKET).upload(
+            path=storage_path,
+            file=data,
+            file_options={"content-type": content_type, "upsert": "true"},
+        )
+        return storage_path
+    except Exception as e:
+        print(f'[save_buyer_valid_id] upload failed: {e}')
+        raise RuntimeError('Could not securely store the valid ID. Please try again.')
 
 def save_seller_file(file, user_id, file_type):
     """Upload a seller registration document to Supabase Storage; return public URL or None."""
@@ -203,6 +288,25 @@ def login():
                         session['banned_user_name'] = profile.get_full_name()
                         session['ban_reason']      = profile_data.get('ban_reason', '')
                         return redirect(url_for('auth.banned_page'))
+
+                    if profile.role == 'buyer':
+                        verification_status = (profile_data.get('verification_status') or '').lower()
+                        if verification_status == 'rejected' or profile_data.get('is_approved') is False:
+                            supabase.auth.sign_out()
+                            reason = profile_data.get('rejection_reason')
+                            if verification_status == 'rejected':
+                                flash(
+                                    'Account Rejected||'
+                                    f'Your account verification was rejected.{(" Reason: " + reason) if reason else ""}',
+                                    'danger'
+                                )
+                            else:
+                                flash(
+                                    'Pending Verification||Your account is pending admin identity verification. '
+                                    'You will be able to access KidZora once approved.',
+                                    'warning'
+                                )
+                            return render_template('auth/login.html')
 
                     # Block unapproved sellers and riders
                     if profile.role in ('seller', 'rider') and not profile_data.get('is_approved'):
@@ -607,35 +711,36 @@ def register():
         # Check if this is email verification step
         if request.form.get('email_verified') == 'true':
             # Email verified, proceed with full registration
-            email = request.form.get('email')
+            email = _clean_email(request.form.get('email'))
             password = request.form.get('password')
             confirm_password = request.form.get('confirm_password')
-            first_name = request.form.get('first_name')
-            last_name = request.form.get('last_name')
-            phone = request.form.get('phone')
-            role = request.form.get('role')
+            first_name = _clean_text(request.form.get('first_name'))
+            last_name = _clean_text(request.form.get('last_name'))
+            phone = _clean_text(request.form.get('phone'))
+            role = _clean_text(request.form.get('role'))
             newsletter = request.form.get('newsletter')
             terms = request.form.get('terms')
             privacy = request.form.get('privacy')
             
             # Address fields
-            building_number = request.form.get('building_number')
-            street_name = request.form.get('street_name')
-            city = request.form.get('city')
-            postal_code = request.form.get('postal_code')
-            country = request.form.get('country', 'Philippines')
-            region = request.form.get('region')
-            province = request.form.get('province')
-            barangay = request.form.get('barangay')
+            building_number = _clean_text(request.form.get('building_number'))
+            street_name = _clean_text(request.form.get('street_name'))
+            city = _clean_text(request.form.get('city'))
+            postal_code = _clean_text(request.form.get('postal_code'))
+            country = _clean_text(request.form.get('country', 'Philippines')) or 'Philippines'
+            region = _clean_text(request.form.get('region'))
+            province = _clean_text(request.form.get('province'))
+            barangay = _clean_text(request.form.get('barangay'))
             
             # Seller-specific fields
-            business_name = request.form.get('business_name')
-            business_type = request.form.get('business_type')
-            seller_id_type = request.form.get('seller_id_type')
-            seller_id_number = request.form.get('seller_id_number')
+            business_name = _clean_text(request.form.get('business_name'))
+            business_type = _clean_text(request.form.get('business_type'))
+            seller_id_type = _clean_text(request.form.get('seller_id_type'))
+            seller_id_number = _clean_text(request.form.get('seller_id_number'))
             seller_id_file = request.files.get('seller_id_file')
             business_permit_file = request.files.get('business_permit_file')
             bir_file = request.files.get('bir_file')
+            buyer_valid_id_file = request.files.get('buyer_valid_id')
 
             # Rider-specific fields
             rider_licensed_id_file = request.files.get('licensed_id')
@@ -678,7 +783,27 @@ def register():
                 if not business_name or not business_type or not seller_id_type or not seller_id_number:
                     flash('Please complete all seller business information fields.', 'error')
                     return jsonify({'success': False, 'message': 'Missing seller information'})
+                for label, uploaded_file in (
+                    ('Government ID', seller_id_file),
+                    ('Business Permit', business_permit_file),
+                    ('BIR Certificate', bir_file),
+                ):
+                    if not uploaded_file or uploaded_file.filename == '' or not _allowed_doc(uploaded_file.filename):
+                        return jsonify({'success': False, 'message': f'{label} must be a JPG, PNG, GIF, or PDF file.'})
 
+            if role == 'buyer':
+                buyer_id_error = _buyer_valid_id_error(buyer_valid_id_file)
+                if buyer_id_error:
+                    return jsonify({'success': False, 'message': buyer_id_error})
+
+            if role == 'rider':
+                for label, uploaded_file in (
+                    ("Driver's License", rider_licensed_id_file),
+                    ('Official Receipt', rider_receipt_file),
+                    ('Certificate of Registration', rider_cor_file),
+                ):
+                    if not uploaded_file or uploaded_file.filename == '' or not _allowed_doc(uploaded_file.filename):
+                        return jsonify({'success': False, 'message': f'{label} must be a JPG, PNG, GIF, or PDF file.'})
 
             
             try:
@@ -775,7 +900,7 @@ def register():
                         'last_name': last_name,
                         'phone': phone,
                         'role': role,
-                        'is_approved': role == 'buyer',  # Auto-approve buyers
+                        'is_approved': False,
                         'building_number': building_number,
                         'street_name': street_name,
                         'city': city,
@@ -786,6 +911,22 @@ def register():
                         'barangay': barangay,
                         'newsletter': newsletter == 'on'
                     }
+
+                    if role == 'buyer':
+                        try:
+                            profile_data.update({
+                                'valid_id_path': save_buyer_valid_id(buyer_valid_id_file, auth_response.user.id),
+                                'verification_status': 'Pending',
+                                'verified_by': None,
+                                'verified_at': None,
+                                'rejection_reason': None,
+                            })
+                        except (ValueError, RuntimeError) as upload_error:
+                            try:
+                                supabase_admin.auth.admin.delete_user(auth_response.user.id)
+                            except Exception as cleanup_error:
+                                print(f"Warning: could not remove auth user after ID upload failure: {cleanup_error}")
+                            return jsonify({'success': False, 'message': str(upload_error)})
                     
                     # Add seller-specific fields if role is seller
                     if role == 'seller':
@@ -837,6 +978,17 @@ def register():
                             except Exception as rd_:
                                 print(f"Warning: could not save rider documents: {rd_}")
 
+                        if role == 'buyer':
+                            flash(
+                                'Registration Submitted||Your account is pending admin identity verification. '
+                                'You will be able to log in after approval.',
+                                'success'
+                            )
+                            return jsonify({
+                                'success': True,
+                                'message': 'Registration submitted. Your account is pending admin verification.'
+                            })
+
                         flash('Registration Complete!||Your account has been created. Please log in to continue.', 'success')
                         return jsonify({'success': True, 'message': 'Account created successfully'})
                     else:
@@ -854,9 +1006,10 @@ def register():
         
         else:
             # Initial form submission - send confirmation code
-            email = request.form.get('email')
+            email = _clean_email(request.form.get('email'))
             password = request.form.get('password')
             confirm_password = request.form.get('confirm_password')
+            role = _clean_text(request.form.get('role'))
             
             # Basic validation
             if not email or not password or not confirm_password:
@@ -872,6 +1025,11 @@ def register():
             if password != confirm_password:
                 flash('Passwords do not match.', 'error')
                 return jsonify({'success': False, 'message': 'Passwords do not match'})
+
+            if role == 'buyer':
+                buyer_id_error = _buyer_valid_id_error(request.files.get('buyer_valid_id'))
+                if buyer_id_error:
+                    return jsonify({'success': False, 'message': buyer_id_error})
             
             try:
                 # Generate 6-digit confirmation code
@@ -881,25 +1039,25 @@ def register():
                 session['registration_email'] = email
                 session['registration_password'] = password
                 session['registration_data'] = {
-                    'first_name': request.form.get('first_name'),
-                    'last_name': request.form.get('last_name'),
-                    'phone': request.form.get('phone'),
-                    'role': request.form.get('role'),
+                    'first_name': _clean_text(request.form.get('first_name')),
+                    'last_name': _clean_text(request.form.get('last_name')),
+                    'phone': _clean_text(request.form.get('phone')),
+                    'role': role,
                     'newsletter': request.form.get('newsletter'),
                     'terms': request.form.get('terms'),
                     'privacy': request.form.get('privacy'),
-                    'building_number': request.form.get('building_number'),
-                    'street_name': request.form.get('street_name'),
-                    'city': request.form.get('city'),
-                    'postal_code': request.form.get('postal_code'),
-                    'country': request.form.get('country', 'Philippines'),
-                    'region': request.form.get('region'),
-                    'province': request.form.get('province'),
-                    'barangay': request.form.get('barangay'),
-                    'business_name': request.form.get('business_name'),
-                    'business_type': request.form.get('business_type'),
-                    'seller_id_type': request.form.get('seller_id_type'),
-                    'seller_id_number': request.form.get('seller_id_number')
+                    'building_number': _clean_text(request.form.get('building_number')),
+                    'street_name': _clean_text(request.form.get('street_name')),
+                    'city': _clean_text(request.form.get('city')),
+                    'postal_code': _clean_text(request.form.get('postal_code')),
+                    'country': _clean_text(request.form.get('country', 'Philippines')) or 'Philippines',
+                    'region': _clean_text(request.form.get('region')),
+                    'province': _clean_text(request.form.get('province')),
+                    'barangay': _clean_text(request.form.get('barangay')),
+                    'business_name': _clean_text(request.form.get('business_name')),
+                    'business_type': _clean_text(request.form.get('business_type')),
+                    'seller_id_type': _clean_text(request.form.get('seller_id_type')),
+                    'seller_id_number': _clean_text(request.form.get('seller_id_number'))
                 }
                 session['confirmation_code'] = confirmation_code
                 session['code_generated_at'] = datetime.now().isoformat()
